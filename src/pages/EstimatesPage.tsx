@@ -109,7 +109,8 @@ export default function EstimatesPage() {
           icon={FileText}
           title="No estimates yet"
           description="Create your first estimate to get started."
-          action={<Button onClick={() => navigate("/estimates/new")}><Plus className="mr-1 h-4 w-4" /> New Estimate</Button>}
+          actionLabel="New Estimate"
+          onAction={() => navigate("/estimates/new")}
         />
       ) : (
         <div className="border rounded-lg">

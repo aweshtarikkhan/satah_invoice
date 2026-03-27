@@ -34,6 +34,7 @@ export const PAPER_SIZES = [
   { id: "letter", name: "Letter", dimensions: "8.5 × 11 in" },
   { id: "legal", name: "Legal", dimensions: "8.5 × 14 in" },
   { id: "a5", name: "A5", dimensions: "148 × 210 mm" },
+  { id: "a6", name: "A6", dimensions: "105 × 148 mm" },
 ] as const;
 
 export function getDocumentPreviewClass(templateStyle?: string, paperSize?: string) {
@@ -49,6 +50,7 @@ export function getDocumentPreviewClass(templateStyle?: string, paperSize?: stri
     letter: "max-w-[8.5in]",
     legal: "max-w-[8.5in] min-h-[14in]",
     a5: "max-w-[148mm]",
+    a6: "max-w-[105mm]",
   }[paperSize || "a4"];
 
   return `mx-auto w-full ${styleClass || "rounded-xl border border-border bg-card text-card-foreground shadow-sm"} ${sizeClass || "max-w-[210mm]"} print:max-w-none print:shadow-none`;

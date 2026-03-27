@@ -20,6 +20,10 @@ const TEMPLATE_STYLES = [
   { id: "modern", name: "Modern", description: "Contemporary with accent colors" },
   { id: "minimal", name: "Minimal", description: "Clean and simple" },
   { id: "professional", name: "Professional", description: "Corporate-grade" },
+  { id: "asperiores", name: "Asperiores", description: "Bold executive with striking contrasts" },
+  { id: "magnam", name: "Magnam", description: "Elegant with refined spacing" },
+  { id: "quisquam", name: "Quisquam", description: "Compact data-dense layout" },
+  { id: "nobis", name: "Nobis", description: "Creative asymmetric design" },
 ];
 
 const FONTS = [

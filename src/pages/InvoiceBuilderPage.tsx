@@ -195,6 +195,8 @@ export default function InvoiceBuilderPage() {
   const { id } = useParams();
   const org = useAppStore((s) => s.organization);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
 
   const [clients, setClients] = useState<any[]>([]);
   const [catalogItems, setCatalogItems] = useState<any[]>([]);

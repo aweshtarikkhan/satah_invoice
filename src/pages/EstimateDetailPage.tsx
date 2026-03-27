@@ -44,7 +44,7 @@ export default function EstimateDetailPage() {
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);
 
-  const updateStatus = async (status: string, extra: Record<string, any> = {}) => {
+  const updateStatus = async (status: any, extra: Record<string, any> = {}) => {
     await supabase.from("estimates").update({ status, ...extra }).eq("id", id);
     toast({ title: `Estimate marked as ${status}` });
     fetchData();

@@ -963,6 +963,7 @@ export type Database = {
           template_style: string
           timezone: string
           updated_at: string
+          upi_id: string | null
           website: string | null
         }
         Insert: {
@@ -999,6 +1000,7 @@ export type Database = {
           template_style?: string
           timezone?: string
           updated_at?: string
+          upi_id?: string | null
           website?: string | null
         }
         Update: {
@@ -1035,6 +1037,7 @@ export type Database = {
           template_style?: string
           timezone?: string
           updated_at?: string
+          upi_id?: string | null
           website?: string | null
         }
         Relationships: []
@@ -1288,6 +1291,7 @@ export type Database = {
           template_style: string
           timezone: string
           updated_at: string
+          upi_id: string | null
           website: string | null
         }
         SetofOptions: {

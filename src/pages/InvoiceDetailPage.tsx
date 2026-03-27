@@ -329,15 +329,30 @@ export default function InvoiceDetailPage() {
               <span>Balance Due</span><span>{fmt(Number(invoice.balance_due))}</span>
             </div>
 
-            {/* QR Code */}
+            {/* UPI Payment QR Code */}
             {org?.qr_code_enabled && (
-              <div className="mt-6 flex items-center gap-3">
-                <QRCodeSVG
-                  value={`${window.location.origin}/portal/invoice/${invoice.id}`}
-                  size={80}
-                  level="M"
-                />
-                <p className="text-xs text-muted-foreground">Scan to view invoice online</p>
+              <div className="mt-6 pt-4 border-t">
+                <p className="text-xs font-medium mb-2">Pay via UPI</p>
+                <div className="flex items-center gap-3">
+                  <QRCodeSVG
+                    value={
+                      (org as any)?.upi_id
+                        ? `upi://pay?pa=${(org as any).upi_id}&pn=${encodeURIComponent(org.name || "")}&am=${Number(invoice.balance_due).toFixed(2)}&cu=${invoice.currency_code || "INR"}&tn=${encodeURIComponent(`Payment for ${invoice.invoice_number}`)}`
+                        : `${window.location.origin}/portal/invoice/${invoice.id}`
+                    }
+                    size={100}
+                    level="M"
+                  />
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    {(org as any)?.upi_id && (
+                      <>
+                        <p>UPI: <span className="font-medium text-foreground">{(org as any).upi_id}</span></p>
+                        <p>Amount: <span className="font-bold text-foreground">{fmt(Number(invoice.balance_due))}</span></p>
+                      </>
+                    )}
+                    <p>Scan to pay instantly</p>
+                  </div>
+                </div>
               </div>
             )}
           </div>

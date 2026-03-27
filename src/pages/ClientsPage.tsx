@@ -36,6 +36,7 @@ export default function ClientsPage() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editClient, setEditClient] = useState<any>(null);
+  const [importOpen, setImportOpen] = useState(false);
   const { toast } = useToast();
 
   const [form, setForm] = useState({

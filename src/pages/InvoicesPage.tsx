@@ -129,6 +129,35 @@ export default function InvoicesPage() {
           )}
         </CardContent>
       </Card>
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        fields={invoiceImportFields}
+        entityName="Invoices"
+        onImport={async (rows) => {
+          let success = 0, errors = 0;
+          const { data: clients } = await supabase.from("clients").select("id, display_name").eq("org_id", org!.id);
+          for (const row of rows) {
+            const client = clients?.find((c) => c.display_name.toLowerCase() === (row.client_name || "").toLowerCase());
+            if (!client) { errors++; continue; }
+            const { error } = await supabase.from("invoices").insert({
+              org_id: org!.id,
+              client_id: client.id,
+              invoice_number: row.invoice_number,
+              issue_date: row.issue_date || new Date().toISOString().split("T")[0],
+              due_date: row.due_date || new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0],
+              total: parseFloat(row.total) || 0,
+              balance_due: parseFloat(row.total) || 0,
+              status: ["draft", "sent", "paid", "overdue", "void"].includes(row.status) ? row.status : "draft",
+              notes: row.notes || null,
+              currency_code: org!.currency_code,
+            });
+            if (error) errors++; else success++;
+          }
+          window.location.reload();
+          return { success, errors };
+        }}
+      />
     </div>
   );
 }

@@ -73,6 +73,7 @@ function SortableLineItem({
   items,
   onChange,
   onRemove,
+  onAddItem,
   currency,
 }: {
   line: LineItem;
@@ -81,6 +82,7 @@ function SortableLineItem({
   items: any[];
   onChange: (index: number, field: string, value: any) => void;
   onRemove: (index: number) => void;
+  onAddItem: () => void;
   currency: string;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: line.id });

@@ -16,7 +16,11 @@ import ItemsPage from "./pages/ItemsPage";
 import InvoicesPage from "./pages/InvoicesPage";
 import InvoiceBuilderPage from "./pages/InvoiceBuilderPage";
 import InvoiceDetailPage from "./pages/InvoiceDetailPage";
+import EstimatesPage from "./pages/EstimatesPage";
+import EstimateBuilderPage from "./pages/EstimateBuilderPage";
+import EstimateDetailPage from "./pages/EstimateDetailPage";
 import PaymentsPage from "./pages/PaymentsPage";
+import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
@@ -51,7 +55,13 @@ const App = () => (
               <Route path="/invoices/new" element={<InvoiceBuilderPage />} />
               <Route path="/invoices/:id" element={<InvoiceDetailPage />} />
               <Route path="/invoices/:id/edit" element={<InvoiceBuilderPage />} />
+              <Route path="/estimates" element={<EstimatesPage />} />
+              <Route path="/estimates/new" element={<EstimateBuilderPage />} />
+              <Route path="/estimates/:id" element={<EstimateDetailPage />} />
+              <Route path="/estimates/:id/edit" element={<EstimateBuilderPage />} />
+              <Route path="/estimates/:id/convert" element={<EstimateDetailPage />} />
               <Route path="/payments" element={<PaymentsPage />} />
+              <Route path="/reports" element={<ReportsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
 

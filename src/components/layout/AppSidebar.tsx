@@ -7,6 +7,8 @@ import {
   Settings,
   Receipt,
   LogOut,
+  ClipboardList,
+  BarChart3,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -28,9 +30,11 @@ import {
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Invoices", url: "/invoices", icon: FileText },
+  { title: "Estimates", url: "/estimates", icon: ClipboardList },
   { title: "Clients", url: "/clients", icon: Users },
   { title: "Items", url: "/items", icon: Package },
   { title: "Payments", url: "/payments", icon: CreditCard },
+  { title: "Reports", url: "/reports", icon: BarChart3 },
 ];
 
 const settingsItems = [

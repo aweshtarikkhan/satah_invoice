@@ -51,12 +51,15 @@ interface LineItem {
   amount: number;
 }
 
+const UNITS = ["pcs", "kg", "g", "ltr", "ml", "m", "cm", "ft", "inch", "box", "nos", "hrs", "days", "pair", "set", "sqft", "sqm"];
+
 function createEmptyLine(): LineItem {
   return {
     id: crypto.randomUUID(),
     item_id: null,
     name: "",
     description: "",
+    unit: "pcs",
     quantity: 1,
     rate: 0,
     discount: 0,

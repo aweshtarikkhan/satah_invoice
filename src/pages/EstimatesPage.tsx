@@ -79,6 +79,9 @@ export default function EstimatesPage() {
         title="Estimates"
         description="Create and manage estimates for your clients"
       >
+        <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+          <Upload className="mr-1 h-4 w-4" /> Import
+        </Button>
         <Button onClick={() => navigate("/estimates/new")}>
           <Plus className="mr-1 h-4 w-4" /> New Estimate
         </Button>

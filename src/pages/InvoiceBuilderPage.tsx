@@ -154,6 +154,19 @@ function SortableLineItem({
           />
         </div>
         <div className="col-span-1">
+          <Select value={line.unit || "pcs"} onValueChange={(v) => onChange(index, "unit", v)}>
+            <SelectTrigger className="h-9 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {UNITS.map((u) => (
+                <SelectItem key={u} value={u}>{u}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <span className="text-[10px] text-muted-foreground">Unit</span>
+        </div>
+        <div className="col-span-1">
           <Input
             type="number"
             className="h-9 text-xs text-center"

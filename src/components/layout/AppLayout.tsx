@@ -21,23 +21,15 @@ function OrgSetup({ onComplete }: { onComplete: () => void }) {
   const handleCreate = async () => {
     if (!name.trim() || !profile) return;
     setSaving(true);
-    const { data: org, error } = await supabase
-      .from("organizations")
-      .insert({ name: name.trim() })
-      .select()
-      .single();
+    const { error } = await supabase.rpc("create_organization_for_current_user", {
+      org_name: name.trim(),
+    });
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
       setSaving(false);
       return;
     }
-
-    // Link profile to org
-    await supabase.from("profiles").update({ org_id: org.id }).eq("user_id", profile.user_id);
-
-    // Assign owner role
-    await supabase.from("user_roles").insert({ user_id: profile.user_id, role: "owner" });
 
     toast({ title: "Organization created!" });
     onComplete();

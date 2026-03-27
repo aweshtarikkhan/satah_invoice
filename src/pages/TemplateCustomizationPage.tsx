@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, Check, FileText, Palette } from "lucide-react";
+import { PAPER_SIZES } from "@/lib/document-templates";
 
 const TEMPLATE_STYLES = [
   { id: "classic", name: "Classic", description: "Traditional business layout" },
@@ -41,6 +42,7 @@ export default function TemplateCustomizationPage() {
   const [font, setFont] = useState("Inter");
   const [showLogo, setShowLogo] = useState(true);
   const [logoUrl, setLogoUrl] = useState("");
+  const [paperSize, setPaperSize] = useState("a4");
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -50,6 +52,7 @@ export default function TemplateCustomizationPage() {
     setFont((org as any).template_font || "Inter");
     setShowLogo((org as any).template_show_logo ?? true);
     setLogoUrl(org.logo_url || "");
+    setPaperSize((org as any).template_paper_size || "a4");
   }, [org]);
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,12 +87,13 @@ export default function TemplateCustomizationPage() {
       template_accent_color: accentColor,
       template_font: font,
       template_show_logo: showLogo,
+      template_paper_size: paperSize,
     }).eq("id", org.id);
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
-      setOrganization({ ...org, template_style: style, template_accent_color: accentColor, template_font: font, template_show_logo: showLogo } as any);
+      setOrganization({ ...org, template_style: style, template_accent_color: accentColor, template_font: font, template_show_logo: showLogo, template_paper_size: paperSize } as any);
       toast({ title: "Template settings saved!" });
     }
   };
@@ -197,6 +201,30 @@ export default function TemplateCustomizationPage() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader><CardTitle className="text-base">Paper Size</CardTitle></CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-3">
+            {PAPER_SIZES.map((size) => (
+              <button
+                key={size.id}
+                type="button"
+                onClick={() => setPaperSize(size.id)}
+                className={`rounded-lg border p-4 text-left transition-all ${paperSize === size.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"}`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="font-medium text-sm">{size.name}</div>
+                    <div className="text-xs text-muted-foreground">{size.dimensions}</div>
+                  </div>
+                  {paperSize === size.id && <Check className="h-4 w-4 text-primary" />}
+                </div>
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Live Preview */}
       <Card>
         <CardHeader><CardTitle className="text-base">Preview</CardTitle></CardHeader>
@@ -216,6 +244,7 @@ export default function TemplateCustomizationPage() {
               <div className="text-right">
                 <h2 className="text-xl font-bold" style={{ color: accentColor }}>INVOICE</h2>
                 <p className="text-xs text-muted-foreground">INV-2026-0001</p>
+                <Badge variant="outline" className="mt-2">{PAPER_SIZES.find((size) => size.id === paperSize)?.name}</Badge>
               </div>
             </div>
             <div className="border-t pt-3">

@@ -10,7 +10,8 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, Ban, Copy, Share2 } from "lucide-react";
+import { Edit, Ban, Copy, Share2, FileDown } from "lucide-react";
+import { getDocumentPreviewClass, getPaperSizeLabel } from "@/lib/document-templates";
 
 export default function CreditNoteDetailPage() {
   const { id } = useParams();
@@ -73,6 +74,9 @@ export default function CreditNoteDetailPage() {
         <Button variant="outline" size="sm" onClick={() => navigate(`/credit-notes/${id}/edit`)}>
           <Edit className="mr-1 h-4 w-4" /> Edit
         </Button>
+        <Button variant="outline" size="sm" onClick={() => window.print()}>
+          <FileDown className="mr-1 h-4 w-4" /> Save PDF
+        </Button>
         {cn.status !== "void" && (
           <Button variant="outline" size="sm" onClick={handleVoid}>
             <Ban className="mr-1 h-4 w-4" /> Void
@@ -90,14 +94,17 @@ export default function CreditNoteDetailPage() {
         </span>
       </div>
 
-      <Card>
+      <Card className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
         <CardHeader>
           <div className="flex justify-between items-start">
             <div>
               <CardTitle className="text-lg">{org?.name}</CardTitle>
               <p className="text-sm text-muted-foreground">{org?.email}</p>
             </div>
-            <p className="text-2xl font-bold">{fmt(Number(cn.total))}</p>
+            <div className="text-right">
+              <p className="text-2xl font-bold">{fmt(Number(cn.total))}</p>
+              <p className="text-xs text-muted-foreground">Template: {org?.template_style || "classic"} • {getPaperSizeLabel(org?.template_paper_size)}</p>
+            </div>
           </div>
         </CardHeader>
         <CardContent>

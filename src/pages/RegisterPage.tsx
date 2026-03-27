@@ -42,32 +42,23 @@ export default function RegisterPage() {
     }
 
     if (authData.user) {
-      // Create organization
-      const { data: org, error: orgError } = await supabase
-        .from("organizations")
-        .insert({ name: orgName, email })
-        .select()
-        .single();
+      if (authData.session) {
+        const { error: orgError } = await supabase.rpc("create_organization_for_current_user", {
+          org_name: orgName.trim(),
+        });
 
-      if (orgError) {
-        setLoading(false);
-        toast({ title: "Organization setup failed", description: orgError.message, variant: "destructive" });
-        return;
+        if (orgError) {
+          setLoading(false);
+          toast({ title: "Organization setup failed", description: orgError.message, variant: "destructive" });
+          return;
+        }
+
+        toast({ title: "Account created!", description: "Welcome to InvoiceApp" });
+        navigate("/dashboard", { replace: true });
+      } else {
+        toast({ title: "Account created", description: "Verify your email, then sign in to finish setup." });
+        navigate("/login", { replace: true });
       }
-
-      // Link profile to org
-      await supabase
-        .from("profiles")
-        .update({ org_id: org.id })
-        .eq("user_id", authData.user.id);
-
-      // Assign owner role
-      await supabase
-        .from("user_roles")
-        .insert({ user_id: authData.user.id, role: "owner" });
-
-      toast({ title: "Account created!", description: "Welcome to InvoiceApp" });
-      navigate("/dashboard", { replace: true });
     }
     setLoading(false);
   };

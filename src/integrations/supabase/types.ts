@@ -904,6 +904,7 @@ export type Database = {
           tax_number: string | null
           template_accent_color: string
           template_font: string
+          template_paper_size: string
           template_show_logo: boolean
           template_style: string
           timezone: string
@@ -935,6 +936,7 @@ export type Database = {
           tax_number?: string | null
           template_accent_color?: string
           template_font?: string
+          template_paper_size?: string
           template_show_logo?: boolean
           template_style?: string
           timezone?: string
@@ -966,6 +968,7 @@ export type Database = {
           tax_number?: string | null
           template_accent_color?: string
           template_font?: string
+          template_paper_size?: string
           template_show_logo?: boolean
           template_style?: string
           timezone?: string
@@ -1187,6 +1190,47 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_organization_for_current_user: {
+        Args: { org_name: string }
+        Returns: {
+          address: Json | null
+          created_at: string
+          credit_note_next_number: number
+          credit_note_prefix: string
+          currency_code: string
+          date_format: string
+          default_notes: string | null
+          default_terms: string | null
+          email: string | null
+          estimate_next_number: number
+          estimate_prefix: string
+          fiscal_year_start: number
+          id: string
+          invoice_next_number: number
+          invoice_prefix: string
+          logo_url: string | null
+          name: string
+          payment_prefix: string
+          payment_terms: number
+          phone: string | null
+          tax_name: string | null
+          tax_number: string | null
+          template_accent_color: string
+          template_font: string
+          template_paper_size: string
+          template_show_logo: boolean
+          template_style: string
+          timezone: string
+          updated_at: string
+          website: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "organizations"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       get_user_org_id: { Args: never; Returns: string }
       has_role: {
         Args: {

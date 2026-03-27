@@ -24,6 +24,7 @@ interface Organization {
   template_accent_color: string;
   template_font: string;
   template_show_logo: boolean;
+  template_paper_size: string;
 }
 
 interface AppState {

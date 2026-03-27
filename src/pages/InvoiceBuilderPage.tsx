@@ -409,9 +409,11 @@ export default function InvoiceBuilderPage() {
         const { data, error } = await supabase.from("invoices").insert(invoicePayload).select().single();
         if (error) throw error;
         invoiceId = data.id;
-        // Increment org next number
+        // Increment org next number using fresh DB value
+        const { data: currentOrg } = await supabase.from("organizations").select("invoice_next_number").eq("id", org!.id).single();
+        const currentNum = currentOrg?.invoice_next_number || 1;
         await supabase.from("organizations").update({
-          invoice_next_number: (org!.invoice_next_number || 1) + 1,
+          invoice_next_number: currentNum + 1,
         }).eq("id", org!.id);
       }
 

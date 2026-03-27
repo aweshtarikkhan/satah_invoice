@@ -82,7 +82,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {mainItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.title} className="group/item">
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <NavLink
                       to={item.url}
@@ -93,6 +93,15 @@ export function AppSidebar() {
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
+                  {!collapsed && item.addUrl && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); navigate(item.addUrl!); }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/item:opacity-100 transition-opacity h-5 w-5 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+                      title={`New ${item.title.replace(/s$/, "")}`}
+                    >
+                      <Plus className="h-3 w-3" />
+                    </button>
+                  )}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>

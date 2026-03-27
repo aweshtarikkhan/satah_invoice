@@ -120,15 +120,15 @@ function SortableLineItem({
     new Intl.NumberFormat("en-US", { style: "currency", currency }).format(n);
 
   return (
-    <div ref={setNodeRef} style={style} className="flex items-start gap-2 py-2 border-b last:border-0">
-      <button {...attributes} {...listeners} className="mt-3 cursor-grab text-muted-foreground hover:text-foreground">
-        <GripVertical className="h-4 w-4" />
+    <div ref={setNodeRef} style={style} className="flex items-center gap-1 py-1.5 border-b last:border-0">
+      <button {...attributes} {...listeners} className="cursor-grab text-muted-foreground hover:text-foreground shrink-0">
+        <GripVertical className="h-3.5 w-3.5" />
       </button>
-      <div className="grid flex-1 grid-cols-12 gap-2">
+      <div className="grid flex-1 grid-cols-12 gap-1 items-center">
         <div className="col-span-3">
-          <div className="flex gap-1">
+          <div className="flex gap-0.5">
             <Select value={line.item_id || "none"} onValueChange={handleItemSelect}>
-              <SelectTrigger className="h-9 text-xs flex-1">
+              <SelectTrigger className="h-8 text-xs flex-1">
                 <SelectValue placeholder="Select item..." />
               </SelectTrigger>
               <SelectContent>
@@ -138,85 +138,44 @@ function SortableLineItem({
                 ))}
               </SelectContent>
             </Select>
-            <button type="button" onClick={onAddItem} className="h-9 w-9 flex items-center justify-center rounded-md border border-input bg-background text-muted-foreground hover:text-foreground hover:bg-accent shrink-0" title="Add New Item">
-              <Plus className="h-3.5 w-3.5" />
+            <button type="button" onClick={onAddItem} className="h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-muted-foreground hover:text-foreground hover:bg-accent shrink-0" title="Add New Item">
+              <Plus className="h-3 w-3" />
             </button>
           </div>
-          <Input
-            className="mt-1 h-8 text-xs"
-            placeholder="Item name"
-            value={line.name}
-            onChange={(e) => onChange(index, "name", e.target.value)}
-          />
         </div>
         <div className="col-span-2">
-          <Textarea
-            className="min-h-[60px] text-xs"
-            placeholder="Description"
-            value={line.description}
-            onChange={(e) => onChange(index, "description", e.target.value)}
-          />
+          <Input className="h-8 text-xs" placeholder="Name" value={line.name} onChange={(e) => onChange(index, "name", e.target.value)} />
         </div>
         <div className="col-span-1">
           <Select value={line.unit || "pcs"} onValueChange={(v) => onChange(index, "unit", v)}>
-            <SelectTrigger className="h-9 text-xs">
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {UNITS.map((u) => (
-                <SelectItem key={u} value={u}>{u}</SelectItem>
-              ))}
+              {UNITS.map((u) => (<SelectItem key={u} value={u}>{u}</SelectItem>))}
             </SelectContent>
           </Select>
-          <span className="text-[10px] text-muted-foreground">Unit</span>
         </div>
         <div className="col-span-1">
-          <Input
-            type="number"
-            className="h-9 text-xs text-center"
-            value={line.quantity}
-            onChange={(e) => onChange(index, "quantity", parseFloat(e.target.value) || 0)}
-            min={0}
-            step="0.01"
-          />
-          <span className="text-[10px] text-muted-foreground">Qty</span>
+          <Input type="number" className="h-8 text-xs text-center" value={line.quantity} onChange={(e) => onChange(index, "quantity", parseFloat(e.target.value) || 0)} min={0} step="0.01" />
         </div>
         <div className="col-span-2">
-          <Input
-            type="number"
-            className="h-9 text-xs"
-            value={line.rate}
-            onChange={(e) => onChange(index, "rate", parseFloat(e.target.value) || 0)}
-            min={0}
-            step="0.01"
-          />
-          <span className="text-[10px] text-muted-foreground">Rate</span>
+          <Input type="number" className="h-8 text-xs" value={line.rate} onChange={(e) => onChange(index, "rate", parseFloat(e.target.value) || 0)} min={0} step="0.01" />
         </div>
         <div className="col-span-1">
           <Select value={line.tax_id || "none"} onValueChange={(v) => onChange(index, "tax_id", v === "none" ? null : v)}>
-            <SelectTrigger className="h-9 text-xs">
-              <SelectValue placeholder="Tax" />
-            </SelectTrigger>
+            <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Tax" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="none">No tax</SelectItem>
-              {taxRates.map((t: any) => (
-                <SelectItem key={t.id} value={t.id}>{t.rate}%</SelectItem>
-              ))}
+              {taxRates.map((t: any) => (<SelectItem key={t.id} value={t.id}>{t.rate}%</SelectItem>))}
             </SelectContent>
           </Select>
-          <span className="text-[10px] text-muted-foreground">Tax</span>
         </div>
         <div className="col-span-2 text-right">
-          <div className="h-9 flex items-center justify-end text-sm font-medium">
-            {fmt(line.amount)}
-          </div>
-          {line.tax_amount > 0 && (
-            <span className="text-[10px] text-muted-foreground">+{fmt(line.tax_amount)} tax</span>
-          )}
+          <span className="text-sm font-medium">{fmt(line.amount)}</span>
+          {line.tax_amount > 0 && <span className="text-[10px] text-muted-foreground ml-1">+{fmt(line.tax_amount)}</span>}
         </div>
       </div>
-      <button onClick={() => onRemove(index)} className="mt-3 text-muted-foreground hover:text-destructive">
-        <Trash2 className="h-4 w-4" />
+      <button onClick={() => onRemove(index)} className="text-muted-foreground hover:text-destructive shrink-0">
+        <Trash2 className="h-3.5 w-3.5" />
       </button>
     </div>
   );

@@ -266,12 +266,17 @@ export default function CreditNoteBuilderPage() {
               {lines.map((line, idx) => (
                 <TableRow key={line.id}>
                   <TableCell>
-                    <Select value={line.item_id || ""} onValueChange={(v) => handleLineChange(idx, "item_id", v)}>
-                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select item" /></SelectTrigger>
-                      <SelectContent>
-                        {items.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex gap-1">
+                      <Select value={line.item_id || ""} onValueChange={(v) => handleLineChange(idx, "item_id", v)}>
+                        <SelectTrigger className="h-8 text-xs flex-1"><SelectValue placeholder="Select item" /></SelectTrigger>
+                        <SelectContent>
+                          {items.map((item) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <button type="button" onClick={() => setAddItemOpen(true)} className="h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-muted-foreground hover:text-foreground hover:bg-accent shrink-0" title="Add New Item">
+                        <Plus className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                     <Input className="mt-1 h-8 text-xs" value={line.name} onChange={(e) => handleLineChange(idx, "name", e.target.value)} placeholder="Item name" />
                   </TableCell>
                   <TableCell><Input className="h-8 text-xs" value={line.description} onChange={(e) => handleLineChange(idx, "description", e.target.value)} /></TableCell>

@@ -115,17 +115,22 @@ function SortableLineItem({
       </button>
       <div className="grid flex-1 grid-cols-12 gap-2">
         <div className="col-span-3">
-          <Select value={line.item_id || "none"} onValueChange={handleItemSelect}>
-            <SelectTrigger className="h-9 text-xs">
-              <SelectValue placeholder="Select item..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">Custom item</SelectItem>
-              {items.map((item: any) => (
-                <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex gap-1">
+            <Select value={line.item_id || "none"} onValueChange={handleItemSelect}>
+              <SelectTrigger className="h-9 text-xs flex-1">
+                <SelectValue placeholder="Select item..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Custom item</SelectItem>
+                {items.map((item: any) => (
+                  <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <button type="button" onClick={() => (window as any).__openAddItemDialog?.()} className="h-9 w-9 flex items-center justify-center rounded-md border border-input bg-background text-muted-foreground hover:text-foreground hover:bg-accent shrink-0" title="Add New Item">
+              <Plus className="h-3.5 w-3.5" />
+            </button>
+          </div>
           <Input
             className="mt-1 h-8 text-xs"
             placeholder="Item name"

@@ -254,6 +254,28 @@ export default function ClientsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        fields={clientImportFields}
+        entityName="Clients"
+        onImport={async (rows) => {
+          let success = 0, errors = 0;
+          for (const row of rows) {
+            const { error } = await supabase.from("clients").insert({
+              org_id: org!.id,
+              display_name: row.display_name || "Unnamed",
+              company_name: row.company_name || null,
+              email: row.email || null,
+              phone: row.phone || null,
+              notes: row.notes || null,
+            });
+            if (error) errors++; else success++;
+          }
+          fetchClients();
+          return { success, errors };
+        }}
+      />
     </div>
   );
 }

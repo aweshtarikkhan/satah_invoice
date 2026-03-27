@@ -220,6 +220,29 @@ export default function ItemsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        fields={itemImportFields}
+        entityName="Items"
+        onImport={async (rows) => {
+          let success = 0, errors = 0;
+          for (const row of rows) {
+            const { error } = await supabase.from("items").insert({
+              org_id: org!.id,
+              name: row.name || "Unnamed",
+              description: row.description || null,
+              sku: row.sku || null,
+              type: row.type === "product" ? "product" : "service",
+              unit_price: parseFloat(row.unit_price) || 0,
+              unit: row.unit || null,
+            });
+            if (error) errors++; else success++;
+          }
+          fetchItems();
+          return { success, errors };
+        }}
+      />
     </div>
   );
 }

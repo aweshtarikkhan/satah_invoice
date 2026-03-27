@@ -45,9 +45,9 @@ interface OutstandingInvoice {
 
 export default function RecordPaymentPage() {
   const org = useAppStore((s) => s.organization);
-  const setOrganization = useAppStore((s) => s.setOrganization);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const [clients, setClients] = useState<any[]>([]);
   const [clientId, setClientId] = useState("");

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { CURRENCIES } from "@/lib/currency";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
 import { PageHeader } from "@/components/shared/PageHeader";

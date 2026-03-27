@@ -259,6 +259,7 @@ export default function InvoiceDetailPage() {
       </div>
 
       {/* Invoice Preview */}
+      <div ref={invoiceRef}>
       <Card className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
         <CardHeader>
           <div className="flex justify-between items-start">

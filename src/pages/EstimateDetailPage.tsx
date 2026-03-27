@@ -11,7 +11,7 @@ import { format } from "date-fns";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { getDocumentPreviewClass, getPaperSizeLabel } from "@/lib/document-templates";
+import { getDocumentPreviewClass, getPaperSizeLabel, getPrintPageCSS } from "@/lib/document-templates";
 
 const statusVariants: Record<string, "default" | "info" | "success" | "warning" | "danger" | "muted"> = {
   draft: "muted", sent: "info", viewed: "default", accepted: "success",

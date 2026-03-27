@@ -32,6 +32,7 @@ import PortalPage from "./pages/PortalPage";
 import AuditLogsPage from "./pages/AuditLogsPage";
 import CustomFieldsPage from "./pages/CustomFieldsPage";
 import TemplateCustomizationPage from "./pages/TemplateCustomizationPage";
+import BusinessExpensesPage from "./pages/BusinessExpensesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -82,6 +83,7 @@ const App = () => (
               <Route path="/templates/customize" element={<TemplateCustomizationPage />} />
               <Route path="/audit-logs" element={<AuditLogsPage />} />
               <Route path="/custom-fields" element={<CustomFieldsPage />} />
+              <Route path="/expenses" element={<BusinessExpensesPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
 

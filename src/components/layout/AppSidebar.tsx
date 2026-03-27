@@ -10,6 +10,7 @@ import {
   ClipboardList,
   BarChart3,
   FileMinus2,
+  Coins,
   Layout,
   ScrollText,
   SlidersHorizontal,
@@ -40,6 +41,7 @@ const mainItems = [
   { title: "Items", url: "/items", icon: Package, addUrl: "/items?add=1" },
   { title: "Credit Notes", url: "/credit-notes", icon: FileMinus2, addUrl: "/credit-notes/new" },
   { title: "Payments Received", url: "/payments", icon: CreditCard, addUrl: "/payments/new" },
+  { title: "Expenses", url: "/expenses", icon: Coins, addUrl: "/expenses?add=1" },
   { title: "Reports", url: "/reports", icon: BarChart3, addUrl: null },
   { title: "Templates", url: "/templates", icon: Layout, addUrl: null },
 ];

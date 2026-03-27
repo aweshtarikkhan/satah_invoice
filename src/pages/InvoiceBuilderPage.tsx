@@ -593,6 +593,7 @@ export default function InvoiceBuilderPage() {
                   items={catalogItems}
                   onChange={handleLineChange}
                   onRemove={removeLine}
+                  onAddItem={() => setAddItemOpen(true)}
                   currency={org?.currency_code || "USD"}
                 />
               ))}

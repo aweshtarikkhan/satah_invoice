@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Edit, Send, FileDown, Copy, Ban, CreditCard, Share2 } from "lucide-react";
+import { getDocumentPreviewClass, getPaperSizeLabel } from "@/lib/document-templates";
 
 export default function InvoiceDetailPage() {
   const { id } = useParams();
@@ -180,6 +181,9 @@ export default function InvoiceDetailPage() {
         <Button variant="outline" size="sm" onClick={() => navigate(`/invoices/${id}/edit`)}>
           <Edit className="mr-1 h-4 w-4" /> Edit
         </Button>
+        <Button variant="outline" size="sm" onClick={() => window.print()}>
+          <FileDown className="mr-1 h-4 w-4" /> Save PDF
+        </Button>
         <Button variant="outline" size="sm" onClick={handleDuplicate}>
           <Copy className="mr-1 h-4 w-4" /> Duplicate
         </Button>
@@ -218,7 +222,7 @@ export default function InvoiceDetailPage() {
       </div>
 
       {/* Invoice Preview */}
-      <Card>
+      <Card className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
         <CardHeader>
           <div className="flex justify-between items-start">
             <div>
@@ -228,6 +232,7 @@ export default function InvoiceDetailPage() {
             <div className="text-right">
               <p className="text-2xl font-bold">{fmt(Number(invoice.total))}</p>
               <p className="text-sm text-muted-foreground">Balance: {fmt(Number(invoice.balance_due))}</p>
+              <p className="text-xs text-muted-foreground">Template: {org?.template_style || "classic"} • {getPaperSizeLabel(org?.template_paper_size)}</p>
             </div>
           </div>
         </CardHeader>

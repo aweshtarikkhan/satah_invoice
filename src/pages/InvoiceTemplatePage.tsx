@@ -7,47 +7,44 @@ import { Badge } from "@/components/ui/badge";
 import { Check, FileText, Palette } from "lucide-react";
 import { useAppStore } from "@/store/app-store";
 import { useToast } from "@/hooks/use-toast";
-
-const templates = [
-  {
-    id: "classic",
-    name: "Classic",
-    description: "Traditional business invoice with clean layout",
-    preview: "bg-background border",
-    features: ["Company logo", "Line items table", "Notes section"],
-  },
-  {
-    id: "modern",
-    name: "Modern",
-    description: "Contemporary design with accent colors and bold typography",
-    preview: "bg-primary/5 border-primary/20",
-    features: ["Colored header", "Rounded elements", "Status badges"],
-  },
-  {
-    id: "minimal",
-    name: "Minimal",
-    description: "Clean and simple with maximum whitespace",
-    preview: "bg-muted/30 border-muted",
-    features: ["Minimalist layout", "Subtle borders", "Compact totals"],
-  },
-  {
-    id: "professional",
-    name: "Professional",
-    description: "Corporate-grade template with detailed sections",
-    preview: "bg-accent/10 border-accent/30",
-    features: ["Dual address blocks", "Payment details", "Tax breakdown"],
-  },
-];
+import { supabase } from "@/integrations/supabase/client";
+import { DOCUMENT_TEMPLATES, PAPER_SIZES } from "@/lib/document-templates";
 
 export default function InvoiceTemplatePage() {
-  const [selected, setSelected] = useState("classic");
+  const org = useAppStore((s) => s.organization);
+  const setOrganization = useAppStore((s) => s.setOrganization);
+  const [selected, setSelected] = useState(org?.template_style || "classic");
+  const [paperSize, setPaperSize] = useState(org?.template_paper_size || "a4");
+  const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSelect = (templateId: string) => {
+  const handleSelect = async (templateId: string) => {
+    if (!org) return;
+    setSaving(true);
+    const { error } = await supabase.from("organizations").update({ template_style: templateId }).eq("id", org.id);
+    setSaving(false);
+    if (error) {
+      toast({ title: "Could not save template", description: error.message, variant: "destructive" });
+      return;
+    }
     setSelected(templateId);
-    localStorage.setItem("invoice_template", templateId);
-    toast({ title: `Template set to "${templates.find(t => t.id === templateId)?.name}"` });
+    setOrganization({ ...org, template_style: templateId } as any);
+    toast({ title: `Template set to "${DOCUMENT_TEMPLATES.find((t) => t.id === templateId)?.name}"` });
+  };
+
+  const handlePaperSizeChange = async (sizeId: string) => {
+    if (!org) return;
+    setSaving(true);
+    const { error } = await supabase.from("organizations").update({ template_paper_size: sizeId }).eq("id", org.id);
+    setSaving(false);
+    if (error) {
+      toast({ title: "Could not save paper size", description: error.message, variant: "destructive" });
+      return;
+    }
+    setPaperSize(sizeId);
+    setOrganization({ ...org, template_paper_size: sizeId } as any);
+    toast({ title: `Paper size set to ${PAPER_SIZES.find((size) => size.id === sizeId)?.name}` });
   };
 
   return (
@@ -61,8 +58,35 @@ export default function InvoiceTemplatePage() {
         </Button>
       </PageHeader>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">PDF Paper Size</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+            {PAPER_SIZES.map((size) => (
+              <button
+                key={size.id}
+                type="button"
+                disabled={saving}
+                onClick={() => handlePaperSizeChange(size.id)}
+                className={`rounded-lg border p-4 text-left transition-all ${paperSize === size.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"}`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="font-medium">{size.name}</div>
+                    <div className="text-xs text-muted-foreground">{size.dimensions}</div>
+                  </div>
+                  {paperSize === size.id && <Check className="h-4 w-4 text-primary" />}
+                </div>
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {templates.map((tpl) => (
+        {DOCUMENT_TEMPLATES.map((tpl) => (
           <Card
             key={tpl.id}
             className={`cursor-pointer transition-all hover:shadow-md ${
@@ -113,6 +137,10 @@ export default function InvoiceTemplatePage() {
                 </div>
               </div>
 
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <Badge variant="outline">{PAPER_SIZES.find((size) => size.id === paperSize)?.name}</Badge>
+                {selected === tpl.id && saving && <span className="text-xs text-muted-foreground">Saving...</span>}
+              </div>
               <div className="mt-3 flex flex-wrap gap-1">
                 {tpl.features.map((f) => (
                   <Badge key={f} variant="secondary" className="text-xs">{f}</Badge>

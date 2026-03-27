@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Edit, ArrowRightLeft, Send, XCircle, CheckCircle } from "lucide-react";
+import { ArrowLeft, Edit, ArrowRightLeft, Send, XCircle, CheckCircle, FileDown } from "lucide-react";
 import { format } from "date-fns";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { getDocumentPreviewClass, getPaperSizeLabel } from "@/lib/document-templates";
 
 const statusVariants: Record<string, "default" | "info" | "success" | "warning" | "danger" | "muted"> = {
   draft: "muted", sent: "info", viewed: "default", accepted: "success",
@@ -126,6 +127,9 @@ export default function EstimateDetailPage() {
               <ArrowRightLeft className="mr-1 h-4 w-4" /> Convert to Invoice
             </Button>
           )}
+          <Button variant="outline" onClick={() => window.print()}>
+            <FileDown className="mr-1 h-4 w-4" /> Save PDF
+          </Button>
         </div>
       </div>
 
@@ -148,8 +152,11 @@ export default function EstimateDetailPage() {
         </Card>
       </div>
 
-      <Card>
+      <Card className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
         <CardContent className="pt-6">
+          <div className="mb-4 flex justify-end">
+            <span className="text-xs text-muted-foreground">Template: {org?.template_style || "classic"} • {getPaperSizeLabel(org?.template_paper_size)}</span>
+          </div>
           <Table>
             <TableHeader>
               <TableRow>

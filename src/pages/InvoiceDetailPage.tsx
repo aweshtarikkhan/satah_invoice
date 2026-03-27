@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
+import { useAuth } from "@/lib/auth";
+import { logAudit } from "@/lib/audit";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -26,6 +28,7 @@ export default function InvoiceDetailPage() {
   const navigate = useNavigate();
   const org = useAppStore((s) => s.organization);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const [invoice, setInvoice] = useState<any>(null);
   const [lines, setLines] = useState<any[]>([]);
@@ -105,6 +108,7 @@ export default function InvoiceDetailPage() {
 
     setPaymentDialogOpen(false);
     toast({ title: "Payment recorded!" });
+    if (org && user) await logAudit({ orgId: org.id, userId: user.id, entityType: "payment", entityId: invoice.id, action: "payment_recorded", description: `Payment of ${paymentForm.amount} recorded for ${invoice.invoice_number}` });
     fetchInvoice();
   };
 
@@ -112,6 +116,7 @@ export default function InvoiceDetailPage() {
     if (!invoice) return;
     await supabase.from("invoices").update({ status: "void" }).eq("id", invoice.id);
     toast({ title: "Invoice voided" });
+    if (org && user) await logAudit({ orgId: org.id, userId: user.id, entityType: "invoice", entityId: invoice.id, action: "void", description: `Invoice ${invoice.invoice_number} voided` });
     fetchInvoice();
   };
 

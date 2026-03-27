@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
+import { useAuth } from "@/lib/auth";
+import { logAudit } from "@/lib/audit";
+import { CustomFieldsForm, saveCustomFieldValues } from "@/components/shared/CustomFieldsForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -192,6 +195,8 @@ export default function InvoiceBuilderPage() {
   const { id } = useParams();
   const org = useAppStore((s) => s.organization);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
 
   const [clients, setClients] = useState<any[]>([]);
   const [catalogItems, setCatalogItems] = useState<any[]>([]);
@@ -418,6 +423,20 @@ export default function InvoiceBuilderPage() {
       const { error: lineError } = await supabase.from("invoice_lines").insert(linePayloads);
       if (lineError) throw lineError;
 
+      // Save custom fields
+      if (invoiceId && Object.keys(customFieldValues).length > 0) {
+        await saveCustomFieldValues(invoiceId, customFieldValues);
+      }
+
+      // Audit log
+      if (org && user) {
+        await logAudit({
+          orgId: org.id, userId: user.id, entityType: "invoice",
+          entityId: invoiceId, action: id ? "update" : "create",
+          description: `Invoice ${invoiceNumber} ${id ? "updated" : "created"} (${status})`,
+        });
+      }
+
       toast({ title: status === "sent" ? "Invoice sent!" : "Invoice saved!" });
       navigate(`/invoices`);
     } catch (err: any) {
@@ -512,6 +531,13 @@ export default function InvoiceBuilderPage() {
               </div>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Custom Fields */}
+      <Card>
+        <CardContent className="pt-6">
+          <CustomFieldsForm entityType="invoice" entityId={id} onChange={setCustomFieldValues} />
         </CardContent>
       </Card>
 

@@ -11,6 +11,8 @@ import {
   BarChart3,
   FileMinus2,
   Layout,
+  ScrollText,
+  SlidersHorizontal,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -42,6 +44,9 @@ const mainItems = [
 ];
 
 const settingsItems = [
+  { title: "Templates", url: "/templates", icon: Layout },
+  { title: "Custom Fields", url: "/custom-fields", icon: SlidersHorizontal },
+  { title: "Audit Logs", url: "/audit-logs", icon: ScrollText },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 

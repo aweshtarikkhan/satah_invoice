@@ -125,6 +125,7 @@ export default function EstimateBuilderPage() {
   const [taxRates, setTaxRates] = useState<any[]>([]);
   const [clientId, setClientId] = useState("");
   const [addClientOpen, setAddClientOpen] = useState(false);
+  const [addItemOpen, setAddItemOpen] = useState(false);
   const [estimateNumber, setEstimateNumber] = useState("");
   const [issueDate, setIssueDate] = useState(new Date().toISOString().split("T")[0]);
   const [expiryDate, setExpiryDate] = useState("");

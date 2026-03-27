@@ -5,6 +5,7 @@ import { useAppStore } from "@/store/app-store";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { ImportDialog, ImportField } from "@/components/shared/ImportDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,7 +13,17 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, FileText, Search } from "lucide-react";
+import { Plus, FileText, Search, Upload } from "lucide-react";
+
+const invoiceImportFields: ImportField[] = [
+  { key: "invoice_number", label: "Invoice #", required: true },
+  { key: "client_name", label: "Client Name", required: true },
+  { key: "issue_date", label: "Issue Date" },
+  { key: "due_date", label: "Due Date" },
+  { key: "total", label: "Total Amount" },
+  { key: "status", label: "Status" },
+  { key: "notes", label: "Notes" },
+];
 
 const statusTabs = ["all", "draft", "sent", "overdue", "paid"] as const;
 

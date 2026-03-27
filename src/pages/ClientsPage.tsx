@@ -188,24 +188,31 @@ export default function ClientsPage() {
                   <TableHead>Name</TableHead>
                   <TableHead>Company</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
+                  <TableHead className="text-right">Total Billed</TableHead>
+                  <TableHead className="text-right">Amount Due</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((client) => (
-                  <TableRow key={client.id} className="cursor-pointer" onClick={() => openEdit(client)}>
-                    <TableCell className="font-medium">{client.display_name}</TableCell>
-                    <TableCell>{client.company_name || "—"}</TableCell>
-                    <TableCell>{client.email || "—"}</TableCell>
-                    <TableCell>{client.phone || "—"}</TableCell>
-                    <TableCell>
-                      <Badge variant={client.status === "active" ? "default" : "secondary"}>
-                        {client.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {filtered.map((client) => {
+                  const summary = clientDueMap[client.id] || { billed: 0, due: 0 };
+                  return (
+                    <TableRow key={client.id} className="cursor-pointer" onClick={() => navigate(`/clients/${client.id}`)}>
+                      <TableCell className="font-medium">{client.display_name}</TableCell>
+                      <TableCell>{client.company_name || "—"}</TableCell>
+                      <TableCell>{client.email || "—"}</TableCell>
+                      <TableCell className="text-right text-blue-600 dark:text-blue-400">{fmt(summary.billed)}</TableCell>
+                      <TableCell className={`text-right font-semibold ${summary.due > 0 ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+                        {fmt(summary.due)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={client.status === "active" ? "default" : "secondary"}>
+                          {client.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}

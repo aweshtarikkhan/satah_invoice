@@ -14,16 +14,644 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clients: {
+        Row: {
+          billing_address: Json | null
+          company_name: string | null
+          created_at: string
+          currency_code: string | null
+          display_name: string
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          mobile: string | null
+          notes: string | null
+          opening_balance: number
+          org_id: string
+          payment_terms: number | null
+          phone: string | null
+          shipping_address: Json | null
+          status: Database["public"]["Enums"]["client_status"]
+          tax_number: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          billing_address?: Json | null
+          company_name?: string | null
+          created_at?: string
+          currency_code?: string | null
+          display_name: string
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          mobile?: string | null
+          notes?: string | null
+          opening_balance?: number
+          org_id: string
+          payment_terms?: number | null
+          phone?: string | null
+          shipping_address?: Json | null
+          status?: Database["public"]["Enums"]["client_status"]
+          tax_number?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          billing_address?: Json | null
+          company_name?: string | null
+          created_at?: string
+          currency_code?: string | null
+          display_name?: string
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          mobile?: string | null
+          notes?: string | null
+          opening_balance?: number
+          org_id?: string
+          payment_terms?: number | null
+          phone?: string | null
+          shipping_address?: Json | null
+          status?: Database["public"]["Enums"]["client_status"]
+          tax_number?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contacts: {
+        Row: {
+          client_id: string
+          created_at: string
+          email: string | null
+          first_name: string
+          id: string
+          is_primary: boolean
+          last_name: string
+          phone: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          email?: string | null
+          first_name: string
+          id?: string
+          is_primary?: boolean
+          last_name: string
+          phone?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          email?: string | null
+          first_name?: string
+          id?: string
+          is_primary?: boolean
+          last_name?: string
+          phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_lines: {
+        Row: {
+          amount: number
+          description: string | null
+          discount: number
+          discount_type: Database["public"]["Enums"]["discount_type"]
+          id: string
+          invoice_id: string
+          item_id: string | null
+          name: string
+          quantity: number
+          rate: number
+          sort_order: number
+          tax_amount: number
+          tax_id: string | null
+          unit: string | null
+        }
+        Insert: {
+          amount?: number
+          description?: string | null
+          discount?: number
+          discount_type?: Database["public"]["Enums"]["discount_type"]
+          id?: string
+          invoice_id: string
+          item_id?: string | null
+          name: string
+          quantity?: number
+          rate?: number
+          sort_order?: number
+          tax_amount?: number
+          tax_id?: string | null
+          unit?: string | null
+        }
+        Update: {
+          amount?: number
+          description?: string | null
+          discount?: number
+          discount_type?: Database["public"]["Enums"]["discount_type"]
+          id?: string
+          invoice_id?: string
+          item_id?: string | null
+          name?: string
+          quantity?: number
+          rate?: number
+          sort_order?: number
+          tax_amount?: number
+          tax_id?: string | null
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_lines_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_lines_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_lines_tax_id_fkey"
+            columns: ["tax_id"]
+            isOneToOne: false
+            referencedRelation: "tax_rates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          adjustment: number
+          adjustment_name: string | null
+          amount_paid: number
+          balance_due: number
+          billing_address: Json | null
+          client_id: string
+          created_at: string
+          currency_code: string
+          discount: number
+          discount_type: Database["public"]["Enums"]["discount_type"]
+          due_date: string
+          exchange_rate: number
+          id: string
+          invoice_number: string
+          issue_date: string
+          notes: string | null
+          org_id: string
+          paid_at: string | null
+          reference_number: string | null
+          sent_at: string | null
+          shipping_address: Json | null
+          shipping_charge: number
+          status: Database["public"]["Enums"]["invoice_status"]
+          subtotal: number
+          terms_conditions: string | null
+          total: number
+          total_discount: number
+          total_tax: number
+          updated_at: string
+          viewed_at: string | null
+        }
+        Insert: {
+          adjustment?: number
+          adjustment_name?: string | null
+          amount_paid?: number
+          balance_due?: number
+          billing_address?: Json | null
+          client_id: string
+          created_at?: string
+          currency_code?: string
+          discount?: number
+          discount_type?: Database["public"]["Enums"]["discount_type"]
+          due_date?: string
+          exchange_rate?: number
+          id?: string
+          invoice_number: string
+          issue_date?: string
+          notes?: string | null
+          org_id: string
+          paid_at?: string | null
+          reference_number?: string | null
+          sent_at?: string | null
+          shipping_address?: Json | null
+          shipping_charge?: number
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subtotal?: number
+          terms_conditions?: string | null
+          total?: number
+          total_discount?: number
+          total_tax?: number
+          updated_at?: string
+          viewed_at?: string | null
+        }
+        Update: {
+          adjustment?: number
+          adjustment_name?: string | null
+          amount_paid?: number
+          balance_due?: number
+          billing_address?: Json | null
+          client_id?: string
+          created_at?: string
+          currency_code?: string
+          discount?: number
+          discount_type?: Database["public"]["Enums"]["discount_type"]
+          due_date?: string
+          exchange_rate?: number
+          id?: string
+          invoice_number?: string
+          issue_date?: string
+          notes?: string | null
+          org_id?: string
+          paid_at?: string | null
+          reference_number?: string | null
+          sent_at?: string | null
+          shipping_address?: Json | null
+          shipping_charge?: number
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subtotal?: number
+          terms_conditions?: string | null
+          total?: number
+          total_discount?: number
+          total_tax?: number
+          updated_at?: string
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      items: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          org_id: string
+          sku: string | null
+          tax_id: string | null
+          type: Database["public"]["Enums"]["item_type"]
+          unit: string | null
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          org_id: string
+          sku?: string | null
+          tax_id?: string | null
+          type?: Database["public"]["Enums"]["item_type"]
+          unit?: string | null
+          unit_price?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          org_id?: string
+          sku?: string | null
+          tax_id?: string | null
+          type?: Database["public"]["Enums"]["item_type"]
+          unit?: string | null
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "items_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "items_tax_id_fkey"
+            columns: ["tax_id"]
+            isOneToOne: false
+            referencedRelation: "tax_rates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          address: Json | null
+          created_at: string
+          currency_code: string
+          date_format: string
+          default_notes: string | null
+          default_terms: string | null
+          email: string | null
+          estimate_prefix: string
+          fiscal_year_start: number
+          id: string
+          invoice_next_number: number
+          invoice_prefix: string
+          logo_url: string | null
+          name: string
+          payment_prefix: string
+          payment_terms: number
+          phone: string | null
+          tax_name: string | null
+          tax_number: string | null
+          timezone: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: Json | null
+          created_at?: string
+          currency_code?: string
+          date_format?: string
+          default_notes?: string | null
+          default_terms?: string | null
+          email?: string | null
+          estimate_prefix?: string
+          fiscal_year_start?: number
+          id?: string
+          invoice_next_number?: number
+          invoice_prefix?: string
+          logo_url?: string | null
+          name: string
+          payment_prefix?: string
+          payment_terms?: number
+          phone?: string | null
+          tax_name?: string | null
+          tax_number?: string | null
+          timezone?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: Json | null
+          created_at?: string
+          currency_code?: string
+          date_format?: string
+          default_notes?: string | null
+          default_terms?: string | null
+          email?: string | null
+          estimate_prefix?: string
+          fiscal_year_start?: number
+          id?: string
+          invoice_next_number?: number
+          invoice_prefix?: string
+          logo_url?: string | null
+          name?: string
+          payment_prefix?: string
+          payment_terms?: number
+          phone?: string | null
+          tax_name?: string | null
+          tax_number?: string | null
+          timezone?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          client_id: string
+          created_at: string
+          currency_code: string
+          id: string
+          invoice_id: string | null
+          notes: string | null
+          org_id: string
+          payment_date: string
+          payment_mode: string
+          payment_number: string
+          reference_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          client_id: string
+          created_at?: string
+          currency_code?: string
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          org_id: string
+          payment_date?: string
+          payment_mode?: string
+          payment_number: string
+          reference_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          client_id?: string
+          created_at?: string
+          currency_code?: string
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          org_id?: string
+          payment_date?: string
+          payment_mode?: string
+          payment_number?: string
+          reference_number?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          org_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          org_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          org_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tax_rates: {
+        Row: {
+          components: Json | null
+          created_at: string
+          id: string
+          is_default: boolean
+          name: string
+          org_id: string
+          rate: number
+          type: Database["public"]["Enums"]["tax_type"]
+        }
+        Insert: {
+          components?: Json | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name: string
+          org_id: string
+          rate: number
+          type?: Database["public"]["Enums"]["tax_type"]
+        }
+        Update: {
+          components?: Json | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          org_id?: string
+          rate?: number
+          type?: Database["public"]["Enums"]["tax_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tax_rates_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_org_id: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "owner" | "admin" | "staff" | "read_only"
+      client_status: "active" | "inactive"
+      discount_type: "percentage" | "fixed"
+      invoice_status:
+        | "draft"
+        | "sent"
+        | "viewed"
+        | "partial"
+        | "paid"
+        | "overdue"
+        | "void"
+      item_type: "service" | "product"
+      tax_type: "simple" | "compound"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +778,21 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["owner", "admin", "staff", "read_only"],
+      client_status: ["active", "inactive"],
+      discount_type: ["percentage", "fixed"],
+      invoice_status: [
+        "draft",
+        "sent",
+        "viewed",
+        "partial",
+        "paid",
+        "overdue",
+        "void",
+      ],
+      item_type: ["service", "product"],
+      tax_type: ["simple", "compound"],
+    },
   },
 } as const

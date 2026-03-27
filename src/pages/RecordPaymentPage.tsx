@@ -19,7 +19,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { logAudit } from "@/lib/audit";
-import { ArrowLeft, CreditCard, DollarSign, AlertCircle, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CreditCard, DollarSign, AlertCircle, CheckCircle2, Plus } from "lucide-react";
 import { AddClientDialog } from "@/components/shared/AddClientDialog";
 
 const PAYMENT_MODES = [

@@ -13,9 +13,10 @@ import {
   Layout,
   ScrollText,
   SlidersHorizontal,
+  Plus,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import {
   Sidebar,
@@ -32,15 +33,15 @@ import {
 } from "@/components/ui/sidebar";
 
 const mainItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Invoices", url: "/invoices", icon: FileText },
-  { title: "Estimates", url: "/estimates", icon: ClipboardList },
-  { title: "Clients", url: "/clients", icon: Users },
-  { title: "Items", url: "/items", icon: Package },
-  { title: "Credit Notes", url: "/credit-notes", icon: FileMinus2 },
-  { title: "Payments", url: "/payments", icon: CreditCard },
-  { title: "Reports", url: "/reports", icon: BarChart3 },
-  { title: "Templates", url: "/templates", icon: Layout },
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, addUrl: null },
+  { title: "Invoices", url: "/invoices", icon: FileText, addUrl: "/invoices/new" },
+  { title: "Estimates", url: "/estimates", icon: ClipboardList, addUrl: "/estimates/new" },
+  { title: "Clients", url: "/clients", icon: Users, addUrl: "/clients?add=1" },
+  { title: "Items", url: "/items", icon: Package, addUrl: "/items?add=1" },
+  { title: "Credit Notes", url: "/credit-notes", icon: FileMinus2, addUrl: "/credit-notes/new" },
+  { title: "Payments Received", url: "/payments", icon: CreditCard, addUrl: "/payments/new" },
+  { title: "Reports", url: "/reports", icon: BarChart3, addUrl: null },
+  { title: "Templates", url: "/templates", icon: Layout, addUrl: null },
 ];
 
 const settingsItems = [

@@ -3,33 +3,45 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ImportDialog, ImportField } from "@/components/shared/ImportDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { CreditCard, Search } from "lucide-react";
+import { CreditCard, Search, Upload } from "lucide-react";
+
+const paymentImportFields: ImportField[] = [
+  { key: "payment_number", label: "Payment #", required: true },
+  { key: "client_name", label: "Client Name", required: true },
+  { key: "amount", label: "Amount", required: true },
+  { key: "payment_date", label: "Payment Date" },
+  { key: "payment_mode", label: "Payment Mode" },
+  { key: "reference_number", label: "Reference #" },
+  { key: "notes", label: "Notes" },
+];
 
 export default function PaymentsPage() {
   const org = useAppStore((s) => s.organization);
   const [payments, setPayments] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [importOpen, setImportOpen] = useState(false);
 
-  useEffect(() => {
+  const fetchPayments = async () => {
     if (!org?.id) return;
-    const fetch = async () => {
-      setLoading(true);
-      const { data } = await supabase
-        .from("payments")
-        .select("*, clients(display_name), invoices(invoice_number)")
-        .eq("org_id", org.id)
-        .order("payment_date", { ascending: false });
-      setPayments(data || []);
-      setLoading(false);
-    };
-    fetch();
-  }, [org?.id]);
+    setLoading(true);
+    const { data } = await supabase
+      .from("payments")
+      .select("*, clients(display_name), invoices(invoice_number)")
+      .eq("org_id", org.id)
+      .order("payment_date", { ascending: false });
+    setPayments(data || []);
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchPayments(); }, [org?.id]);
 
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);
@@ -42,7 +54,11 @@ export default function PaymentsPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <PageHeader title="Payments" description="Payment history" />
+      <PageHeader title="Payments" description="Payment history">
+        <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+          <Upload className="mr-1 h-4 w-4" /> Import
+        </Button>
+      </PageHeader>
 
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -83,6 +99,34 @@ export default function PaymentsPage() {
           )}
         </CardContent>
       </Card>
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        fields={paymentImportFields}
+        entityName="Payments"
+        onImport={async (rows) => {
+          let success = 0, errors = 0;
+          const { data: clients } = await supabase.from("clients").select("id, display_name").eq("org_id", org!.id);
+          for (const row of rows) {
+            const client = clients?.find((c) => c.display_name.toLowerCase() === (row.client_name || "").toLowerCase());
+            if (!client) { errors++; continue; }
+            const { error } = await supabase.from("payments").insert({
+              org_id: org!.id,
+              client_id: client.id,
+              payment_number: row.payment_number,
+              amount: parseFloat(row.amount) || 0,
+              payment_date: row.payment_date || new Date().toISOString().split("T")[0],
+              payment_mode: row.payment_mode || "bank_transfer",
+              reference_number: row.reference_number || null,
+              notes: row.notes || null,
+              currency_code: org!.currency_code,
+            });
+            if (error) errors++; else success++;
+          }
+          fetchPayments();
+          return { success, errors };
+        }}
+      />
     </div>
   );
 }

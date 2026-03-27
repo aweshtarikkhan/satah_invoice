@@ -5,6 +5,7 @@ import { useAppStore } from "@/store/app-store";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ImportDialog, ImportField } from "@/components/shared/ImportDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,7 +16,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, MoreHorizontal, FileText, ArrowRightLeft, Trash2, Copy } from "lucide-react";
+import { Plus, Search, MoreHorizontal, FileText, ArrowRightLeft, Trash2, Copy, Upload } from "lucide-react";
 import { format } from "date-fns";
 
 type EstimateStatus = "draft" | "sent" | "viewed" | "accepted" | "declined" | "expired" | "converted";
@@ -38,6 +39,7 @@ export default function EstimatesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("all");
+  const [importOpen, setImportOpen] = useState(false);
 
   const fetchEstimates = async () => {
     if (!org?.id) return;
@@ -77,6 +79,9 @@ export default function EstimatesPage() {
         title="Estimates"
         description="Create and manage estimates for your clients"
       >
+        <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+          <Upload className="mr-1 h-4 w-4" /> Import
+        </Button>
         <Button onClick={() => navigate("/estimates/new")}>
           <Plus className="mr-1 h-4 w-4" /> New Estimate
         </Button>
@@ -170,6 +175,40 @@ export default function EstimatesPage() {
           </Table>
         </div>
       )}
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        fields={[
+          { key: "estimate_number", label: "Estimate #", required: true },
+          { key: "client_name", label: "Client Name", required: true },
+          { key: "issue_date", label: "Issue Date" },
+          { key: "expiry_date", label: "Expiry Date" },
+          { key: "total", label: "Total Amount" },
+          { key: "notes", label: "Notes" },
+        ]}
+        entityName="Estimates"
+        onImport={async (rows) => {
+          let success = 0, errors = 0;
+          const { data: clients } = await supabase.from("clients").select("id, display_name").eq("org_id", org!.id);
+          for (const row of rows) {
+            const client = clients?.find((c) => c.display_name.toLowerCase() === (row.client_name || "").toLowerCase());
+            if (!client) { errors++; continue; }
+            const { error } = await supabase.from("estimates").insert({
+              org_id: org!.id,
+              client_id: client.id,
+              estimate_number: row.estimate_number,
+              issue_date: row.issue_date || new Date().toISOString().split("T")[0],
+              expiry_date: row.expiry_date || new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0],
+              total: parseFloat(row.total) || 0,
+              notes: row.notes || null,
+              currency_code: org!.currency_code,
+            });
+            if (error) errors++; else success++;
+          }
+          fetchEstimates();
+          return { success, errors };
+        }}
+      />
     </div>
   );
 }

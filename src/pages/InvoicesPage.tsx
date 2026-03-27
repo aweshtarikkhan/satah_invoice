@@ -5,6 +5,7 @@ import { useAppStore } from "@/store/app-store";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { ImportDialog, ImportField } from "@/components/shared/ImportDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,7 +13,17 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, FileText, Search } from "lucide-react";
+import { Plus, FileText, Search, Upload } from "lucide-react";
+
+const invoiceImportFields: ImportField[] = [
+  { key: "invoice_number", label: "Invoice #", required: true },
+  { key: "client_name", label: "Client Name", required: true },
+  { key: "issue_date", label: "Issue Date" },
+  { key: "due_date", label: "Due Date" },
+  { key: "total", label: "Total Amount" },
+  { key: "status", label: "Status" },
+  { key: "notes", label: "Notes" },
+];
 
 const statusTabs = ["all", "draft", "sent", "overdue", "paid"] as const;
 
@@ -23,6 +34,7 @@ export default function InvoicesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<string>("all");
+  const [importOpen, setImportOpen] = useState(false);
 
   useEffect(() => {
     if (!org?.id) return;
@@ -53,6 +65,9 @@ export default function InvoicesPage() {
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Invoices" description="Create and manage invoices">
+        <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+          <Upload className="mr-1 h-4 w-4" /> Import
+        </Button>
         <Button onClick={() => navigate("/invoices/new")} size="sm">
           <Plus className="mr-1 h-4 w-4" /> New Invoice
         </Button>
@@ -114,6 +129,35 @@ export default function InvoicesPage() {
           )}
         </CardContent>
       </Card>
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        fields={invoiceImportFields}
+        entityName="Invoices"
+        onImport={async (rows) => {
+          let success = 0, errors = 0;
+          const { data: clients } = await supabase.from("clients").select("id, display_name").eq("org_id", org!.id);
+          for (const row of rows) {
+            const client = clients?.find((c) => c.display_name.toLowerCase() === (row.client_name || "").toLowerCase());
+            if (!client) { errors++; continue; }
+            const { error } = await supabase.from("invoices").insert({
+              org_id: org!.id,
+              client_id: client.id,
+              invoice_number: row.invoice_number,
+              issue_date: row.issue_date || new Date().toISOString().split("T")[0],
+              due_date: row.due_date || new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0],
+              total: parseFloat(row.total) || 0,
+              balance_due: parseFloat(row.total) || 0,
+              status: ["draft", "sent", "paid", "overdue", "void"].includes(row.status) ? row.status : "draft",
+              notes: row.notes || null,
+              currency_code: org!.currency_code,
+            });
+            if (error) errors++; else success++;
+          }
+          window.location.reload();
+          return { success, errors };
+        }}
+      />
     </div>
   );
 }

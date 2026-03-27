@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ImportDialog, ImportField } from "@/components/shared/ImportDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,8 +19,17 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Package, Search } from "lucide-react";
+import { Plus, Package, Search, Upload } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+
+const itemImportFields: ImportField[] = [
+  { key: "name", label: "Name", required: true },
+  { key: "description", label: "Description" },
+  { key: "sku", label: "SKU" },
+  { key: "type", label: "Type (service/product)" },
+  { key: "unit_price", label: "Unit Price" },
+  { key: "unit", label: "Unit" },
+];
 
 export default function ItemsPage() {
   const org = useAppStore((s) => s.organization);
@@ -29,6 +39,7 @@ export default function ItemsPage() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editItem, setEditItem] = useState<any>(null);
+  const [importOpen, setImportOpen] = useState(false);
   const { toast } = useToast();
 
   const [form, setForm] = useState({
@@ -102,6 +113,9 @@ export default function ItemsPage() {
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Items" description="Products and services catalog">
+        <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+          <Upload className="mr-1 h-4 w-4" /> Import
+        </Button>
         <Button onClick={openCreate} size="sm">
           <Plus className="mr-1 h-4 w-4" /> Add Item
         </Button>
@@ -206,6 +220,29 @@ export default function ItemsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        fields={itemImportFields}
+        entityName="Items"
+        onImport={async (rows) => {
+          let success = 0, errors = 0;
+          for (const row of rows) {
+            const { error } = await supabase.from("items").insert({
+              org_id: org!.id,
+              name: row.name || "Unnamed",
+              description: row.description || null,
+              sku: row.sku || null,
+              type: row.type === "product" ? "product" : "service",
+              unit_price: parseFloat(row.unit_price) || 0,
+              unit: row.unit || null,
+            });
+            if (error) errors++; else success++;
+          }
+          fetchItems();
+          return { success, errors };
+        }}
+      />
     </div>
   );
 }

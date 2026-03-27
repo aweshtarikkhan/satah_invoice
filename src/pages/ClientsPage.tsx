@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ImportDialog, ImportField } from "@/components/shared/ImportDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,8 +17,16 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Users, Search } from "lucide-react";
+import { Plus, Users, Search, Upload } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+
+const clientImportFields: ImportField[] = [
+  { key: "display_name", label: "Display Name", required: true },
+  { key: "company_name", label: "Company Name" },
+  { key: "email", label: "Email" },
+  { key: "phone", label: "Phone" },
+  { key: "notes", label: "Notes" },
+];
 
 export default function ClientsPage() {
   const navigate = useNavigate();
@@ -27,6 +36,7 @@ export default function ClientsPage() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editClient, setEditClient] = useState<any>(null);
+  const [importOpen, setImportOpen] = useState(false);
   const { toast } = useToast();
 
   const [form, setForm] = useState({
@@ -129,6 +139,9 @@ export default function ClientsPage() {
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Clients" description="Manage your clients and contacts">
+        <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+          <Upload className="mr-1 h-4 w-4" /> Import
+        </Button>
         <Button onClick={openCreate} size="sm">
           <Plus className="mr-1 h-4 w-4" /> Add Client
         </Button>
@@ -241,6 +254,28 @@ export default function ClientsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        fields={clientImportFields}
+        entityName="Clients"
+        onImport={async (rows) => {
+          let success = 0, errors = 0;
+          for (const row of rows) {
+            const { error } = await supabase.from("clients").insert({
+              org_id: org!.id,
+              display_name: row.display_name || "Unnamed",
+              company_name: row.company_name || null,
+              email: row.email || null,
+              phone: row.phone || null,
+              notes: row.notes || null,
+            });
+            if (error) errors++; else success++;
+          }
+          fetchClients();
+          return { success, errors };
+        }}
+      />
     </div>
   );
 }

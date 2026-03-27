@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, FileText } from "lucide-react";
+import { Check, FileText, Palette } from "lucide-react";
 import { useAppStore } from "@/store/app-store";
 import { useToast } from "@/hooks/use-toast";
 

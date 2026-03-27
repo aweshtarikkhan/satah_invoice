@@ -13,6 +13,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Save, Trash2, Plus, GripVertical } from "lucide-react";
 import { AddClientDialog } from "@/components/shared/AddClientDialog";
+import { AddItemDialog } from "@/components/shared/AddItemDialog";
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent,
 } from "@dnd-kit/core";

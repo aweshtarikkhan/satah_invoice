@@ -21,6 +21,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 
 export default function SettingsPage() {
   const org = useAppStore((s) => s.organization);

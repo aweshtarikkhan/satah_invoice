@@ -55,7 +55,11 @@ export default function PaymentsPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <PageHeader title="Payments" description="Payment history" />
+      <PageHeader title="Payments" description="Payment history">
+        <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+          <Upload className="mr-1 h-4 w-4" /> Import
+        </Button>
+      </PageHeader>
 
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

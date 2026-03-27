@@ -32,6 +32,7 @@ export default function ClientsPage() {
   const navigate = useNavigate();
   const org = useAppStore((s) => s.organization);
   const [clients, setClients] = useState<any[]>([]);
+  const [invoices, setInvoices] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -52,18 +53,29 @@ export default function ClientsPage() {
   const fetchClients = async () => {
     if (!org?.id) return;
     setLoading(true);
-    const { data } = await supabase
-      .from("clients")
-      .select("*")
-      .eq("org_id", org.id)
-      .order("display_name");
-    setClients(data || []);
+    const [{ data: clientData }, { data: invData }] = await Promise.all([
+      supabase.from("clients").select("*").eq("org_id", org.id).order("display_name"),
+      supabase.from("invoices").select("client_id, total, balance_due, status").eq("org_id", org.id),
+    ]);
+    setClients(clientData || []);
+    setInvoices(invData || []);
     setLoading(false);
   };
 
   useEffect(() => {
     fetchClients();
   }, [org?.id]);
+
+  // Build client due map
+  const clientDueMap = useMemo(() => {
+    const map: Record<string, { billed: number; due: number }> = {};
+    invoices.filter(i => i.status !== "void").forEach((inv) => {
+      if (!map[inv.client_id]) map[inv.client_id] = { billed: 0, due: 0 };
+      map[inv.client_id].billed += Number(inv.total);
+      map[inv.client_id].due += Number(inv.balance_due);
+    });
+    return map;
+  }, [invoices]);
 
   const resetForm = () => {
     setForm({

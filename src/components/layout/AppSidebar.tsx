@@ -12,6 +12,7 @@ import {
   FileMinus2,
   Coins,
   Layout,
+  FileSpreadsheet,
   ScrollText,
   SlidersHorizontal,
   Plus,

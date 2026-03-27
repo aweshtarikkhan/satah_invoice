@@ -15,7 +15,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Eye, Trash2, Plus, GripVertical } from "lucide-react";
+import { Save, Eye, Trash2, Plus, GripVertical, Printer, Share2, Clock, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { AddClientDialog } from "@/components/shared/AddClientDialog";
 import { AddItemDialog } from "@/components/shared/AddItemDialog";
 import {
@@ -508,11 +511,46 @@ export default function InvoiceBuilderPage() {
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => navigate("/invoices")}>Cancel</Button>
           <Button variant="outline" onClick={() => handleSave("draft")} disabled={saving}>
-            <Save className="mr-1 h-4 w-4" /> Save Draft
+            <Save className="mr-1 h-4 w-4" /> Save as Draft
           </Button>
-          <Button onClick={() => handleSave("sent")} disabled={saving}>
-            <Eye className="mr-1 h-4 w-4" /> Save & Send
-          </Button>
+          <div className="flex">
+            <Button className="rounded-r-none" onClick={() => handleSave("sent")} disabled={saving}>
+              <Eye className="mr-1 h-4 w-4" /> Save and Send
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="rounded-l-none border-l border-primary-foreground/20 px-2" disabled={saving}>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={async () => { await handleSave("sent"); setTimeout(() => window.print(), 500); }}>
+                  <Printer className="mr-2 h-4 w-4" /> Save and Print
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={async () => {
+                  await handleSave("sent");
+                  // Copy portal share link
+                  if (id) {
+                    const { data: existing } = await supabase.from("portal_tokens").select("token").eq("entity_type", "invoice").eq("entity_id", id).maybeSingle();
+                    let token = existing?.token;
+                    if (!token) {
+                      const { data } = await supabase.from("portal_tokens").insert({ org_id: org!.id, entity_type: "invoice", entity_id: id }).select("token").single();
+                      token = data?.token;
+                    }
+                    if (token) {
+                      await navigator.clipboard.writeText(`${window.location.origin}/portal/${token}`);
+                      toast({ title: "Invoice saved & portal link copied!" });
+                    }
+                  }
+                }}>
+                  <Share2 className="mr-2 h-4 w-4" /> Save and Share
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleSave("draft")}>
+                  <Clock className="mr-2 h-4 w-4" /> Save and Send Later
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
 

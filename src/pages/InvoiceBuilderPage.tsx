@@ -211,6 +211,8 @@ export default function InvoiceBuilderPage() {
   const [lines, setLines] = useState<LineItem[]>([createEmptyLine()]);
   const [saving, setSaving] = useState(false);
   const [clientInvoices, setClientInvoices] = useState<any[]>([]);
+  const [bulkAddOpen, setBulkAddOpen] = useState(false);
+  const [bulkSelected, setBulkSelected] = useState<Set<string>>(new Set());
 
   const sensors = useSensors(
     useSensor(PointerSensor),

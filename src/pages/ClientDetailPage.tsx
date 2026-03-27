@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  ArrowLeft, DollarSign, FileText, CreditCard, TrendingUp, AlertTriangle, CheckCircle2, Clock,
+  ArrowLeft, DollarSign, FileText, CreditCard, TrendingUp, AlertTriangle, CheckCircle2, Clock, FileSpreadsheet,
 } from "lucide-react";
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area,
@@ -119,6 +119,9 @@ export default function ClientDetailPage() {
       <PageHeader title={client.display_name} description={client.company_name || client.email || ""}>
         <Button variant="outline" size="sm" onClick={() => navigate("/clients")}>
           <ArrowLeft className="mr-1 h-4 w-4" /> Back
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => navigate(`/statements/${id}`)}>
+          <FileSpreadsheet className="mr-1 h-4 w-4" /> Statement
         </Button>
         <Button size="sm" onClick={() => navigate(`/invoices/new`)}>
           <FileText className="mr-1 h-4 w-4" /> New Invoice

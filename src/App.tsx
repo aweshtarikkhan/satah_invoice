@@ -20,6 +20,7 @@ import EstimatesPage from "./pages/EstimatesPage";
 import EstimateBuilderPage from "./pages/EstimateBuilderPage";
 import EstimateDetailPage from "./pages/EstimateDetailPage";
 import PaymentsPage from "./pages/PaymentsPage";
+import RecordPaymentPage from "./pages/RecordPaymentPage";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
 import CreditNotesPage from "./pages/CreditNotesPage";
@@ -69,6 +70,7 @@ const App = () => (
               <Route path="/estimates/:id/edit" element={<EstimateBuilderPage />} />
               <Route path="/estimates/:id/convert" element={<EstimateDetailPage />} />
               <Route path="/payments" element={<PaymentsPage />} />
+              <Route path="/payments/new" element={<RecordPaymentPage />} />
               <Route path="/credit-notes" element={<CreditNotesPage />} />
               <Route path="/credit-notes/new" element={<CreditNoteBuilderPage />} />
               <Route path="/credit-notes/:id" element={<CreditNoteDetailPage />} />

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -10,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { CreditCard, Search, Upload, DollarSign, TrendingUp, Hash } from "lucide-react";
+import { CreditCard, Search, Upload, DollarSign, TrendingUp, Hash, Plus } from "lucide-react";
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
@@ -28,6 +29,7 @@ const paymentImportFields: ImportField[] = [
 
 export default function PaymentsPage() {
   const org = useAppStore((s) => s.organization);
+  const navigate = useNavigate();
   const [payments, setPayments] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -103,10 +105,15 @@ export default function PaymentsPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <PageHeader title="Payments" description="Payment history">
-        <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
-          <Upload className="mr-1 h-4 w-4" /> Import
-        </Button>
+      <PageHeader title="Payments Received" description="Track all payments received from clients">
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+            <Upload className="mr-1 h-4 w-4" /> Import
+          </Button>
+          <Button size="sm" onClick={() => navigate("/payments/new")}>
+            <Plus className="mr-1 h-4 w-4" /> Record Payment
+          </Button>
+        </div>
       </PageHeader>
 
       {/* Summary Cards */}

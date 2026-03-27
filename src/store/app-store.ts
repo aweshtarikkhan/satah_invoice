@@ -17,6 +17,7 @@ interface Organization {
   estimate_next_number: number;
   credit_note_prefix: string;
   credit_note_next_number: number;
+  payment_prefix: string;
   payment_terms: number;
   default_notes: string | null;
   default_terms: string | null;

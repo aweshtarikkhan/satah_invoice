@@ -1,9 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, FileText } from "lucide-react";
+import { Check, FileText, Palette } from "lucide-react";
 import { useAppStore } from "@/store/app-store";
 import { useToast } from "@/hooks/use-toast";
 
@@ -40,6 +41,7 @@ const templates = [
 
 export default function InvoiceTemplatePage() {
   const [selected, setSelected] = useState("classic");
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleSelect = (templateId: string) => {
@@ -53,7 +55,11 @@ export default function InvoiceTemplatePage() {
       <PageHeader
         title="Invoice Templates"
         description="Choose a template style for your invoices, estimates, and credit notes"
-      />
+      >
+        <Button variant="outline" onClick={() => navigate("/templates/customize")}>
+          <Palette className="mr-1 h-4 w-4" /> Customize Colors & Logo
+        </Button>
+      </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {templates.map((tpl) => (

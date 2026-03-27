@@ -5,6 +5,7 @@ import { useAppStore } from "@/store/app-store";
 import { useAuth } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
 import { CustomFieldsForm, saveCustomFieldValues } from "@/components/shared/CustomFieldsForm";
+import { CURRENCIES, formatCurrency } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -528,6 +529,15 @@ export default function InvoiceBuilderPage() {
                   <Label>Due Date</Label>
                   <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Currency</Label>
+                <Select value={org?.currency_code || "USD"} disabled>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {CURRENCIES.map((c) => <SelectItem key={c.code} value={c.code}>{c.code}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>

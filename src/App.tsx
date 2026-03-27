@@ -29,6 +29,7 @@ import InvoiceTemplatePage from "./pages/InvoiceTemplatePage";
 import PortalPage from "./pages/PortalPage";
 import AuditLogsPage from "./pages/AuditLogsPage";
 import CustomFieldsPage from "./pages/CustomFieldsPage";
+import TemplateCustomizationPage from "./pages/TemplateCustomizationPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -74,6 +75,7 @@ const App = () => (
               <Route path="/credit-notes/:id/edit" element={<CreditNoteBuilderPage />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/templates" element={<InvoiceTemplatePage />} />
+              <Route path="/templates/customize" element={<TemplateCustomizationPage />} />
               <Route path="/audit-logs" element={<AuditLogsPage />} />
               <Route path="/custom-fields" element={<CustomFieldsPage />} />
               <Route path="/settings" element={<SettingsPage />} />

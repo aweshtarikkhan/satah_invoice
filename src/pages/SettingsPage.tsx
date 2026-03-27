@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { CURRENCIES } from "@/lib/currency";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -174,12 +175,9 @@ export default function SettingsPage() {
                   <Select value={orgForm.currency_code} onValueChange={(v) => setOrgForm({ ...orgForm, currency_code: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="USD">USD</SelectItem>
-                      <SelectItem value="EUR">EUR</SelectItem>
-                      <SelectItem value="GBP">GBP</SelectItem>
-                      <SelectItem value="INR">INR</SelectItem>
-                      <SelectItem value="CAD">CAD</SelectItem>
-                      <SelectItem value="AUD">AUD</SelectItem>
+                      {CURRENCIES.map((c) => (
+                        <SelectItem key={c.code} value={c.code}>{c.code} — {c.name}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

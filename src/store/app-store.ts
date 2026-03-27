@@ -20,6 +20,10 @@ interface Organization {
   payment_terms: number;
   default_notes: string | null;
   default_terms: string | null;
+  template_style: string;
+  template_accent_color: string;
+  template_font: string;
+  template_show_logo: boolean;
 }
 
 interface AppState {

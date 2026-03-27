@@ -44,7 +44,7 @@ function createEmptyLine(): LineItem {
   };
 }
 
-function SortableLine({ line, index, taxRates, items, onChange, onRemove, currency }: any) {
+function SortableLine({ line, index, taxRates, items, onChange, onRemove, onAddItem, currency }: any) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: line.id });
   const style = { transform: CSS.Transform.toString(transform), transition };
   const fmt = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency }).format(n);

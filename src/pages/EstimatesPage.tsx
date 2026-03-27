@@ -48,7 +48,7 @@ export default function EstimatesPage() {
       .eq("org_id", org.id)
       .order("created_at", { ascending: false });
 
-    if (tab !== "all") query = query.eq("status", tab);
+    if (tab !== "all") query = query.eq("status", tab as any);
     if (search) query = query.or(`estimate_number.ilike.%${search}%`);
 
     const { data } = await query;

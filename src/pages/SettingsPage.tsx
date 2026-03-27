@@ -1,0 +1,273 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAppStore } from "@/store/app-store";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { Plus, Trash2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+
+export default function SettingsPage() {
+  const org = useAppStore((s) => s.organization);
+  const setOrganization = useAppStore((s) => s.setOrganization);
+  const { toast } = useToast();
+
+  // Org form
+  const [orgForm, setOrgForm] = useState({
+    name: "", email: "", phone: "", website: "",
+    tax_number: "", tax_name: "", currency_code: "USD",
+    invoice_prefix: "INV", payment_terms: 30,
+    default_notes: "", default_terms: "",
+    address: { street: "", city: "", state: "", zip: "", country: "" },
+  });
+
+  // Tax rates
+  const [taxRates, setTaxRates] = useState<any[]>([]);
+  const [taxDialogOpen, setTaxDialogOpen] = useState(false);
+  const [taxForm, setTaxForm] = useState({ name: "", rate: 0, is_default: false });
+
+  useEffect(() => {
+    if (!org) return;
+    setOrgForm({
+      name: org.name || "", email: org.email || "", phone: org.phone || "",
+      website: org.website || "", tax_number: org.tax_number || "", tax_name: org.tax_name || "",
+      currency_code: org.currency_code || "USD", invoice_prefix: org.invoice_prefix || "INV",
+      payment_terms: org.payment_terms || 30, default_notes: org.default_notes || "",
+      default_terms: org.default_terms || "",
+      address: (org.address as any) || { street: "", city: "", state: "", zip: "", country: "" },
+    });
+    fetchTaxRates();
+  }, [org]);
+
+  const fetchTaxRates = async () => {
+    if (!org?.id) return;
+    const { data } = await supabase.from("tax_rates").select("*").eq("org_id", org.id).order("name");
+    setTaxRates(data || []);
+  };
+
+  const saveOrg = async () => {
+    if (!org?.id) return;
+    const { error } = await supabase.from("organizations").update(orgForm).eq("id", org.id);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setOrganization({ ...org, ...orgForm } as any);
+      toast({ title: "Settings saved!" });
+    }
+  };
+
+  const saveTaxRate = async () => {
+    if (!taxForm.name.trim()) return;
+    const { error } = await supabase.from("tax_rates").insert({
+      org_id: org!.id,
+      name: taxForm.name,
+      rate: taxForm.rate,
+      is_default: taxForm.is_default,
+    });
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      setTaxDialogOpen(false);
+      setTaxForm({ name: "", rate: 0, is_default: false });
+      fetchTaxRates();
+      toast({ title: "Tax rate added!" });
+    }
+  };
+
+  const deleteTaxRate = async (id: string) => {
+    await supabase.from("tax_rates").delete().eq("id", id);
+    fetchTaxRates();
+    toast({ title: "Tax rate deleted" });
+  };
+
+  return (
+    <div className="p-6 space-y-6 max-w-3xl">
+      <PageHeader title="Settings" description="Manage your organization and preferences" />
+
+      <Tabs defaultValue="organization">
+        <TabsList>
+          <TabsTrigger value="organization">Organization</TabsTrigger>
+          <TabsTrigger value="invoices">Invoices</TabsTrigger>
+          <TabsTrigger value="taxes">Tax Rates</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="organization" className="space-y-6 mt-4">
+          <Card>
+            <CardHeader><CardTitle className="text-base">Business Details</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Organization Name</Label>
+                  <Input value={orgForm.name} onChange={(e) => setOrgForm({ ...orgForm, name: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input value={orgForm.email} onChange={(e) => setOrgForm({ ...orgForm, email: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Phone</Label>
+                  <Input value={orgForm.phone} onChange={(e) => setOrgForm({ ...orgForm, phone: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Website</Label>
+                  <Input value={orgForm.website} onChange={(e) => setOrgForm({ ...orgForm, website: e.target.value })} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Street Address</Label>
+                <Input value={orgForm.address.street} onChange={(e) => setOrgForm({ ...orgForm, address: { ...orgForm.address, street: e.target.value } })} />
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-2">
+                  <Label>City</Label>
+                  <Input value={orgForm.address.city} onChange={(e) => setOrgForm({ ...orgForm, address: { ...orgForm.address, city: e.target.value } })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>State</Label>
+                  <Input value={orgForm.address.state} onChange={(e) => setOrgForm({ ...orgForm, address: { ...orgForm.address, state: e.target.value } })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Country</Label>
+                  <Input value={orgForm.address.country} onChange={(e) => setOrgForm({ ...orgForm, address: { ...orgForm.address, country: e.target.value } })} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Tax Name (e.g. GST, VAT)</Label>
+                  <Input value={orgForm.tax_name} onChange={(e) => setOrgForm({ ...orgForm, tax_name: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Tax Number</Label>
+                  <Input value={orgForm.tax_number} onChange={(e) => setOrgForm({ ...orgForm, tax_number: e.target.value })} />
+                </div>
+              </div>
+              <Button onClick={saveOrg}>Save Changes</Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="invoices" className="space-y-6 mt-4">
+          <Card>
+            <CardHeader><CardTitle className="text-base">Invoice Defaults</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Invoice Prefix</Label>
+                  <Input value={orgForm.invoice_prefix} onChange={(e) => setOrgForm({ ...orgForm, invoice_prefix: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Currency</Label>
+                  <Select value={orgForm.currency_code} onValueChange={(v) => setOrgForm({ ...orgForm, currency_code: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USD">USD</SelectItem>
+                      <SelectItem value="EUR">EUR</SelectItem>
+                      <SelectItem value="GBP">GBP</SelectItem>
+                      <SelectItem value="INR">INR</SelectItem>
+                      <SelectItem value="CAD">CAD</SelectItem>
+                      <SelectItem value="AUD">AUD</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Payment Terms (days)</Label>
+                  <Input type="number" value={orgForm.payment_terms} onChange={(e) => setOrgForm({ ...orgForm, payment_terms: parseInt(e.target.value) || 30 })} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Default Notes</Label>
+                <Textarea value={orgForm.default_notes} onChange={(e) => setOrgForm({ ...orgForm, default_notes: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Default Terms & Conditions</Label>
+                <Textarea value={orgForm.default_terms} onChange={(e) => setOrgForm({ ...orgForm, default_terms: e.target.value })} />
+              </div>
+              <Button onClick={saveOrg}>Save Changes</Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="taxes" className="space-y-6 mt-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-base">Tax Rates</CardTitle>
+              <Button size="sm" onClick={() => setTaxDialogOpen(true)}>
+                <Plus className="mr-1 h-4 w-4" /> Add Tax Rate
+              </Button>
+            </CardHeader>
+            <CardContent className="p-0">
+              {taxRates.length === 0 ? (
+                <div className="p-8 text-center text-sm text-muted-foreground">
+                  No tax rates configured. Add one to use in invoices.
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Rate</TableHead>
+                      <TableHead>Default</TableHead>
+                      <TableHead></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {taxRates.map((t) => (
+                      <TableRow key={t.id}>
+                        <TableCell className="font-medium">{t.name}</TableCell>
+                        <TableCell>{t.rate}%</TableCell>
+                        <TableCell>{t.is_default ? "Yes" : "—"}</TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="icon" onClick={() => deleteTaxRate(t.id)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+
+          <Dialog open={taxDialogOpen} onOpenChange={setTaxDialogOpen}>
+            <DialogContent>
+              <DialogHeader><DialogTitle>Add Tax Rate</DialogTitle></DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Name</Label>
+                  <Input value={taxForm.name} onChange={(e) => setTaxForm({ ...taxForm, name: e.target.value })} placeholder="e.g. GST, VAT" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Rate (%)</Label>
+                  <Input type="number" step="0.01" value={taxForm.rate} onChange={(e) => setTaxForm({ ...taxForm, rate: parseFloat(e.target.value) || 0 })} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox checked={taxForm.is_default} onCheckedChange={(v) => setTaxForm({ ...taxForm, is_default: !!v })} />
+                  <Label>Set as default</Label>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setTaxDialogOpen(false)}>Cancel</Button>
+                <Button onClick={saveTaxRate}>Save</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

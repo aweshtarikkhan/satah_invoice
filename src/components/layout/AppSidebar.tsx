@@ -10,6 +10,7 @@ import {
   ClipboardList,
   BarChart3,
   FileMinus2,
+  Coins,
   Layout,
   ScrollText,
   SlidersHorizontal,

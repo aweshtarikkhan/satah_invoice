@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
@@ -15,7 +15,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Eye, Trash2, Plus, GripVertical, Printer, Share2, Clock, ChevronDown } from "lucide-react";
+import { Save, Eye, Trash2, Plus, GripVertical, Printer, Share2, Clock, ChevronDown, AlertTriangle, IndianRupee } from "lucide-react";
 import { InvoiceSettingsSheet } from "@/components/shared/InvoiceSettingsSheet";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -250,6 +250,7 @@ export default function InvoiceBuilderPage() {
   const [adjustmentName, setAdjustmentName] = useState("Adjustment");
   const [lines, setLines] = useState<LineItem[]>([createEmptyLine()]);
   const [saving, setSaving] = useState(false);
+  const [clientInvoices, setClientInvoices] = useState<any[]>([]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -342,7 +343,45 @@ export default function InvoiceBuilderPage() {
     loadInvoice();
   }, [id, org?.id]);
 
-  // Calculate line amounts
+  // Fetch client pending invoices when client changes
+  useEffect(() => {
+    if (!clientId || !org?.id) { setClientInvoices([]); return; }
+    const fetchClientInvoices = async () => {
+      const { data } = await supabase
+        .from("invoices")
+        .select("total, balance_due, due_date, status")
+        .eq("client_id", clientId)
+        .eq("org_id", org.id)
+        .neq("status", "void")
+        .neq("status", "draft");
+      setClientInvoices(data || []);
+    };
+    fetchClientInvoices();
+  }, [clientId, org?.id]);
+
+  const clientAgingSummary = useMemo(() => {
+    if (!clientInvoices.length) return null;
+    const today = new Date();
+    let totalDue = 0;
+    let over15 = 0;
+    let over45 = 0;
+    let totalBilled = 0;
+
+    clientInvoices.forEach((inv) => {
+      totalBilled += Number(inv.total);
+      const bal = Number(inv.balance_due);
+      if (bal <= 0) return;
+      totalDue += bal;
+      const dueDt = new Date(inv.due_date);
+      const daysPast = Math.floor((today.getTime() - dueDt.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysPast > 45) over45 += bal;
+      else if (daysPast > 15) over15 += bal;
+    });
+
+    return { totalBilled, totalDue, over15, over45 };
+  }, [clientInvoices]);
+
+
   const calculateLine = useCallback((line: LineItem): LineItem => {
     const lineSubtotal = line.quantity * line.rate;
     const lineDiscount = line.discount_type === "percentage"
@@ -579,6 +618,36 @@ export default function InvoiceBuilderPage() {
                 </div>
                 <AddClientDialog open={addClientOpen} onOpenChange={setAddClientOpen} onClientAdded={(c) => { setClients(prev => [...prev, c]); setClientId(c.id); }} />
                 <AddItemDialog open={addItemOpen} onOpenChange={setAddItemOpen} taxRates={taxRates} onItemAdded={(item) => { setCatalogItems(prev => [...prev, item]); }} />
+                {clientId && clientAgingSummary && clientAgingSummary.totalDue > 0 && (
+                  <div className="mt-3 rounded-lg border border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950/30 p-3 space-y-2">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-orange-700 dark:text-orange-400">
+                      <AlertTriangle className="h-4 w-4" />
+                      Client Pending Summary
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="rounded-md bg-background p-2 border">
+                        <span className="text-muted-foreground">Total Billed</span>
+                        <p className="font-bold text-foreground">{formatCurrency(clientAgingSummary.totalBilled, org?.currency_code || "INR")}</p>
+                      </div>
+                      <div className="rounded-md bg-background p-2 border border-destructive/30">
+                        <span className="text-muted-foreground">Total Due</span>
+                        <p className="font-bold text-destructive">{formatCurrency(clientAgingSummary.totalDue, org?.currency_code || "INR")}</p>
+                      </div>
+                      {clientAgingSummary.over15 > 0 && (
+                        <div className="rounded-md bg-background p-2 border border-orange-300 dark:border-orange-700">
+                          <span className="text-muted-foreground">15+ Days Overdue</span>
+                          <p className="font-bold text-orange-600 dark:text-orange-400">{formatCurrency(clientAgingSummary.over15, org?.currency_code || "INR")}</p>
+                        </div>
+                      )}
+                      {clientAgingSummary.over45 > 0 && (
+                        <div className="rounded-md bg-background p-2 border border-destructive/50">
+                          <span className="text-muted-foreground">45+ Days Overdue</span>
+                          <p className="font-bold text-destructive">{formatCurrency(clientAgingSummary.over45, org?.currency_code || "INR")}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             <div className="space-y-4">

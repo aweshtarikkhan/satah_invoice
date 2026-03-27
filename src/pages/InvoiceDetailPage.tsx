@@ -174,6 +174,32 @@ export default function InvoiceDetailPage() {
     }
   };
 
+  const invoiceRef = useRef<HTMLDivElement>(null);
+
+  const handleDownloadPDF = useCallback(async () => {
+    if (!invoiceRef.current) return;
+    const paperSizes: Record<string, [number, number]> = {
+      a4: [210, 297], letter: [215.9, 279.4], legal: [215.9, 355.6], a5: [148, 210], a6: [105, 148],
+    };
+    const [pW, pH] = paperSizes[org?.template_paper_size || "a4"] || paperSizes.a4;
+    const canvas = await html2canvas(invoiceRef.current, { scale: 3, useCORS: true, logging: false });
+    const imgData = canvas.toDataURL("image/png");
+    const imgWidth = pW;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    const pdf = new jsPDF("p", "mm", [pW, pH]);
+    let heightLeft = imgHeight;
+    let position = 0;
+    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+    heightLeft -= pH;
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage([pW, pH]);
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pH;
+    }
+    pdf.save(`${invoice?.invoice_number || "invoice"}.pdf`);
+  }, [invoice, org]);
+
   if (!invoice) {
     return <div className="p-6 text-center text-muted-foreground">Loading...</div>;
   }

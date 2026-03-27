@@ -94,7 +94,14 @@ export function AddItemDialog({ open, onOpenChange, onItemAdded, taxRates = [] }
             </div>
             <div className="space-y-1">
               <Label>Unit</Label>
-              <Input value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} placeholder="hrs, pcs..." />
+              <Select value={form.unit || "pcs"} onValueChange={(v) => setForm({ ...form, unit: v })}>
+                <SelectTrigger><SelectValue placeholder="Select unit" /></SelectTrigger>
+                <SelectContent>
+                  {["pcs", "kg", "g", "ltr", "ml", "m", "cm", "ft", "inch", "box", "nos", "hrs", "days", "pair", "set", "sqft", "sqm", "ton", "dozen", "bundle", "roll", "bag", "carton"].map((u) => (
+                    <SelectItem key={u} value={u}>{u}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           {taxRates.length > 0 && (

@@ -221,6 +221,7 @@ export default function CreditNoteBuilderPage() {
                 </Button>
               </div>
               <AddClientDialog open={addClientOpen} onOpenChange={setAddClientOpen} onClientAdded={(c) => { setClients(prev => [...prev, c]); setClientId(c.id); }} />
+              <AddItemDialog open={addItemOpen} onOpenChange={setAddItemOpen} taxRates={taxRates} onItemAdded={(item) => { setItems(prev => [...prev, item]); }} />
             </div>
             <div className="space-y-2">
               <Label>Against Invoice (optional)</Label>

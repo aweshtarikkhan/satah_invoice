@@ -280,6 +280,7 @@ export default function InvoiceBuilderPage() {
       setDiscount(Number(inv.discount));
       setDiscountType(inv.discount_type as any);
       setShippingCharge(Number(inv.shipping_charge));
+      setExpenses(Number((inv as any).expenses || 0));
       setAdjustment(Number(inv.adjustment));
       setAdjustmentName(inv.adjustment_name || "Adjustment");
 

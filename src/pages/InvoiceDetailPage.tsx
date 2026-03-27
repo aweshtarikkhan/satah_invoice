@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
@@ -21,8 +21,11 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, Send, FileDown, Copy, Ban, CreditCard, Share2 } from "lucide-react";
+import { Edit, Send, FileDown, Copy, Ban, CreditCard, Share2, Download, Printer } from "lucide-react";
 import { getDocumentPreviewClass, getPaperSizeLabel, getPrintPageCSS } from "@/lib/document-templates";
+import { QRCodeSVG } from "qrcode.react";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 
 export default function InvoiceDetailPage() {
   const { id } = useParams();
@@ -171,6 +174,32 @@ export default function InvoiceDetailPage() {
     }
   };
 
+  const invoiceRef = useRef<HTMLDivElement>(null);
+
+  const handleDownloadPDF = useCallback(async () => {
+    if (!invoiceRef.current) return;
+    const paperSizes: Record<string, [number, number]> = {
+      a4: [210, 297], letter: [215.9, 279.4], legal: [215.9, 355.6], a5: [148, 210], a6: [105, 148],
+    };
+    const [pW, pH] = paperSizes[org?.template_paper_size || "a4"] || paperSizes.a4;
+    const canvas = await html2canvas(invoiceRef.current, { scale: 3, useCORS: true, logging: false });
+    const imgData = canvas.toDataURL("image/png");
+    const imgWidth = pW;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    const pdf = new jsPDF("p", "mm", [pW, pH]);
+    let heightLeft = imgHeight;
+    let position = 0;
+    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+    heightLeft -= pH;
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage([pW, pH]);
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pH;
+    }
+    pdf.save(`${invoice?.invoice_number || "invoice"}.pdf`);
+  }, [invoice, org]);
+
   if (!invoice) {
     return <div className="p-6 text-center text-muted-foreground">Loading...</div>;
   }
@@ -187,7 +216,10 @@ export default function InvoiceDetailPage() {
           <Edit className="mr-1 h-4 w-4" /> Edit
         </Button>
         <Button variant="outline" size="sm" onClick={() => window.print()}>
-          <FileDown className="mr-1 h-4 w-4" /> Save PDF
+          <Printer className="mr-1 h-4 w-4" /> Print
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
+          <Download className="mr-1 h-4 w-4" /> Download PDF
         </Button>
         <Button variant="outline" size="sm" onClick={handleDuplicate}>
           <Copy className="mr-1 h-4 w-4" /> Duplicate
@@ -227,6 +259,7 @@ export default function InvoiceDetailPage() {
       </div>
 
       {/* Invoice Preview */}
+      <div ref={invoiceRef}>
       <Card className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
         <CardHeader>
           <div className="flex justify-between items-start">
@@ -295,9 +328,22 @@ export default function InvoiceDetailPage() {
             <div className="flex justify-between font-bold text-primary">
               <span>Balance Due</span><span>{fmt(Number(invoice.balance_due))}</span>
             </div>
+
+            {/* QR Code */}
+            {org?.qr_code_enabled && (
+              <div className="mt-6 flex items-center gap-3">
+                <QRCodeSVG
+                  value={`${window.location.origin}/portal/invoice/${invoice.id}`}
+                  size={80}
+                  level="M"
+                />
+                <p className="text-xs text-muted-foreground">Scan to view invoice online</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
+      </div>
 
       {/* Payments */}
       {payments.length > 0 && (

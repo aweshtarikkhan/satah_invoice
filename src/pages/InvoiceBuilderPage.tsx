@@ -19,6 +19,9 @@ import { Save, Eye, Trash2, Plus, GripVertical, Printer, Share2, Clock, ChevronD
 import { Checkbox } from "@/components/ui/checkbox";
 import { InvoiceSettingsSheet } from "@/components/shared/InvoiceSettingsSheet";
 import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AddClientDialog } from "@/components/shared/AddClientDialog";

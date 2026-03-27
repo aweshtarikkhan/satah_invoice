@@ -28,6 +28,7 @@ export default function InvoiceDetailPage() {
   const navigate = useNavigate();
   const org = useAppStore((s) => s.organization);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const [invoice, setInvoice] = useState<any>(null);
   const [lines, setLines] = useState<any[]>([]);

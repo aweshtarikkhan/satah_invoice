@@ -44,6 +44,9 @@ const mainItems = [
 ];
 
 const settingsItems = [
+  { title: "Templates", url: "/templates", icon: Layout },
+  { title: "Custom Fields", url: "/custom-fields", icon: SlidersHorizontal },
+  { title: "Audit Logs", url: "/audit-logs", icon: ScrollText },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 

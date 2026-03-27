@@ -74,6 +74,8 @@ const App = () => (
               <Route path="/credit-notes/:id/edit" element={<CreditNoteBuilderPage />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/templates" element={<InvoiceTemplatePage />} />
+              <Route path="/audit-logs" element={<AuditLogsPage />} />
+              <Route path="/custom-fields" element={<CustomFieldsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
 

@@ -210,9 +210,11 @@ export default function RecordPaymentPage() {
       }).eq("id", inv.id);
 
       await logAudit({
+        orgId: org.id,
+        userId: "",
         action: "payment_received",
-        entity_type: "payment",
-        entity_id: inv.id,
+        entityType: "payment",
+        entityId: inv.id,
         description: `Payment of ${fmt(inv.payment)} received for ${inv.invoice_number}`,
       });
     }

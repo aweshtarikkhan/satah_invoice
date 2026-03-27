@@ -205,6 +205,7 @@ export default function InvoiceBuilderPage() {
   const [taxRates, setTaxRates] = useState<any[]>([]);
 
   const [clientId, setClientId] = useState("");
+  const [addClientOpen, setAddClientOpen] = useState(false);
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [issueDate, setIssueDate] = useState(new Date().toISOString().split("T")[0]);
   const [dueDate, setDueDate] = useState("");

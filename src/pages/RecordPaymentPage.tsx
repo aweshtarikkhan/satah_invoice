@@ -51,6 +51,7 @@ export default function RecordPaymentPage() {
 
   const [clients, setClients] = useState<any[]>([]);
   const [clientId, setClientId] = useState("");
+  const [addClientOpen, setAddClientOpen] = useState(false);
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split("T")[0]);
   const [paymentMode, setPaymentMode] = useState("bank_transfer");
   const [referenceNumber, setReferenceNumber] = useState("");

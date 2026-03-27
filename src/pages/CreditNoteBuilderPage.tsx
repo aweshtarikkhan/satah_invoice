@@ -53,6 +53,7 @@ export default function CreditNoteBuilderPage() {
   const [invoices, setInvoices] = useState<any[]>([]);
 
   const [clientId, setClientId] = useState("");
+  const [addClientOpen, setAddClientOpen] = useState(false);
   const [invoiceId, setInvoiceId] = useState("");
   const [creditNoteNumber, setCreditNoteNumber] = useState("");
   const [issueDate, setIssueDate] = useState(new Date().toISOString().split("T")[0]);

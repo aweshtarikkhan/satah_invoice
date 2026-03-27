@@ -600,7 +600,8 @@ export default function InvoiceBuilderPage() {
         <CardContent>
           <div className="text-xs font-medium text-muted-foreground grid grid-cols-12 gap-2 px-6 pb-2 border-b">
             <div className="col-span-3">Item</div>
-            <div className="col-span-3">Description</div>
+            <div className="col-span-2">Description</div>
+            <div className="col-span-1">Unit</div>
             <div className="col-span-1 text-center">Qty</div>
             <div className="col-span-2">Rate</div>
             <div className="col-span-1">Tax</div>

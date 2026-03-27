@@ -55,7 +55,11 @@ export default function InvoiceTemplatePage() {
       <PageHeader
         title="Invoice Templates"
         description="Choose a template style for your invoices, estimates, and credit notes"
-      />
+      >
+        <Button variant="outline" onClick={() => navigate("/templates/customize")}>
+          <Palette className="mr-1 h-4 w-4" /> Customize Colors & Logo
+        </Button>
+      </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {templates.map((tpl) => (

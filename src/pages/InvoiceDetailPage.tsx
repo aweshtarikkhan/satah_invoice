@@ -232,12 +232,17 @@ export default function InvoiceDetailPage() {
           <div className="flex justify-between items-start">
             <div>
               <CardTitle className="text-lg">{org?.name}</CardTitle>
+              {org?.phone && <p className="text-sm text-muted-foreground">{org.phone}</p>}
               <p className="text-sm text-muted-foreground">{org?.email}</p>
+              {org?.gst_enabled && org?.gst_number && (
+                <p className="text-sm text-muted-foreground">GST: {org.gst_number}</p>
+              )}
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold">{fmt(Number(invoice.total))}</p>
+              <p className="text-sm font-medium mb-1">Bill To:</p>
+              <p className="font-medium">{(invoice.clients as any)?.display_name}</p>
+              <p className="text-2xl font-bold mt-2">{fmt(Number(invoice.total))}</p>
               <p className="text-sm text-muted-foreground">Balance: {fmt(Number(invoice.balance_due))}</p>
-              <p className="text-xs text-muted-foreground">Template: {org?.template_style || "classic"} • {getPaperSizeLabel(org?.template_paper_size)}</p>
             </div>
           </div>
         </CardHeader>

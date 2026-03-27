@@ -27,6 +27,34 @@ export const DOCUMENT_TEMPLATES = [
     preview: "bg-accent/10 border-accent/30",
     features: ["Dual address blocks", "Payment details", "Tax breakdown"],
   },
+  {
+    id: "asperiores",
+    name: "Asperiores",
+    description: "Bold executive layout with striking contrasts",
+    preview: "bg-destructive/5 border-destructive/20",
+    features: ["Bold headers", "Contrast sections", "Executive summary"],
+  },
+  {
+    id: "magnam",
+    name: "Magnam",
+    description: "Elegant template with refined spacing and serif touches",
+    preview: "bg-success/5 border-success/20",
+    features: ["Serif accents", "Elegant borders", "Refined totals"],
+  },
+  {
+    id: "quisquam",
+    name: "Quisquam",
+    description: "Compact data-dense layout for detailed invoices",
+    preview: "bg-warning/5 border-warning/20",
+    features: ["Dense tables", "Compact layout", "Multi-column footer"],
+  },
+  {
+    id: "nobis",
+    name: "Nobis",
+    description: "Creative modern template with asymmetric design",
+    preview: "bg-secondary/50 border-secondary",
+    features: ["Asymmetric layout", "Creative header", "Accent sidebar"],
+  },
 ] as const;
 
 export const PAPER_SIZES = [
@@ -43,6 +71,10 @@ export function getDocumentPreviewClass(templateStyle?: string, paperSize?: stri
     modern: "rounded-[1.5rem] border border-primary/20 bg-card text-card-foreground shadow-sm",
     minimal: "border border-border/70 bg-background text-foreground",
     professional: "rounded-lg border border-accent bg-card text-card-foreground shadow-md",
+    asperiores: "rounded-xl border-2 border-destructive/30 bg-card text-card-foreground shadow-lg",
+    magnam: "rounded-2xl border border-success/30 bg-card text-card-foreground shadow-sm",
+    quisquam: "rounded-md border border-warning/30 bg-card text-card-foreground shadow-sm",
+    nobis: "rounded-xl border-l-4 border-secondary bg-card text-card-foreground shadow-md",
   }[templateStyle || "classic"];
 
   const sizeClass = {

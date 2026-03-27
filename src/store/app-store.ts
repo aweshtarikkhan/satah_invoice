@@ -26,6 +26,10 @@ interface Organization {
   template_font: string;
   template_show_logo: boolean;
   template_paper_size: string;
+  gst_enabled: boolean;
+  gst_number: string | null;
+  show_client_gst: boolean;
+  qr_code_enabled: boolean;
 }
 
 interface AppState {

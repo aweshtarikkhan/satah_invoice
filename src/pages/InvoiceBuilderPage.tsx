@@ -41,6 +41,7 @@ interface LineItem {
   item_id: string | null;
   name: string;
   description: string;
+  unit: string;
   quantity: number;
   rate: number;
   discount: number;
@@ -50,12 +51,15 @@ interface LineItem {
   amount: number;
 }
 
+const UNITS = ["pcs", "kg", "g", "ltr", "ml", "m", "cm", "ft", "inch", "box", "nos", "hrs", "days", "pair", "set", "sqft", "sqm"];
+
 function createEmptyLine(): LineItem {
   return {
     id: crypto.randomUUID(),
     item_id: null,
     name: "",
     description: "",
+    unit: "pcs",
     quantity: 1,
     rate: 0,
     discount: 0,
@@ -103,6 +107,7 @@ function SortableLineItem({
       onChange(index, "name", item.name);
       onChange(index, "description", item.description || "");
       onChange(index, "rate", Number(item.unit_price));
+      onChange(index, "unit", item.unit || "pcs");
       if (item.tax_id) onChange(index, "tax_id", item.tax_id);
     }
   };
@@ -140,13 +145,26 @@ function SortableLineItem({
             onChange={(e) => onChange(index, "name", e.target.value)}
           />
         </div>
-        <div className="col-span-3">
+        <div className="col-span-2">
           <Textarea
             className="min-h-[60px] text-xs"
             placeholder="Description"
             value={line.description}
             onChange={(e) => onChange(index, "description", e.target.value)}
           />
+        </div>
+        <div className="col-span-1">
+          <Select value={line.unit || "pcs"} onValueChange={(v) => onChange(index, "unit", v)}>
+            <SelectTrigger className="h-9 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {UNITS.map((u) => (
+                <SelectItem key={u} value={u}>{u}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <span className="text-[10px] text-muted-foreground">Unit</span>
         </div>
         <div className="col-span-1">
           <Input
@@ -306,6 +324,7 @@ export default function InvoiceBuilderPage() {
           item_id: l.item_id,
           name: l.name,
           description: l.description || "",
+          unit: l.unit || "pcs",
           quantity: Number(l.quantity),
           rate: Number(l.rate),
           discount: Number(l.discount),
@@ -425,6 +444,7 @@ export default function InvoiceBuilderPage() {
           item_id: l.item_id,
           name: l.name,
           description: l.description,
+          unit: l.unit || "pcs",
           quantity: l.quantity,
           rate: l.rate,
           discount: l.discount,
@@ -580,7 +600,8 @@ export default function InvoiceBuilderPage() {
         <CardContent>
           <div className="text-xs font-medium text-muted-foreground grid grid-cols-12 gap-2 px-6 pb-2 border-b">
             <div className="col-span-3">Item</div>
-            <div className="col-span-3">Description</div>
+            <div className="col-span-2">Description</div>
+            <div className="col-span-1">Unit</div>
             <div className="col-span-1 text-center">Qty</div>
             <div className="col-span-2">Rate</div>
             <div className="col-span-1">Tax</div>

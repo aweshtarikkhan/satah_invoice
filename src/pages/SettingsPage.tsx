@@ -21,6 +21,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 
 export default function SettingsPage() {
   const org = useAppStore((s) => s.organization);
@@ -34,6 +35,7 @@ export default function SettingsPage() {
     invoice_prefix: "INV", payment_terms: 30,
     default_notes: "", default_terms: "",
     address: { street: "", city: "", state: "", zip: "", country: "" },
+    gst_enabled: false, gst_number: "", show_client_gst: false, qr_code_enabled: false,
   });
 
   // Tax rates
@@ -50,6 +52,8 @@ export default function SettingsPage() {
       payment_terms: org.payment_terms || 30, default_notes: org.default_notes || "",
       default_terms: org.default_terms || "",
       address: (org.address as any) || { street: "", city: "", state: "", zip: "", country: "" },
+      gst_enabled: org.gst_enabled || false, gst_number: org.gst_number || "",
+      show_client_gst: org.show_client_gst || false, qr_code_enabled: org.qr_code_enabled || false,
     });
     fetchTaxRates();
   }, [org]);
@@ -223,6 +227,48 @@ export default function SettingsPage() {
                   </div>
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardHeader><CardTitle className="text-base">GST Settings</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Enable GST</Label>
+                      <p className="text-xs text-muted-foreground">Show GST details on invoices</p>
+                    </div>
+                    <Switch checked={orgForm.gst_enabled} onCheckedChange={(v) => setOrgForm({ ...orgForm, gst_enabled: v })} />
+                  </div>
+                  {orgForm.gst_enabled && (
+                    <>
+                      <div className="space-y-2">
+                        <Label>Your GST Number</Label>
+                        <Input value={orgForm.gst_number} onChange={(e) => setOrgForm({ ...orgForm, gst_number: e.target.value })} placeholder="e.g. 22AAAAA0000A1Z5" />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Show Client GST</Label>
+                          <p className="text-xs text-muted-foreground">Include client's GST number on invoice for input tax credit claims</p>
+                        </div>
+                        <Switch checked={orgForm.show_client_gst} onCheckedChange={(v) => setOrgForm({ ...orgForm, show_client_gst: v })} />
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader><CardTitle className="text-base">QR Code</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Embed QR Code</Label>
+                      <p className="text-xs text-muted-foreground">Add a QR code to invoices for quick payment or verification</p>
+                    </div>
+                    <Switch checked={orgForm.qr_code_enabled} onCheckedChange={(v) => setOrgForm({ ...orgForm, qr_code_enabled: v })} />
+                  </div>
+                </CardContent>
+              </Card>
+
               <Button onClick={saveOrg}>Save</Button>
             </TabsContent>
 

@@ -232,12 +232,17 @@ export default function InvoiceDetailPage() {
           <div className="flex justify-between items-start">
             <div>
               <CardTitle className="text-lg">{org?.name}</CardTitle>
+              {org?.phone && <p className="text-sm text-muted-foreground">{org.phone}</p>}
               <p className="text-sm text-muted-foreground">{org?.email}</p>
+              {org?.gst_enabled && org?.gst_number && (
+                <p className="text-sm text-muted-foreground">GST: {org.gst_number}</p>
+              )}
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold">{fmt(Number(invoice.total))}</p>
+              <p className="text-sm font-medium mb-1">Bill To:</p>
+              <p className="font-medium">{(invoice.clients as any)?.display_name}</p>
+              <p className="text-2xl font-bold mt-2">{fmt(Number(invoice.total))}</p>
               <p className="text-sm text-muted-foreground">Balance: {fmt(Number(invoice.balance_due))}</p>
-              <p className="text-xs text-muted-foreground">Template: {org?.template_style || "classic"} • {getPaperSizeLabel(org?.template_paper_size)}</p>
             </div>
           </div>
         </CardHeader>
@@ -246,6 +251,7 @@ export default function InvoiceDetailPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Item</TableHead>
+                <TableHead>Unit</TableHead>
                 <TableHead className="text-right">Qty</TableHead>
                 <TableHead className="text-right">Rate</TableHead>
                 <TableHead className="text-right">Tax</TableHead>
@@ -259,6 +265,7 @@ export default function InvoiceDetailPage() {
                     <div className="font-medium">{line.name}</div>
                     {line.description && <div className="text-xs text-muted-foreground">{line.description}</div>}
                   </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{line.unit || "pcs"}</TableCell>
                   <TableCell className="text-right">{line.quantity}</TableCell>
                   <TableCell className="text-right">{fmt(Number(line.rate))}</TableCell>
                   <TableCell className="text-right">{fmt(Number(line.tax_amount))}</TableCell>

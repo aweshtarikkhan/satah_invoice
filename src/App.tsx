@@ -20,6 +20,7 @@ import EstimatesPage from "./pages/EstimatesPage";
 import EstimateBuilderPage from "./pages/EstimateBuilderPage";
 import EstimateDetailPage from "./pages/EstimateDetailPage";
 import PaymentsPage from "./pages/PaymentsPage";
+import RecordPaymentPage from "./pages/RecordPaymentPage";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
 import CreditNotesPage from "./pages/CreditNotesPage";

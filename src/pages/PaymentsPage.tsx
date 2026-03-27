@@ -29,6 +29,7 @@ const paymentImportFields: ImportField[] = [
 
 export default function PaymentsPage() {
   const org = useAppStore((s) => s.organization);
+  const navigate = useNavigate();
   const [payments, setPayments] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);

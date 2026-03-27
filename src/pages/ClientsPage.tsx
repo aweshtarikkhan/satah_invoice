@@ -139,6 +139,9 @@ export default function ClientsPage() {
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Clients" description="Manage your clients and contacts">
+        <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+          <Upload className="mr-1 h-4 w-4" /> Import
+        </Button>
         <Button onClick={openCreate} size="sm">
           <Plus className="mr-1 h-4 w-4" /> Add Client
         </Button>

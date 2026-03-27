@@ -30,6 +30,7 @@ interface Organization {
   gst_number: string | null;
   show_client_gst: boolean;
   qr_code_enabled: boolean;
+  upi_id: string | null;
 }
 
 interface AppState {

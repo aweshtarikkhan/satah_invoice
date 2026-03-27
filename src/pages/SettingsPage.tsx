@@ -259,15 +259,22 @@ export default function SettingsPage() {
               </Card>
 
               <Card>
-                <CardHeader><CardTitle className="text-base">QR Code</CardTitle></CardHeader>
-                <CardContent>
+                <CardHeader><CardTitle className="text-base">QR Code & UPI Payment</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <Label>Embed QR Code</Label>
-                      <p className="text-xs text-muted-foreground">Add a QR code to invoices for quick payment or verification</p>
+                      <p className="text-xs text-muted-foreground">Add a UPI payment QR code to invoices with exact invoice amount</p>
                     </div>
                     <Switch checked={orgForm.qr_code_enabled} onCheckedChange={(v) => setOrgForm({ ...orgForm, qr_code_enabled: v })} />
                   </div>
+                  {orgForm.qr_code_enabled && (
+                    <div className="space-y-2">
+                      <Label>UPI ID</Label>
+                      <Input value={orgForm.upi_id} onChange={(e) => setOrgForm({ ...orgForm, upi_id: e.target.value })} placeholder="e.g. yourname@upi or 9999999999@paytm" />
+                      <p className="text-xs text-muted-foreground">Enter your UPI ID to generate payment QR codes on invoices with the exact balance amount</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 

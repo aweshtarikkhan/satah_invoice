@@ -415,6 +415,7 @@ export default function InvoiceBuilderPage() {
       discount,
       discount_type: discountType,
       shipping_charge: shippingCharge,
+      expenses,
       adjustment,
       adjustment_name: adjustmentName,
       subtotal,

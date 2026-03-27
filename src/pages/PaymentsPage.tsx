@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { CreditCard, Search, Upload, DollarSign, TrendingUp, Hash } from "lucide-react";
+import { CreditCard, Search, Upload, DollarSign, TrendingUp, Hash, Plus } from "lucide-react";
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,

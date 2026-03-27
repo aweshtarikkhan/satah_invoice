@@ -40,7 +40,6 @@ export default function PaymentsPage() {
     setPayments(data || []);
     setLoading(false);
   };
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => { fetchPayments(); }, [org?.id]);
 

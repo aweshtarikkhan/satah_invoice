@@ -42,20 +42,7 @@ export default function PaymentsPage() {
   };
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!org?.id) return;
-    const fetch = async () => {
-      setLoading(true);
-      const { data } = await supabase
-        .from("payments")
-        .select("*, clients(display_name), invoices(invoice_number)")
-        .eq("org_id", org.id)
-        .order("payment_date", { ascending: false });
-      setPayments(data || []);
-      setLoading(false);
-    };
-    fetch();
-  }, [org?.id]);
+  useEffect(() => { fetchPayments(); }, [org?.id]);
 
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);

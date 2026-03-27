@@ -311,6 +311,7 @@ export default function EstimateBuilderPage() {
                   <SelectContent>
                     <SelectItem value="placeholder" disabled>Select client...</SelectItem>
                     {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.display_name}</SelectItem>)}
+                    <SelectItem value="__add_new" className="text-primary font-medium border-t mt-1 pt-1">+ Add New Client</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

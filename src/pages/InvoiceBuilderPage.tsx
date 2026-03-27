@@ -343,7 +343,45 @@ export default function InvoiceBuilderPage() {
     loadInvoice();
   }, [id, org?.id]);
 
-  // Calculate line amounts
+  // Fetch client pending invoices when client changes
+  useEffect(() => {
+    if (!clientId || !org?.id) { setClientInvoices([]); return; }
+    const fetchClientInvoices = async () => {
+      const { data } = await supabase
+        .from("invoices")
+        .select("total, balance_due, due_date, status")
+        .eq("client_id", clientId)
+        .eq("org_id", org.id)
+        .neq("status", "void")
+        .neq("status", "draft");
+      setClientInvoices(data || []);
+    };
+    fetchClientInvoices();
+  }, [clientId, org?.id]);
+
+  const clientAgingSummary = useMemo(() => {
+    if (!clientInvoices.length) return null;
+    const today = new Date();
+    let totalDue = 0;
+    let over15 = 0;
+    let over45 = 0;
+    let totalBilled = 0;
+
+    clientInvoices.forEach((inv) => {
+      totalBilled += Number(inv.total);
+      const bal = Number(inv.balance_due);
+      if (bal <= 0) return;
+      totalDue += bal;
+      const dueDt = new Date(inv.due_date);
+      const daysPast = Math.floor((today.getTime() - dueDt.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysPast > 45) over45 += bal;
+      else if (daysPast > 15) over15 += bal;
+    });
+
+    return { totalBilled, totalDue, over15, over45 };
+  }, [clientInvoices]);
+
+
   const calculateLine = useCallback((line: LineItem): LineItem => {
     const lineSubtotal = line.quantity * line.rate;
     const lineDiscount = line.discount_type === "percentage"

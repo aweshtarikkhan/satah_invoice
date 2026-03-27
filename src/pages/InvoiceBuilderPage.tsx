@@ -534,6 +534,13 @@ export default function InvoiceBuilderPage() {
         </CardContent>
       </Card>
 
+      {/* Custom Fields */}
+      <Card>
+        <CardContent className="pt-6">
+          <CustomFieldsForm entityType="invoice" entityId={id} onChange={setCustomFieldValues} />
+        </CardContent>
+      </Card>
+
       {/* Line Items */}
       <Card>
         <CardHeader>

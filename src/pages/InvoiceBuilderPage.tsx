@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Save, Eye, Trash2, Plus, GripVertical, Printer, Share2, Clock, ChevronDown } from "lucide-react";
+import { InvoiceSettingsSheet } from "@/components/shared/InvoiceSettingsSheet";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";

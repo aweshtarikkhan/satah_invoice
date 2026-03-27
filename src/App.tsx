@@ -22,6 +22,11 @@ import EstimateDetailPage from "./pages/EstimateDetailPage";
 import PaymentsPage from "./pages/PaymentsPage";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
+import CreditNotesPage from "./pages/CreditNotesPage";
+import CreditNoteBuilderPage from "./pages/CreditNoteBuilderPage";
+import CreditNoteDetailPage from "./pages/CreditNoteDetailPage";
+import InvoiceTemplatePage from "./pages/InvoiceTemplatePage";
+import PortalPage from "./pages/PortalPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

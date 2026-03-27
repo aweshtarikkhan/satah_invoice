@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Save, Eye, Trash2, Plus, GripVertical, Printer, Share2, Clock, ChevronDown } from "lucide-react";
+import { InvoiceSettingsSheet } from "@/components/shared/InvoiceSettingsSheet";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -509,6 +510,7 @@ export default function InvoiceBuilderPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">{id ? "Edit Invoice" : "New Invoice"}</h1>
         <div className="flex gap-2">
+          <InvoiceSettingsSheet />
           <Button variant="outline" onClick={() => navigate("/invoices")}>Cancel</Button>
           <Button variant="outline" onClick={() => handleSave("draft")} disabled={saving}>
             <Save className="mr-1 h-4 w-4" /> Save as Draft

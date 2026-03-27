@@ -145,7 +145,7 @@ function SortableLineItem({
             onChange={(e) => onChange(index, "name", e.target.value)}
           />
         </div>
-        <div className="col-span-3">
+        <div className="col-span-2">
           <Textarea
             className="min-h-[60px] text-xs"
             placeholder="Description"

@@ -17,6 +17,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Save, Eye, Trash2, Plus, GripVertical } from "lucide-react";
 import { AddClientDialog } from "@/components/shared/AddClientDialog";
+import { AddItemDialog } from "@/components/shared/AddItemDialog";
 import {
   DndContext,
   closestCenter,
@@ -72,6 +73,7 @@ function SortableLineItem({
   items,
   onChange,
   onRemove,
+  onAddItem,
   currency,
 }: {
   line: LineItem;
@@ -80,6 +82,7 @@ function SortableLineItem({
   items: any[];
   onChange: (index: number, field: string, value: any) => void;
   onRemove: (index: number) => void;
+  onAddItem: () => void;
   currency: string;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: line.id });
@@ -114,17 +117,22 @@ function SortableLineItem({
       </button>
       <div className="grid flex-1 grid-cols-12 gap-2">
         <div className="col-span-3">
-          <Select value={line.item_id || "none"} onValueChange={handleItemSelect}>
-            <SelectTrigger className="h-9 text-xs">
-              <SelectValue placeholder="Select item..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">Custom item</SelectItem>
-              {items.map((item: any) => (
-                <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex gap-1">
+            <Select value={line.item_id || "none"} onValueChange={handleItemSelect}>
+              <SelectTrigger className="h-9 text-xs flex-1">
+                <SelectValue placeholder="Select item..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Custom item</SelectItem>
+                {items.map((item: any) => (
+                  <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <button type="button" onClick={onAddItem} className="h-9 w-9 flex items-center justify-center rounded-md border border-input bg-background text-muted-foreground hover:text-foreground hover:bg-accent shrink-0" title="Add New Item">
+              <Plus className="h-3.5 w-3.5" />
+            </button>
+          </div>
           <Input
             className="mt-1 h-8 text-xs"
             placeholder="Item name"
@@ -206,6 +214,7 @@ export default function InvoiceBuilderPage() {
 
   const [clientId, setClientId] = useState("");
   const [addClientOpen, setAddClientOpen] = useState(false);
+  const [addItemOpen, setAddItemOpen] = useState(false);
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [issueDate, setIssueDate] = useState(new Date().toISOString().split("T")[0]);
   const [dueDate, setDueDate] = useState("");
@@ -506,6 +515,7 @@ export default function InvoiceBuilderPage() {
                   </Button>
                 </div>
                 <AddClientDialog open={addClientOpen} onOpenChange={setAddClientOpen} onClientAdded={(c) => { setClients(prev => [...prev, c]); setClientId(c.id); }} />
+                <AddItemDialog open={addItemOpen} onOpenChange={setAddItemOpen} taxRates={taxRates} onItemAdded={(item) => { setCatalogItems(prev => [...prev, item]); }} />
               </div>
             </div>
             <div className="space-y-4">
@@ -584,6 +594,7 @@ export default function InvoiceBuilderPage() {
                   items={catalogItems}
                   onChange={handleLineChange}
                   onRemove={removeLine}
+                  onAddItem={() => setAddItemOpen(true)}
                   currency={org?.currency_code || "USD"}
                 />
               ))}

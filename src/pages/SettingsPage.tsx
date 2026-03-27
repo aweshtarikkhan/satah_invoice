@@ -162,41 +162,100 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="invoices" className="space-y-6 mt-4">
-          <Card>
-            <CardHeader><CardTitle className="text-base">Invoice Defaults</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>Invoice Prefix</Label>
-                  <Input value={orgForm.invoice_prefix} onChange={(e) => setOrgForm({ ...orgForm, invoice_prefix: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Currency</Label>
-                  <Select value={orgForm.currency_code} onValueChange={(v) => setOrgForm({ ...orgForm, currency_code: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {CURRENCIES.map((c) => (
-                        <SelectItem key={c.code} value={c.code}>{c.code} — {c.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Payment Terms (days)</Label>
-                  <Input type="number" value={orgForm.payment_terms} onChange={(e) => setOrgForm({ ...orgForm, payment_terms: parseInt(e.target.value) || 30 })} />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Default Notes</Label>
-                <Textarea value={orgForm.default_notes} onChange={(e) => setOrgForm({ ...orgForm, default_notes: e.target.value })} />
-              </div>
-              <div className="space-y-2">
-                <Label>Default Terms & Conditions</Label>
-                <Textarea value={orgForm.default_terms} onChange={(e) => setOrgForm({ ...orgForm, default_terms: e.target.value })} />
-              </div>
-              <Button onClick={saveOrg}>Save Changes</Button>
-            </CardContent>
-          </Card>
+          <Tabs defaultValue="preferences">
+            <TabsList>
+              <TabsTrigger value="preferences">Preferences</TabsTrigger>
+              <TabsTrigger value="defaults">Defaults & Numbering</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="preferences" className="space-y-6 mt-4">
+              <Card>
+                <CardHeader><CardTitle className="text-base">General</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Checkbox id="edit-sent" />
+                    <Label htmlFor="edit-sent">Allow editing of Sent Invoice?</Label>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader><CardTitle className="text-base">Payments</CardTitle></CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Checkbox id="notify-online" defaultChecked />
+                    <Label htmlFor="notify-online">Get notified when customers pay online</Label>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Checkbox id="receipt-thankyou" defaultChecked />
+                    <Label htmlFor="receipt-thankyou">Include the payment receipt along with the Thank You note?</Label>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Checkbox id="auto-thankyou" />
+                    <Label htmlFor="auto-thankyou">Automate thank you note to customer on receipt of online payment</Label>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader><CardTitle className="text-base">Zero-Value Line Items</CardTitle></CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <Checkbox id="hide-zero" />
+                    <Label htmlFor="hide-zero">Hide zero-value line items</Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground ml-7">
+                    Choose whether to hide zero-value line items in an invoice's PDF and the Customer Portal. They will still be visible while editing an invoice.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader><CardTitle className="text-base">Terms & Conditions</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Default Terms & Conditions</Label>
+                    <Textarea value={orgForm.default_terms} onChange={(e) => setOrgForm({ ...orgForm, default_terms: e.target.value })} rows={4} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Customer Notes</Label>
+                    <Textarea value={orgForm.default_notes} onChange={(e) => setOrgForm({ ...orgForm, default_notes: e.target.value })} placeholder="Thanks for your business." rows={4} />
+                  </div>
+                </CardContent>
+              </Card>
+              <Button onClick={saveOrg}>Save</Button>
+            </TabsContent>
+
+            <TabsContent value="defaults" className="space-y-6 mt-4">
+              <Card>
+                <CardHeader><CardTitle className="text-base">Invoice Defaults</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>Invoice Prefix</Label>
+                      <Input value={orgForm.invoice_prefix} onChange={(e) => setOrgForm({ ...orgForm, invoice_prefix: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Currency</Label>
+                      <Select value={orgForm.currency_code} onValueChange={(v) => setOrgForm({ ...orgForm, currency_code: v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {CURRENCIES.map((c) => (
+                            <SelectItem key={c.code} value={c.code}>{c.code} — {c.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Payment Terms (days)</Label>
+                      <Input type="number" value={orgForm.payment_terms} onChange={(e) => setOrgForm({ ...orgForm, payment_terms: parseInt(e.target.value) || 30 })} />
+                    </div>
+                  </div>
+                  <Button onClick={saveOrg}>Save Changes</Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
         <TabsContent value="taxes" className="space-y-6 mt-4">

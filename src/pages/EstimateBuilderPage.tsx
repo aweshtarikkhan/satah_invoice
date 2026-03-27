@@ -13,6 +13,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Save, Trash2, Plus, GripVertical } from "lucide-react";
 import { AddClientDialog } from "@/components/shared/AddClientDialog";
+import { AddItemDialog } from "@/components/shared/AddItemDialog";
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent,
 } from "@dnd-kit/core";
@@ -43,7 +44,7 @@ function createEmptyLine(): LineItem {
   };
 }
 
-function SortableLine({ line, index, taxRates, items, onChange, onRemove, currency }: any) {
+function SortableLine({ line, index, taxRates, items, onChange, onRemove, onAddItem, currency }: any) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: line.id });
   const style = { transform: CSS.Transform.toString(transform), transition };
   const fmt = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency }).format(n);
@@ -67,13 +68,18 @@ function SortableLine({ line, index, taxRates, items, onChange, onRemove, curren
       </button>
       <div className="grid flex-1 grid-cols-12 gap-2">
         <div className="col-span-3">
-          <Select value={line.item_id || "none"} onValueChange={handleItemSelect}>
-            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Select item..." /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">Custom item</SelectItem>
-              {items.map((item: any) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <div className="flex gap-1">
+            <Select value={line.item_id || "none"} onValueChange={handleItemSelect}>
+              <SelectTrigger className="h-9 text-xs flex-1"><SelectValue placeholder="Select item..." /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Custom item</SelectItem>
+                {items.map((item: any) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <button type="button" onClick={onAddItem} className="h-9 w-9 flex items-center justify-center rounded-md border border-input bg-background text-muted-foreground hover:text-foreground hover:bg-accent shrink-0" title="Add New Item">
+              <Plus className="h-3.5 w-3.5" />
+            </button>
+          </div>
           <Input className="mt-1 h-8 text-xs" placeholder="Item name" value={line.name}
             onChange={(e) => onChange(index, "name", e.target.value)} />
         </div>
@@ -124,6 +130,7 @@ export default function EstimateBuilderPage() {
   const [taxRates, setTaxRates] = useState<any[]>([]);
   const [clientId, setClientId] = useState("");
   const [addClientOpen, setAddClientOpen] = useState(false);
+  const [addItemOpen, setAddItemOpen] = useState(false);
   const [estimateNumber, setEstimateNumber] = useState("");
   const [issueDate, setIssueDate] = useState(new Date().toISOString().split("T")[0]);
   const [expiryDate, setExpiryDate] = useState("");
@@ -321,6 +328,7 @@ export default function EstimateBuilderPage() {
                   </Button>
                 </div>
                 <AddClientDialog open={addClientOpen} onOpenChange={setAddClientOpen} onClientAdded={(c) => { setClients(prev => [...prev, c]); setClientId(c.id); }} />
+                <AddItemDialog open={addItemOpen} onOpenChange={setAddItemOpen} taxRates={taxRates} onItemAdded={(item) => { setCatalogItems(prev => [...prev, item]); }} />
               </div>
             </div>
             <div className="space-y-4">
@@ -355,7 +363,7 @@ export default function EstimateBuilderPage() {
             <SortableContext items={lines.map((l) => l.id)} strategy={verticalListSortingStrategy}>
               {lines.map((line, i) => (
                 <SortableLine key={line.id} line={line} index={i} taxRates={taxRates}
-                  items={catalogItems} onChange={handleLineChange} onRemove={removeLine} currency={currency} />
+                  items={catalogItems} onChange={handleLineChange} onRemove={removeLine} onAddItem={() => setAddItemOpen(true)} currency={currency} />
               ))}
             </SortableContext>
           </DndContext>

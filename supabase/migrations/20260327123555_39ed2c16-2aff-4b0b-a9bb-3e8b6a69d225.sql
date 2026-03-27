@@ -1,0 +1,1 @@
+ALTER TABLE public.invoices ADD COLUMN expenses numeric NOT NULL DEFAULT 0;

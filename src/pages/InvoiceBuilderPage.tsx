@@ -209,6 +209,7 @@ export default function InvoiceBuilderPage() {
   const [discount, setDiscount] = useState(0);
   const [discountType, setDiscountType] = useState<"percentage" | "fixed">("percentage");
   const [shippingCharge, setShippingCharge] = useState(0);
+  const [expenses, setExpenses] = useState(0);
   const [adjustment, setAdjustment] = useState(0);
   const [adjustmentName, setAdjustmentName] = useState("Adjustment");
   const [lines, setLines] = useState<LineItem[]>([createEmptyLine()]);
@@ -279,6 +280,7 @@ export default function InvoiceBuilderPage() {
       setDiscount(Number(inv.discount));
       setDiscountType(inv.discount_type as any);
       setShippingCharge(Number(inv.shipping_charge));
+      setExpenses(Number((inv as any).expenses || 0));
       setAdjustment(Number(inv.adjustment));
       setAdjustmentName(inv.adjustment_name || "Adjustment");
 
@@ -386,7 +388,7 @@ export default function InvoiceBuilderPage() {
   const totalDiscount = discountType === "percentage" ? subtotal * (discount / 100) : discount;
   const discountedSubtotal = subtotal - totalDiscount;
   const totalTax = lines.reduce((s, l) => s + l.tax_amount, 0);
-  const total = discountedSubtotal + totalTax + shippingCharge + adjustment;
+  const total = discountedSubtotal + totalTax + shippingCharge + adjustment - expenses;
 
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);
@@ -413,6 +415,7 @@ export default function InvoiceBuilderPage() {
       discount,
       discount_type: discountType,
       shipping_charge: shippingCharge,
+      expenses,
       adjustment,
       adjustment_name: adjustmentName,
       subtotal,
@@ -832,6 +835,18 @@ export default function InvoiceBuilderPage() {
                 value={shippingCharge}
                 onChange={(e) => setShippingCharge(parseFloat(e.target.value) || 0)}
               />
+            </div>
+            <div className="flex items-center justify-between text-sm gap-2">
+              <span className="text-muted-foreground">Expenses (Fixed Cost)</span>
+              <div className="flex items-center gap-1">
+                <Input
+                  type="number"
+                  className="h-7 w-24 text-xs text-right"
+                  value={expenses}
+                  onChange={(e) => setExpenses(parseFloat(e.target.value) || 0)}
+                />
+                {expenses > 0 && <span className="text-destructive">-{fmt(expenses)}</span>}
+              </div>
             </div>
             <div className="flex items-center justify-between text-sm gap-2">
               <Input

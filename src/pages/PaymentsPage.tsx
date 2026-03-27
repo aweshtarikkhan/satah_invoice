@@ -105,10 +105,15 @@ export default function PaymentsPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <PageHeader title="Payments" description="Payment history">
-        <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
-          <Upload className="mr-1 h-4 w-4" /> Import
-        </Button>
+      <PageHeader title="Payments Received" description="Track all payments received from clients">
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+            <Upload className="mr-1 h-4 w-4" /> Import
+          </Button>
+          <Button size="sm" onClick={() => navigate("/payments/new")}>
+            <Plus className="mr-1 h-4 w-4" /> Record Payment
+          </Button>
+        </div>
       </PageHeader>
 
       {/* Summary Cards */}

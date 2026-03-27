@@ -423,6 +423,20 @@ export default function InvoiceBuilderPage() {
       const { error: lineError } = await supabase.from("invoice_lines").insert(linePayloads);
       if (lineError) throw lineError;
 
+      // Save custom fields
+      if (invoiceId && Object.keys(customFieldValues).length > 0) {
+        await saveCustomFieldValues(invoiceId, customFieldValues);
+      }
+
+      // Audit log
+      if (org && user) {
+        await logAudit({
+          orgId: org.id, userId: user.id, entityType: "invoice",
+          entityId: invoiceId, action: id ? "update" : "create",
+          description: `Invoice ${invoiceNumber} ${id ? "updated" : "created"} (${status})`,
+        });
+      }
+
       toast({ title: status === "sent" ? "Invoice sent!" : "Invoice saved!" });
       navigate(`/invoices`);
     } catch (err: any) {

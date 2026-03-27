@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, Save, Send } from "lucide-react";
+import { AddClientDialog } from "@/components/shared/AddClientDialog";
 
 interface LineItem {
   id: string;

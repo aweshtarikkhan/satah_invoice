@@ -12,6 +12,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import DashboardPage from "./pages/DashboardPage";
 import ClientsPage from "./pages/ClientsPage";
+import ClientDetailPage from "./pages/ClientDetailPage";
 import ItemsPage from "./pages/ItemsPage";
 import InvoicesPage from "./pages/InvoicesPage";
 import InvoiceBuilderPage from "./pages/InvoiceBuilderPage";

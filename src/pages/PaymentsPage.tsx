@@ -27,6 +27,20 @@ export default function PaymentsPage() {
   const [payments, setPayments] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [importOpen, setImportOpen] = useState(false);
+
+  const fetchPayments = async () => {
+    if (!org?.id) return;
+    setLoading(true);
+    const { data } = await supabase
+      .from("payments")
+      .select("*, clients(display_name), invoices(invoice_number)")
+      .eq("org_id", org.id)
+      .order("payment_date", { ascending: false });
+    setPayments(data || []);
+    setLoading(false);
+  };
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!org?.id) return;

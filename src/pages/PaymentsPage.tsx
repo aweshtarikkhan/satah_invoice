@@ -3,12 +3,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ImportDialog, ImportField } from "@/components/shared/ImportDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { CreditCard, Search } from "lucide-react";
+import { CreditCard, Search, Upload } from "lucide-react";
+
+const paymentImportFields: ImportField[] = [
+  { key: "payment_number", label: "Payment #", required: true },
+  { key: "client_name", label: "Client Name", required: true },
+  { key: "amount", label: "Amount", required: true },
+  { key: "payment_date", label: "Payment Date" },
+  { key: "payment_mode", label: "Payment Mode" },
+  { key: "reference_number", label: "Reference #" },
+  { key: "notes", label: "Notes" },
+];
 
 export default function PaymentsPage() {
   const org = useAppStore((s) => s.organization);

@@ -129,7 +129,7 @@ function SortableLineItem({
                 ))}
               </SelectContent>
             </Select>
-            <button type="button" onClick={() => (window as any).__openAddItemDialog?.()} className="h-9 w-9 flex items-center justify-center rounded-md border border-input bg-background text-muted-foreground hover:text-foreground hover:bg-accent shrink-0" title="Add New Item">
+            <button type="button" onClick={onAddItem} className="h-9 w-9 flex items-center justify-center rounded-md border border-input bg-background text-muted-foreground hover:text-foreground hover:bg-accent shrink-0" title="Add New Item">
               <Plus className="h-3.5 w-3.5" />
             </button>
           </div>

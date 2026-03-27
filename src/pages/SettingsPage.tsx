@@ -55,6 +55,7 @@ export default function SettingsPage() {
       address: (org.address as any) || { street: "", city: "", state: "", zip: "", country: "" },
       gst_enabled: org.gst_enabled || false, gst_number: org.gst_number || "",
       show_client_gst: org.show_client_gst || false, qr_code_enabled: org.qr_code_enabled || false,
+      upi_id: (org as any).upi_id || "",
     });
     fetchTaxRates();
   }, [org]);

@@ -528,6 +528,7 @@ export default function InvoiceBuilderPage() {
                 <div className="space-y-2">
                   <Label>Due Date</Label>
                   <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Currency</Label>

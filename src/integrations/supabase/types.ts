@@ -132,6 +132,170 @@ export type Database = {
           },
         ]
       }
+      credit_note_lines: {
+        Row: {
+          amount: number
+          credit_note_id: string
+          description: string | null
+          discount: number
+          discount_type: Database["public"]["Enums"]["discount_type"]
+          id: string
+          item_id: string | null
+          name: string
+          quantity: number
+          rate: number
+          sort_order: number
+          tax_amount: number
+          tax_id: string | null
+          unit: string | null
+        }
+        Insert: {
+          amount?: number
+          credit_note_id: string
+          description?: string | null
+          discount?: number
+          discount_type?: Database["public"]["Enums"]["discount_type"]
+          id?: string
+          item_id?: string | null
+          name: string
+          quantity?: number
+          rate?: number
+          sort_order?: number
+          tax_amount?: number
+          tax_id?: string | null
+          unit?: string | null
+        }
+        Update: {
+          amount?: number
+          credit_note_id?: string
+          description?: string | null
+          discount?: number
+          discount_type?: Database["public"]["Enums"]["discount_type"]
+          id?: string
+          item_id?: string | null
+          name?: string
+          quantity?: number
+          rate?: number
+          sort_order?: number
+          tax_amount?: number
+          tax_id?: string | null
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_note_lines_credit_note_id_fkey"
+            columns: ["credit_note_id"]
+            isOneToOne: false
+            referencedRelation: "credit_notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_note_lines_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_note_lines_tax_id_fkey"
+            columns: ["tax_id"]
+            isOneToOne: false
+            referencedRelation: "tax_rates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_notes: {
+        Row: {
+          client_id: string
+          created_at: string
+          credit_note_number: string
+          currency_code: string
+          discount: number
+          discount_type: Database["public"]["Enums"]["discount_type"]
+          exchange_rate: number
+          id: string
+          invoice_id: string | null
+          issue_date: string
+          notes: string | null
+          org_id: string
+          reference_number: string | null
+          status: Database["public"]["Enums"]["credit_note_status"]
+          subtotal: number
+          terms_conditions: string | null
+          total: number
+          total_discount: number
+          total_tax: number
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          credit_note_number: string
+          currency_code?: string
+          discount?: number
+          discount_type?: Database["public"]["Enums"]["discount_type"]
+          exchange_rate?: number
+          id?: string
+          invoice_id?: string | null
+          issue_date?: string
+          notes?: string | null
+          org_id: string
+          reference_number?: string | null
+          status?: Database["public"]["Enums"]["credit_note_status"]
+          subtotal?: number
+          terms_conditions?: string | null
+          total?: number
+          total_discount?: number
+          total_tax?: number
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          credit_note_number?: string
+          currency_code?: string
+          discount?: number
+          discount_type?: Database["public"]["Enums"]["discount_type"]
+          exchange_rate?: number
+          id?: string
+          invoice_id?: string | null
+          issue_date?: string
+          notes?: string | null
+          org_id?: string
+          reference_number?: string | null
+          status?: Database["public"]["Enums"]["credit_note_status"]
+          subtotal?: number
+          terms_conditions?: string | null
+          total?: number
+          total_discount?: number
+          total_tax?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_notes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_notes_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_notes_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       estimate_lines: {
         Row: {
           amount: number
@@ -571,6 +735,8 @@ export type Database = {
         Row: {
           address: Json | null
           created_at: string
+          credit_note_next_number: number
+          credit_note_prefix: string
           currency_code: string
           date_format: string
           default_notes: string | null
@@ -596,6 +762,8 @@ export type Database = {
         Insert: {
           address?: Json | null
           created_at?: string
+          credit_note_next_number?: number
+          credit_note_prefix?: string
           currency_code?: string
           date_format?: string
           default_notes?: string | null
@@ -621,6 +789,8 @@ export type Database = {
         Update: {
           address?: Json | null
           created_at?: string
+          credit_note_next_number?: number
+          credit_note_prefix?: string
           currency_code?: string
           date_format?: string
           default_notes?: string | null
@@ -708,6 +878,44 @@ export type Database = {
           },
           {
             foreignKeyName: "payments_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_tokens: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_type: string
+          expires_at: string | null
+          id: string
+          org_id: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          expires_at?: string | null
+          id?: string
+          org_id: string
+          token?: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          expires_at?: string | null
+          id?: string
+          org_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_tokens_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -832,6 +1040,7 @@ export type Database = {
     Enums: {
       app_role: "owner" | "admin" | "staff" | "read_only"
       client_status: "active" | "inactive"
+      credit_note_status: "draft" | "sent" | "void"
       discount_type: "percentage" | "fixed"
       estimate_status:
         | "draft"
@@ -980,6 +1189,7 @@ export const Constants = {
     Enums: {
       app_role: ["owner", "admin", "staff", "read_only"],
       client_status: ["active", "inactive"],
+      credit_note_status: ["draft", "sent", "void"],
       discount_type: ["percentage", "fixed"],
       estimate_status: [
         "draft",

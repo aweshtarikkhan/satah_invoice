@@ -18,26 +18,37 @@ Build a production-ready invoice management app (Zoho Invoice-style) with Supaba
 ## Phase 2: Estimates & Reports ✅
 
 ### 1. Estimates with Convert to Invoice ✅
-- Estimates table with status enum (draft/sent/viewed/accepted/declined/expired/converted)
-- Estimate builder page (mirrors invoice builder)
-- Estimate detail page with status management
-- Convert to invoice functionality (copies all data, updates status)
+### 2. Reports Suite ✅
+
+---
+
+## Phase 3: Credit Notes, Templates & Client Portal ✅
+
+### 1. Credit Notes ✅
+- Credit notes table with status enum (draft/sent/void)
+- Credit note builder (mirrors invoice builder)
+- Credit note detail page with void and share link
+- Link to specific invoice (optional)
 - Sidebar navigation added
 
-### 2. Reports Suite ✅
-- Revenue vs Invoiced bar chart (3/6/12 month periods)
-- Accounts Receivable Aging report with buckets
-- Top Clients by Revenue table
-- Invoice Status Distribution pie chart
-- Summary cards (Total Revenue, Collected, Outstanding, Tax)
-- CSV export for all report types
+### 2. Invoice Template Gallery ✅
+- 4 template styles: Classic, Modern, Minimal, Professional
+- Visual preview cards with feature badges
+- Template selection persisted to localStorage
+- Templates page in sidebar
+
+### 3. Client Portal ✅
+- Portal tokens table with shareable links
+- Public portal page (no auth required) at /portal/:token
+- Supports invoices, estimates, and credit notes
+- Auto-marks documents as "viewed" when opened
+- Share link buttons on invoice and credit note detail pages
+- Anon RLS policies for portal access
 
 ### Future Phases
 - Recurring invoices
-- Credit notes
-- Client portal
 - Multi-currency with live exchange rates
 - Payment gateway integration (Stripe)
 - Audit logs
 - Custom fields
-- Invoice template gallery
+- Advanced template customization (logo, colors)

@@ -19,7 +19,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, Send, FileDown, Copy, Ban, CreditCard } from "lucide-react";
+import { Edit, Send, FileDown, Copy, Ban, CreditCard, Share2 } from "lucide-react";
 
 export default function InvoiceDetailPage() {
   const { id } = useParams();
@@ -188,6 +188,20 @@ export default function InvoiceDetailPage() {
             <CreditCard className="mr-1 h-4 w-4" /> Record Payment
           </Button>
         )}
+        <Button variant="outline" size="sm" onClick={async () => {
+          const { data: existing } = await supabase.from("portal_tokens").select("token").eq("entity_type", "invoice").eq("entity_id", id!).maybeSingle();
+          let token = existing?.token;
+          if (!token) {
+            const { data } = await supabase.from("portal_tokens").insert({ org_id: org!.id, entity_type: "invoice", entity_id: id! }).select("token").single();
+            token = data?.token;
+          }
+          if (token) {
+            await navigator.clipboard.writeText(`${window.location.origin}/portal/${token}`);
+            toast({ title: "Portal link copied!" });
+          }
+        }}>
+          <Share2 className="mr-1 h-4 w-4" /> Share Link
+        </Button>
       </PageHeader>
 
       {/* Status + Summary */}

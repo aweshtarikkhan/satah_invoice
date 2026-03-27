@@ -22,6 +22,11 @@ import EstimateDetailPage from "./pages/EstimateDetailPage";
 import PaymentsPage from "./pages/PaymentsPage";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
+import CreditNotesPage from "./pages/CreditNotesPage";
+import CreditNoteBuilderPage from "./pages/CreditNoteBuilderPage";
+import CreditNoteDetailPage from "./pages/CreditNoteDetailPage";
+import InvoiceTemplatePage from "./pages/InvoiceTemplatePage";
+import PortalPage from "./pages/PortalPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -61,9 +66,17 @@ const App = () => (
               <Route path="/estimates/:id/edit" element={<EstimateBuilderPage />} />
               <Route path="/estimates/:id/convert" element={<EstimateDetailPage />} />
               <Route path="/payments" element={<PaymentsPage />} />
+              <Route path="/credit-notes" element={<CreditNotesPage />} />
+              <Route path="/credit-notes/new" element={<CreditNoteBuilderPage />} />
+              <Route path="/credit-notes/:id" element={<CreditNoteDetailPage />} />
+              <Route path="/credit-notes/:id/edit" element={<CreditNoteBuilderPage />} />
               <Route path="/reports" element={<ReportsPage />} />
+              <Route path="/templates" element={<InvoiceTemplatePage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
+
+            {/* Public portal */}
+            <Route path="/portal/:token" element={<PortalPage />} />
 
             {/* Redirects */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />

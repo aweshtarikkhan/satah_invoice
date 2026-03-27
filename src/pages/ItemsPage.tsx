@@ -39,6 +39,7 @@ export default function ItemsPage() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editItem, setEditItem] = useState<any>(null);
+  const [importOpen, setImportOpen] = useState(false);
   const { toast } = useToast();
 
   const [form, setForm] = useState({

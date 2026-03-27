@@ -41,6 +41,7 @@ interface LineItem {
   item_id: string | null;
   name: string;
   description: string;
+  unit: string;
   quantity: number;
   rate: number;
   discount: number;

@@ -19,7 +19,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, Send, FileDown, Copy, Ban, CreditCard } from "lucide-react";
+import { Edit, Send, FileDown, Copy, Ban, CreditCard, Share2 } from "lucide-react";
 
 export default function InvoiceDetailPage() {
   const { id } = useParams();

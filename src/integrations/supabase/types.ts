@@ -718,6 +718,7 @@ export type Database = {
           discount_type: Database["public"]["Enums"]["discount_type"]
           due_date: string
           exchange_rate: number
+          expenses: number
           id: string
           invoice_number: string
           issue_date: string
@@ -750,6 +751,7 @@ export type Database = {
           discount_type?: Database["public"]["Enums"]["discount_type"]
           due_date?: string
           exchange_rate?: number
+          expenses?: number
           id?: string
           invoice_number: string
           issue_date?: string
@@ -782,6 +784,7 @@ export type Database = {
           discount_type?: Database["public"]["Enums"]["discount_type"]
           due_date?: string
           exchange_rate?: number
+          expenses?: number
           id?: string
           invoice_number?: string
           issue_date?: string

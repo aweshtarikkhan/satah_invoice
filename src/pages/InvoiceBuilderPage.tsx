@@ -55,7 +55,7 @@ interface LineItem {
   amount: number;
 }
 
-const UNITS = ["pcs", "kg", "g", "ltr", "ml", "m", "cm", "ft", "inch", "box", "nos", "hrs", "days", "pair", "set", "sqft", "sqm"];
+const UNITS = ["pcs", "kg", "g", "ltr", "ml", "m", "cm", "ft", "inch", "box", "nos", "hrs", "days", "pair", "set", "sqft", "sqm", "ton", "dozen", "bundle", "roll", "bag", "carton"];
 
 function createEmptyLine(): LineItem {
   return {

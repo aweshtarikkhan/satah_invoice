@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ImportDialog, ImportField } from "@/components/shared/ImportDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,8 +17,16 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Users, Search } from "lucide-react";
+import { Plus, Users, Search, Upload } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+
+const clientImportFields: ImportField[] = [
+  { key: "display_name", label: "Display Name", required: true },
+  { key: "company_name", label: "Company Name" },
+  { key: "email", label: "Email" },
+  { key: "phone", label: "Phone" },
+  { key: "notes", label: "Notes" },
+];
 
 export default function ClientsPage() {
   const navigate = useNavigate();

@@ -120,6 +120,9 @@ export default function ClientDetailPage() {
         <Button variant="outline" size="sm" onClick={() => navigate("/clients")}>
           <ArrowLeft className="mr-1 h-4 w-4" /> Back
         </Button>
+        <Button variant="outline" size="sm" onClick={() => navigate(`/statements/${id}`)}>
+          <FileSpreadsheet className="mr-1 h-4 w-4" /> Statement
+        </Button>
         <Button size="sm" onClick={() => navigate(`/invoices/new`)}>
           <FileText className="mr-1 h-4 w-4" /> New Invoice
         </Button>

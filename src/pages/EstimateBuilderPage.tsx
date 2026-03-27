@@ -362,7 +362,7 @@ export default function EstimateBuilderPage() {
             <SortableContext items={lines.map((l) => l.id)} strategy={verticalListSortingStrategy}>
               {lines.map((line, i) => (
                 <SortableLine key={line.id} line={line} index={i} taxRates={taxRates}
-                  items={catalogItems} onChange={handleLineChange} onRemove={removeLine} currency={currency} />
+                  items={catalogItems} onChange={handleLineChange} onRemove={removeLine} onAddItem={() => setAddItemOpen(true)} currency={currency} />
               ))}
             </SortableContext>
           </DndContext>

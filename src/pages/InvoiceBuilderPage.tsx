@@ -665,13 +665,16 @@ export default function InvoiceBuilderPage() {
 
       {/* Line Items */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between py-3">
           <CardTitle className="text-base">Line Items</CardTitle>
+          <Button variant="outline" size="sm" onClick={() => { setBulkSelected(new Set()); setBulkAddOpen(true); }}>
+            <Layers className="mr-1 h-4 w-4" /> Bulk Add
+          </Button>
         </CardHeader>
         <CardContent>
-          <div className="text-xs font-medium text-muted-foreground grid grid-cols-12 gap-2 px-6 pb-2 border-b">
+          <div className="text-[10px] font-medium text-muted-foreground grid grid-cols-12 gap-1 px-6 pb-1 border-b">
             <div className="col-span-3">Item</div>
-            <div className="col-span-2">Description</div>
+            <div className="col-span-2">Name</div>
             <div className="col-span-1">Unit</div>
             <div className="col-span-1 text-center">Qty</div>
             <div className="col-span-2">Rate</div>
@@ -700,6 +703,81 @@ export default function InvoiceBuilderPage() {
           </Button>
         </CardContent>
       </Card>
+
+      {/* Bulk Add Items Dialog */}
+      <Dialog open={bulkAddOpen} onOpenChange={setBulkAddOpen}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Bulk Add Items</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-1">
+            {catalogItems.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">No items in catalog. Add items first.</p>
+            ) : (
+              <>
+                <div className="flex items-center gap-2 pb-2 border-b">
+                  <Checkbox
+                    checked={bulkSelected.size === catalogItems.length}
+                    onCheckedChange={(checked) => {
+                      if (checked) setBulkSelected(new Set(catalogItems.map((i: any) => i.id)));
+                      else setBulkSelected(new Set());
+                    }}
+                  />
+                  <span className="text-sm font-medium">Select All ({catalogItems.length} items)</span>
+                </div>
+                {catalogItems.map((item: any) => (
+                  <div key={item.id} className="flex items-center gap-2 py-1.5 px-1 rounded hover:bg-accent/50">
+                    <Checkbox
+                      checked={bulkSelected.has(item.id)}
+                      onCheckedChange={(checked) => {
+                        const next = new Set(bulkSelected);
+                        if (checked) next.add(item.id); else next.delete(item.id);
+                        setBulkSelected(next);
+                      }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-medium">{item.name}</span>
+                      {item.description && <span className="text-xs text-muted-foreground ml-2">{item.description}</span>}
+                    </div>
+                    <span className="text-xs text-muted-foreground">{item.unit || "pcs"}</span>
+                    <span className="text-sm font-medium">{formatCurrency(Number(item.unit_price), org?.currency_code || "USD")}</span>
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkAddOpen(false)}>Cancel</Button>
+            <Button
+              disabled={bulkSelected.size === 0}
+              onClick={() => {
+                const newLines: LineItem[] = [];
+                bulkSelected.forEach((itemId) => {
+                  const item = catalogItems.find((i: any) => i.id === itemId);
+                  if (item) {
+                    const line = createEmptyLine();
+                    line.item_id = item.id;
+                    line.name = item.name;
+                    line.description = item.description || "";
+                    line.rate = Number(item.unit_price);
+                    line.unit = item.unit || "pcs";
+                    if (item.tax_id) line.tax_id = item.tax_id;
+                    newLines.push(line);
+                  }
+                });
+                setLines((prev) => {
+                  const filtered = prev.filter((l) => l.name || l.rate > 0);
+                  return [...filtered, ...newLines];
+                });
+                setBulkAddOpen(false);
+                toast({ title: `${newLines.length} items added` });
+              }}
+            >
+              Add {bulkSelected.size} Items
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Totals & Notes */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

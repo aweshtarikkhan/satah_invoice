@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  ArrowLeft, DollarSign, FileText, CreditCard, TrendingUp, AlertTriangle, CheckCircle2, Clock,
+  ArrowLeft, DollarSign, FileText, CreditCard, TrendingUp, AlertTriangle, CheckCircle2, Clock, FileSpreadsheet,
 } from "lucide-react";
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area,

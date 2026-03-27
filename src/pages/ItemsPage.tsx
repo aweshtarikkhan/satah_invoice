@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ImportDialog, ImportField } from "@/components/shared/ImportDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,8 +19,17 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Package, Search } from "lucide-react";
+import { Plus, Package, Search, Upload } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+
+const itemImportFields: ImportField[] = [
+  { key: "name", label: "Name", required: true },
+  { key: "description", label: "Description" },
+  { key: "sku", label: "SKU" },
+  { key: "type", label: "Type (service/product)" },
+  { key: "unit_price", label: "Unit Price" },
+  { key: "unit", label: "Unit" },
+];
 
 export default function ItemsPage() {
   const org = useAppStore((s) => s.organization);

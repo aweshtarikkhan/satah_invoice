@@ -41,6 +41,7 @@ const templates = [
 
 export default function InvoiceTemplatePage() {
   const [selected, setSelected] = useState("classic");
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleSelect = (templateId: string) => {

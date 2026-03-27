@@ -34,6 +34,7 @@ export default function SettingsPage() {
     invoice_prefix: "INV", payment_terms: 30,
     default_notes: "", default_terms: "",
     address: { street: "", city: "", state: "", zip: "", country: "" },
+    gst_enabled: false, gst_number: "", show_client_gst: false, qr_code_enabled: false,
   });
 
   // Tax rates

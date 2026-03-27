@@ -388,7 +388,7 @@ export default function InvoiceBuilderPage() {
   const totalDiscount = discountType === "percentage" ? subtotal * (discount / 100) : discount;
   const discountedSubtotal = subtotal - totalDiscount;
   const totalTax = lines.reduce((s, l) => s + l.tax_amount, 0);
-  const total = discountedSubtotal + totalTax + shippingCharge + adjustment;
+  const total = discountedSubtotal + totalTax + shippingCharge + adjustment - expenses;
 
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);

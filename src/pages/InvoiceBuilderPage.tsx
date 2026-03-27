@@ -209,6 +209,7 @@ export default function InvoiceBuilderPage() {
   const [discount, setDiscount] = useState(0);
   const [discountType, setDiscountType] = useState<"percentage" | "fixed">("percentage");
   const [shippingCharge, setShippingCharge] = useState(0);
+  const [expenses, setExpenses] = useState(0);
   const [adjustment, setAdjustment] = useState(0);
   const [adjustmentName, setAdjustmentName] = useState("Adjustment");
   const [lines, setLines] = useState<LineItem[]>([createEmptyLine()]);

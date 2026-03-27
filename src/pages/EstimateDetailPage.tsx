@@ -11,7 +11,7 @@ import { format } from "date-fns";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { getDocumentPreviewClass, getPaperSizeLabel } from "@/lib/document-templates";
+import { getDocumentPreviewClass, getPaperSizeLabel, getPrintPageCSS } from "@/lib/document-templates";
 
 const statusVariants: Record<string, "default" | "info" | "success" | "warning" | "danger" | "muted"> = {
   draft: "muted", sent: "info", viewed: "default", accepted: "success",
@@ -87,8 +87,12 @@ export default function EstimateDetailPage() {
 
   if (!estimate) return <div className="p-6">Loading...</div>;
 
+  const printCSS = getPrintPageCSS(org?.template_paper_size);
+
   return (
     <div className="p-6 space-y-6 max-w-4xl mx-auto">
+      <style dangerouslySetInnerHTML={{ __html: printCSS }} />
+
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate("/estimates")}>

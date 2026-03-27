@@ -10,8 +10,8 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, Ban, Copy, Share2, FileDown } from "lucide-react";
-import { getDocumentPreviewClass, getPaperSizeLabel } from "@/lib/document-templates";
+import { Edit, Ban, Share2, FileDown } from "lucide-react";
+import { getDocumentPreviewClass, getPaperSizeLabel, getPrintPageCSS } from "@/lib/document-templates";
 
 export default function CreditNoteDetailPage() {
   const { id } = useParams();
@@ -68,8 +68,12 @@ export default function CreditNoteDetailPage() {
 
   if (!cn) return <div className="p-6 text-center text-muted-foreground">Loading...</div>;
 
+  const printCSS = getPrintPageCSS(org?.template_paper_size);
+
   return (
     <div className="p-6 space-y-6 max-w-4xl mx-auto">
+      <style dangerouslySetInnerHTML={{ __html: printCSS }} />
+
       <PageHeader title={`Credit Note ${cn.credit_note_number}`}>
         <Button variant="outline" size="sm" onClick={() => navigate(`/credit-notes/${id}/edit`)}>
           <Edit className="mr-1 h-4 w-4" /> Edit

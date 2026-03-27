@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Edit, Send, FileDown, Copy, Ban, CreditCard, Share2 } from "lucide-react";
-import { getDocumentPreviewClass, getPaperSizeLabel } from "@/lib/document-templates";
+import { getDocumentPreviewClass, getPaperSizeLabel, getPrintPageCSS } from "@/lib/document-templates";
 
 export default function InvoiceDetailPage() {
   const { id } = useParams();
@@ -175,8 +175,13 @@ export default function InvoiceDetailPage() {
     return <div className="p-6 text-center text-muted-foreground">Loading...</div>;
   }
 
+  const printCSS = getPrintPageCSS(org?.template_paper_size);
+
   return (
     <div className="p-6 space-y-6 max-w-4xl mx-auto">
+      {/* Inject print styles for correct paper size */}
+      <style dangerouslySetInnerHTML={{ __html: printCSS }} />
+
       <PageHeader title={`Invoice ${invoice.invoice_number}`}>
         <Button variant="outline" size="sm" onClick={() => navigate(`/invoices/${id}/edit`)}>
           <Edit className="mr-1 h-4 w-4" /> Edit

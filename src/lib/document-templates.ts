@@ -53,9 +53,52 @@ export function getDocumentPreviewClass(templateStyle?: string, paperSize?: stri
     a6: "max-w-[105mm]",
   }[paperSize || "a4"];
 
-  return `mx-auto w-full ${styleClass || "rounded-xl border border-border bg-card text-card-foreground shadow-sm"} ${sizeClass || "max-w-[210mm]"} print:max-w-none print:shadow-none`;
+  return `invoice-printable mx-auto w-full ${styleClass || "rounded-xl border border-border bg-card text-card-foreground shadow-sm"} ${sizeClass || "max-w-[210mm]"} print:max-w-none print:shadow-none print:border-0 print:rounded-none`;
 }
 
 export function getPaperSizeLabel(paperSize?: string) {
   return PAPER_SIZES.find((size) => size.id === paperSize)?.name || "A4";
+}
+
+/** Returns CSS class to add to <html> or a <style> tag for @page sizing */
+export function getPrintPageCSS(paperSize?: string): string {
+  const sizes: Record<string, string> = {
+    a4: "210mm 297mm",
+    letter: "8.5in 11in",
+    legal: "8.5in 14in",
+    a5: "148mm 210mm",
+    a6: "105mm 148mm",
+  };
+  const size = sizes[paperSize || "a4"] || sizes.a4;
+
+  // Font scaling for smaller papers
+  const fontScale: Record<string, string> = {
+    a4: "11px",
+    letter: "11px",
+    legal: "11px",
+    a5: "9px",
+    a6: "7px",
+  };
+  const baseFontSize = fontScale[paperSize || "a4"] || "11px";
+
+  return `
+@media print {
+  @page { size: ${size}; margin: 8mm; }
+  html, body { margin: 0 !important; padding: 0 !important; }
+  body * { visibility: hidden; }
+  .invoice-printable, .invoice-printable * { visibility: visible; }
+  .invoice-printable {
+    position: absolute; left: 0; top: 0;
+    width: 100% !important; max-width: none !important;
+    margin: 0 !important; padding: 12px !important;
+    font-size: ${baseFontSize} !important;
+    box-shadow: none !important; border: none !important; border-radius: 0 !important;
+    page-break-inside: avoid;
+    overflow: hidden;
+  }
+  .invoice-printable table { font-size: inherit !important; }
+  .invoice-printable th, .invoice-printable td { padding: 3px 6px !important; font-size: inherit !important; }
+  .invoice-printable h1, .invoice-printable h2, .invoice-printable h3 { font-size: 1.1em !important; }
+  .no-print, header, nav, aside, [data-sidebar], .sidebar-trigger { display: none !important; }
+}`;
 }

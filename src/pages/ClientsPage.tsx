@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
@@ -32,6 +32,7 @@ export default function ClientsPage() {
   const navigate = useNavigate();
   const org = useAppStore((s) => s.organization);
   const [clients, setClients] = useState<any[]>([]);
+  const [invoices, setInvoices] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -52,18 +53,29 @@ export default function ClientsPage() {
   const fetchClients = async () => {
     if (!org?.id) return;
     setLoading(true);
-    const { data } = await supabase
-      .from("clients")
-      .select("*")
-      .eq("org_id", org.id)
-      .order("display_name");
-    setClients(data || []);
+    const [{ data: clientData }, { data: invData }] = await Promise.all([
+      supabase.from("clients").select("*").eq("org_id", org.id).order("display_name"),
+      supabase.from("invoices").select("client_id, total, balance_due, status").eq("org_id", org.id),
+    ]);
+    setClients(clientData || []);
+    setInvoices(invData || []);
     setLoading(false);
   };
 
   useEffect(() => {
     fetchClients();
   }, [org?.id]);
+
+  // Build client due map
+  const clientDueMap = useMemo(() => {
+    const map: Record<string, { billed: number; due: number }> = {};
+    invoices.filter(i => i.status !== "void").forEach((inv) => {
+      if (!map[inv.client_id]) map[inv.client_id] = { billed: 0, due: 0 };
+      map[inv.client_id].billed += Number(inv.total);
+      map[inv.client_id].due += Number(inv.balance_due);
+    });
+    return map;
+  }, [invoices]);
 
   const resetForm = () => {
     setForm({
@@ -136,6 +148,9 @@ export default function ClientsPage() {
       .some((f) => f.toLowerCase().includes(search.toLowerCase()))
   );
 
+  const fmt = (n: number) =>
+    new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);
+
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Clients" description="Manage your clients and contacts">
@@ -173,24 +188,31 @@ export default function ClientsPage() {
                   <TableHead>Name</TableHead>
                   <TableHead>Company</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
+                  <TableHead className="text-right">Total Billed</TableHead>
+                  <TableHead className="text-right">Amount Due</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((client) => (
-                  <TableRow key={client.id} className="cursor-pointer" onClick={() => openEdit(client)}>
-                    <TableCell className="font-medium">{client.display_name}</TableCell>
-                    <TableCell>{client.company_name || "—"}</TableCell>
-                    <TableCell>{client.email || "—"}</TableCell>
-                    <TableCell>{client.phone || "—"}</TableCell>
-                    <TableCell>
-                      <Badge variant={client.status === "active" ? "default" : "secondary"}>
-                        {client.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {filtered.map((client) => {
+                  const summary = clientDueMap[client.id] || { billed: 0, due: 0 };
+                  return (
+                    <TableRow key={client.id} className="cursor-pointer" onClick={() => navigate(`/clients/${client.id}`)}>
+                      <TableCell className="font-medium">{client.display_name}</TableCell>
+                      <TableCell>{client.company_name || "—"}</TableCell>
+                      <TableCell>{client.email || "—"}</TableCell>
+                      <TableCell className="text-right text-blue-600 dark:text-blue-400">{fmt(summary.billed)}</TableCell>
+                      <TableCell className={`text-right font-semibold ${summary.due > 0 ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+                        {fmt(summary.due)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={client.status === "active" ? "default" : "secondary"}>
+                          {client.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}

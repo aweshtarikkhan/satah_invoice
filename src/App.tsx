@@ -12,6 +12,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import DashboardPage from "./pages/DashboardPage";
 import ClientsPage from "./pages/ClientsPage";
+import ClientDetailPage from "./pages/ClientDetailPage";
 import ItemsPage from "./pages/ItemsPage";
 import InvoicesPage from "./pages/InvoicesPage";
 import InvoiceBuilderPage from "./pages/InvoiceBuilderPage";
@@ -59,6 +60,7 @@ const App = () => (
             >
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/clients" element={<ClientsPage />} />
+              <Route path="/clients/:id" element={<ClientDetailPage />} />
               <Route path="/items" element={<ItemsPage />} />
               <Route path="/invoices" element={<InvoicesPage />} />
               <Route path="/invoices/new" element={<InvoiceBuilderPage />} />

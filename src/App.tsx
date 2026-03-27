@@ -32,6 +32,7 @@ import PortalPage from "./pages/PortalPage";
 import AuditLogsPage from "./pages/AuditLogsPage";
 import CustomFieldsPage from "./pages/CustomFieldsPage";
 import TemplateCustomizationPage from "./pages/TemplateCustomizationPage";
+import BusinessExpensesPage from "./pages/BusinessExpensesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

@@ -489,7 +489,7 @@ export default function InvoiceBuilderPage() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Client *</Label>
-                <Select value={clientId || "placeholder"} onValueChange={(v) => v !== "placeholder" && setClientId(v)}>
+                <Select value={clientId || "placeholder"} onValueChange={(v) => { if (v === "__add_new") { window.open("/clients?add=1", "_blank"); return; } if (v !== "placeholder") setClientId(v); }}>
                   <SelectTrigger><SelectValue placeholder="Select client..." /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="placeholder" disabled>Select client...</SelectItem>

@@ -248,7 +248,7 @@ export default function RecordPaymentPage() {
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label>Client *</Label>
-            <Select value={clientId} onValueChange={setClientId}>
+            <Select value={clientId} onValueChange={(v) => { if (v === "__add_new") { window.open("/clients?add=1", "_blank"); return; } setClientId(v); }}>
               <SelectTrigger><SelectValue placeholder="Select a client" /></SelectTrigger>
               <SelectContent>
                 {clients.map((c) => (

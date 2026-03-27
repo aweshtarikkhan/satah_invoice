@@ -16,7 +16,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, MoreHorizontal, FileText, ArrowRightLeft, Trash2, Copy } from "lucide-react";
+import { Plus, Search, MoreHorizontal, FileText, ArrowRightLeft, Trash2, Copy, Upload } from "lucide-react";
 import { format } from "date-fns";
 
 type EstimateStatus = "draft" | "sent" | "viewed" | "accepted" | "declined" | "expired" | "converted";

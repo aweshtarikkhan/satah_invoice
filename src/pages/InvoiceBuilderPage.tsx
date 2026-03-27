@@ -5,6 +5,7 @@ import { useAppStore } from "@/store/app-store";
 import { useAuth } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
 import { CustomFieldsForm, saveCustomFieldValues } from "@/components/shared/CustomFieldsForm";
+import { CURRENCIES, formatCurrency } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

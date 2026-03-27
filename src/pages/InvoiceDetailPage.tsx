@@ -328,9 +328,22 @@ export default function InvoiceDetailPage() {
             <div className="flex justify-between font-bold text-primary">
               <span>Balance Due</span><span>{fmt(Number(invoice.balance_due))}</span>
             </div>
+
+            {/* QR Code */}
+            {org?.qr_code_enabled && (
+              <div className="mt-6 flex items-center gap-3">
+                <QRCodeSVG
+                  value={`${window.location.origin}/portal/invoice/${invoice.id}`}
+                  size={80}
+                  level="M"
+                />
+                <p className="text-xs text-muted-foreground">Scan to view invoice online</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
+      </div>
 
       {/* Payments */}
       {payments.length > 0 && (

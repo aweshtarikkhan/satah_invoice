@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { logAudit } from "@/lib/audit";
 import { ArrowLeft, CreditCard, DollarSign, AlertCircle, CheckCircle2 } from "lucide-react";
+import { AddClientDialog } from "@/components/shared/AddClientDialog";
 
 const PAYMENT_MODES = [
   { value: "bank_transfer", label: "Bank Transfer" },
@@ -51,6 +52,7 @@ export default function RecordPaymentPage() {
 
   const [clients, setClients] = useState<any[]>([]);
   const [clientId, setClientId] = useState("");
+  const [addClientOpen, setAddClientOpen] = useState(false);
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split("T")[0]);
   const [paymentMode, setPaymentMode] = useState("bank_transfer");
   const [referenceNumber, setReferenceNumber] = useState("");
@@ -248,7 +250,7 @@ export default function RecordPaymentPage() {
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label>Client *</Label>
-            <Select value={clientId} onValueChange={(v) => { if (v === "__add_new") { window.open("/clients?add=1", "_blank"); return; } setClientId(v); }}>
+            <Select value={clientId} onValueChange={(v) => { if (v === "__add_new") { setAddClientOpen(true); return; } setClientId(v); }}>
               <SelectTrigger><SelectValue placeholder="Select a client" /></SelectTrigger>
               <SelectContent>
                 {clients.map((c) => (
@@ -257,6 +259,7 @@ export default function RecordPaymentPage() {
                 <SelectItem value="__add_new" className="text-primary font-medium border-t mt-1 pt-1">+ Add New Client</SelectItem>
               </SelectContent>
             </Select>
+            <AddClientDialog open={addClientOpen} onOpenChange={setAddClientOpen} onClientAdded={(c) => { setClients(prev => [...prev, c]); setClientId(c.id); }} />
           </div>
           <div className="space-y-2">
             <Label>Amount Received *</Label>

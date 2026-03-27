@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, Save, Send } from "lucide-react";
+import { AddClientDialog } from "@/components/shared/AddClientDialog";
 
 interface LineItem {
   id: string;
@@ -52,6 +53,7 @@ export default function CreditNoteBuilderPage() {
   const [invoices, setInvoices] = useState<any[]>([]);
 
   const [clientId, setClientId] = useState("");
+  const [addClientOpen, setAddClientOpen] = useState(false);
   const [invoiceId, setInvoiceId] = useState("");
   const [creditNoteNumber, setCreditNoteNumber] = useState("");
   const [issueDate, setIssueDate] = useState(new Date().toISOString().split("T")[0]);
@@ -205,13 +207,14 @@ export default function CreditNoteBuilderPage() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Client *</Label>
-              <Select value={clientId} onValueChange={(v) => { if (v === "__add_new") { window.open("/clients?add=1", "_blank"); return; } setClientId(v); }}>
+              <Select value={clientId} onValueChange={(v) => { if (v === "__add_new") { setAddClientOpen(true); return; } setClientId(v); }}>
                 <SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger>
                 <SelectContent>
                   {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.display_name}</SelectItem>)}
                   <SelectItem value="__add_new" className="text-primary font-medium border-t mt-1 pt-1">+ Add New Client</SelectItem>
                 </SelectContent>
               </Select>
+              <AddClientDialog open={addClientOpen} onOpenChange={setAddClientOpen} onClientAdded={(c) => { setClients(prev => [...prev, c]); setClientId(c.id); }} />
             </div>
             <div className="space-y-2">
               <Label>Against Invoice (optional)</Label>

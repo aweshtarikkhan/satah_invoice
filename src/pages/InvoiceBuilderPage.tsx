@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Save, Eye, Trash2, Plus, GripVertical } from "lucide-react";
+import { AddClientDialog } from "@/components/shared/AddClientDialog";
 import {
   DndContext,
   closestCenter,
@@ -204,6 +205,7 @@ export default function InvoiceBuilderPage() {
   const [taxRates, setTaxRates] = useState<any[]>([]);
 
   const [clientId, setClientId] = useState("");
+  const [addClientOpen, setAddClientOpen] = useState(false);
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [issueDate, setIssueDate] = useState(new Date().toISOString().split("T")[0]);
   const [dueDate, setDueDate] = useState("");
@@ -489,7 +491,7 @@ export default function InvoiceBuilderPage() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Client *</Label>
-                <Select value={clientId || "placeholder"} onValueChange={(v) => { if (v === "__add_new") { window.open("/clients?add=1", "_blank"); return; } if (v !== "placeholder") setClientId(v); }}>
+                <Select value={clientId || "placeholder"} onValueChange={(v) => { if (v === "__add_new") { setAddClientOpen(true); return; } if (v !== "placeholder") setClientId(v); }}>
                   <SelectTrigger><SelectValue placeholder="Select client..." /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="placeholder" disabled>Select client...</SelectItem>
@@ -499,6 +501,7 @@ export default function InvoiceBuilderPage() {
                     <SelectItem value="__add_new" className="text-primary font-medium border-t mt-1 pt-1">+ Add New Client</SelectItem>
                   </SelectContent>
                 </Select>
+                <AddClientDialog open={addClientOpen} onOpenChange={setAddClientOpen} onClientAdded={(c) => { setClients(prev => [...prev, c]); setClientId(c.id); }} />
               </div>
             </div>
             <div className="space-y-4">

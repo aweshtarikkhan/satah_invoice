@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
@@ -13,7 +13,9 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, FileText, Search, Upload } from "lucide-react";
+import { Plus, FileText, Search, Upload, TrendingDown, Clock, AlertTriangle, CalendarClock } from "lucide-react";
+import { differenceInDays, parseISO, isToday, isBefore, addDays } from "date-fns";
+import { format } from "date-fns";
 
 const invoiceImportFields: ImportField[] = [
   { key: "invoice_number", label: "Invoice #", required: true },
@@ -25,7 +27,7 @@ const invoiceImportFields: ImportField[] = [
   { key: "notes", label: "Notes" },
 ];
 
-const statusTabs = ["all", "draft", "sent", "overdue", "paid"] as const;
+const statusTabs = ["all", "draft", "sent", "overdue", "partial", "paid", "void"] as const;
 
 export default function InvoicesPage() {
   const navigate = useNavigate();
@@ -54,6 +56,37 @@ export default function InvoicesPage() {
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);
 
+  const summary = useMemo(() => {
+    const outstanding = invoices
+      .filter(i => ["sent", "viewed", "partial", "overdue"].includes(i.status))
+      .reduce((sum, i) => sum + Number(i.balance_due || 0), 0);
+
+    const today = new Date();
+    const dueToday = invoices
+      .filter(i => ["sent", "viewed", "partial", "overdue"].includes(i.status) && i.due_date && isToday(parseISO(i.due_date)))
+      .reduce((sum, i) => sum + Number(i.balance_due || 0), 0);
+
+    const dueIn30 = invoices
+      .filter(i => {
+        if (!["sent", "viewed", "partial"].includes(i.status) || !i.due_date) return false;
+        const due = parseISO(i.due_date);
+        return !isToday(due) && isBefore(due, addDays(today, 31)) && !isBefore(due, today);
+      })
+      .reduce((sum, i) => sum + Number(i.balance_due || 0), 0);
+
+    const overdue = invoices
+      .filter(i => i.status === "overdue")
+      .reduce((sum, i) => sum + Number(i.balance_due || 0), 0);
+
+    // Average days to get paid
+    const paidInvoices = invoices.filter(i => i.status === "paid" && i.paid_at && i.issue_date);
+    const avgDays = paidInvoices.length > 0
+      ? Math.round(paidInvoices.reduce((sum, i) => sum + differenceInDays(parseISO(i.paid_at), parseISO(i.issue_date)), 0) / paidInvoices.length)
+      : 0;
+
+    return { outstanding, dueToday, dueIn30, overdue, avgDays };
+  }, [invoices]);
+
   const filtered = invoices
     .filter((i) => tab === "all" || i.status === tab)
     .filter((i) =>
@@ -61,6 +94,14 @@ export default function InvoicesPage() {
         .filter(Boolean)
         .some((f) => f.toLowerCase().includes(search.toLowerCase()))
     );
+
+  const summaryItems = [
+    { label: "Total Outstanding Receivables", value: fmt(summary.outstanding), icon: TrendingDown, color: "text-primary" },
+    { label: "Due Today", value: fmt(summary.dueToday), icon: Clock, color: "text-orange-500" },
+    { label: "Due Within 30 Days", value: fmt(summary.dueIn30), icon: CalendarClock, color: "text-muted-foreground" },
+    { label: "Overdue Invoice", value: fmt(summary.overdue), icon: AlertTriangle, color: "text-destructive" },
+    { label: "Avg. Days to Get Paid", value: `${summary.avgDays} Days`, icon: CalendarClock, color: "text-muted-foreground" },
+  ];
 
   return (
     <div className="p-6 space-y-6">
@@ -73,7 +114,22 @@ export default function InvoicesPage() {
         </Button>
       </PageHeader>
 
-      <div className="flex flex-col sm:flex-row gap-3">
+      {/* Payment Summary */}
+      <Card>
+        <CardContent className="py-4">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Payment Summary</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            {summaryItems.map((item) => (
+              <div key={item.label} className="space-y-1">
+                <p className="text-xs text-muted-foreground">{item.label}</p>
+                <p className={`text-lg font-bold ${item.color}`}>{item.value}</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList>
             {statusTabs.map((s) => (
@@ -81,7 +137,7 @@ export default function InvoicesPage() {
             ))}
           </TabsList>
         </Tabs>
-        <div className="relative max-w-sm">
+        <div className="relative max-w-sm w-full sm:w-auto">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search invoices..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
@@ -103,25 +159,27 @@ export default function InvoicesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Invoice #</TableHead>
-                  <TableHead>Client</TableHead>
                   <TableHead>Date</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead className="text-right">Balance Due</TableHead>
+                  <TableHead>Invoice #</TableHead>
+                  <TableHead>Order Number</TableHead>
+                  <TableHead>Customer Name</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Due Date</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="text-right">Balance Due</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map((inv) => (
-                  <TableRow key={inv.id} className="cursor-pointer" onClick={() => navigate(`/invoices/${inv.id}`)}>
-                    <TableCell className="font-medium">{inv.invoice_number}</TableCell>
+                  <TableRow key={inv.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/invoices/${inv.id}`)}>
+                    <TableCell className="text-muted-foreground">{inv.issue_date ? format(parseISO(inv.issue_date), "d MMM yyyy") : "-"}</TableCell>
+                    <TableCell className="font-medium text-primary">{inv.invoice_number}</TableCell>
+                    <TableCell className="text-muted-foreground">{inv.reference_number || "-"}</TableCell>
                     <TableCell>{(inv.clients as any)?.display_name}</TableCell>
-                    <TableCell>{inv.issue_date}</TableCell>
-                    <TableCell>{inv.due_date}</TableCell>
-                    <TableCell className="text-right">{fmt(Number(inv.total))}</TableCell>
-                    <TableCell className="text-right">{fmt(Number(inv.balance_due))}</TableCell>
                     <TableCell><StatusBadge status={inv.status} /></TableCell>
+                    <TableCell className="text-muted-foreground">{inv.due_date ? format(parseISO(inv.due_date), "d MMM yyyy") : "-"}</TableCell>
+                    <TableCell className="text-right font-medium">{fmt(Number(inv.total))}</TableCell>
+                    <TableCell className="text-right font-medium">{fmt(Number(inv.balance_due))}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

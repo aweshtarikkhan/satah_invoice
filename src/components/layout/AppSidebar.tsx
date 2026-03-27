@@ -13,9 +13,10 @@ import {
   Layout,
   ScrollText,
   SlidersHorizontal,
+  Plus,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import {
   Sidebar,
@@ -32,15 +33,15 @@ import {
 } from "@/components/ui/sidebar";
 
 const mainItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Invoices", url: "/invoices", icon: FileText },
-  { title: "Estimates", url: "/estimates", icon: ClipboardList },
-  { title: "Clients", url: "/clients", icon: Users },
-  { title: "Items", url: "/items", icon: Package },
-  { title: "Credit Notes", url: "/credit-notes", icon: FileMinus2 },
-  { title: "Payments", url: "/payments", icon: CreditCard },
-  { title: "Reports", url: "/reports", icon: BarChart3 },
-  { title: "Templates", url: "/templates", icon: Layout },
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, addUrl: null },
+  { title: "Invoices", url: "/invoices", icon: FileText, addUrl: "/invoices/new" },
+  { title: "Estimates", url: "/estimates", icon: ClipboardList, addUrl: "/estimates/new" },
+  { title: "Clients", url: "/clients", icon: Users, addUrl: "/clients?add=1" },
+  { title: "Items", url: "/items", icon: Package, addUrl: "/items?add=1" },
+  { title: "Credit Notes", url: "/credit-notes", icon: FileMinus2, addUrl: "/credit-notes/new" },
+  { title: "Payments Received", url: "/payments", icon: CreditCard, addUrl: "/payments/new" },
+  { title: "Reports", url: "/reports", icon: BarChart3, addUrl: null },
+  { title: "Templates", url: "/templates", icon: Layout, addUrl: null },
 ];
 
 const settingsItems = [
@@ -54,6 +55,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const navigate = useNavigate();
   const { signOut, profile } = useAuth();
 
   const isActive = (path: string) =>
@@ -80,7 +82,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {mainItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.title} className="group/item">
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <NavLink
                       to={item.url}
@@ -91,6 +93,15 @@ export function AppSidebar() {
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
+                  {!collapsed && item.addUrl && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); navigate(item.addUrl!); }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/item:opacity-100 transition-opacity h-5 w-5 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+                      title={`New ${item.title.replace(/s$/, "")}`}
+                    >
+                      <Plus className="h-3 w-3" />
+                    </button>
+                  )}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>

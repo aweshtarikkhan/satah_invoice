@@ -1,39 +1,33 @@
 
-## Invoice Management App — Phase 1: Core MVP ✅
-### 1-8. Auth, Layout, Schema, Clients, Items, Invoice Builder, List, Dashboard ✅
+## Invoice Management App
 
----
+### Phase 1: Core MVP ✅
+Auth, Layout, Clients, Items, Invoice Builder, Payments, Dashboard, Settings
 
-## Phase 2: Estimates & Reports ✅
-### 1. Estimates with Convert to Invoice ✅
-### 2. Reports Suite ✅
+### Phase 2: Estimates & Reports ✅
+Estimates (convert to invoice), Reports Suite (charts, CSV export)
 
----
+### Phase 3: Credit Notes, Templates & Client Portal ✅
+Credit Notes, Invoice Template Gallery, Client Portal (token-based sharing)
 
-## Phase 3: Credit Notes, Templates & Client Portal ✅
-### 1. Credit Notes ✅
-### 2. Invoice Template Gallery ✅
-### 3. Client Portal ✅
+### Phase 4: Audit Logs & Custom Fields ✅
+Audit logging, Custom field definitions & values per entity type
 
----
-
-## Phase 4: Audit Logs & Custom Fields ✅
-
-### 1. Audit Logs ✅
-- audit_logs table with org_id, user_id, entity_type, entity_id, action, description, metadata
-- Audit log viewer page with entity type filter and search
-- Logging wired into invoice create/update/void/payment actions
-- Sidebar navigation under System section
-
-### 2. Custom Fields ✅
-- custom_field_definitions table (text, number, date, dropdown, checkbox types)
-- custom_field_values table with upsert support
-- Custom Fields management page with per-entity-type tabs
-- Reusable CustomFieldsForm component rendered in Invoice Builder
-- saveCustomFieldValues utility for persisting values
+### Phase 5: Multi-Currency & Template Customization ✅
+- 20 currencies supported with symbols and formatting
+- Currency utility library (lib/currency.ts) with live exchange rate fetching
+- Exchange rates cache table
+- Settings page updated with full currency list
+- Invoice builder shows selected currency
+- Template Customization page:
+  - Logo upload to cloud storage
+  - 4 template styles (classic, modern, minimal, professional)
+  - 10 accent colors + custom color picker
+  - 9 font options
+  - Show/hide logo toggle
+  - Live preview of template with current settings
+- Template settings stored on organizations table
 
 ### Future Phases
 - Recurring invoices
-- Multi-currency with live exchange rates
-- Payment gateway integration (Stripe)
-- Advanced template customization (logo, colors)
+- Stripe payment gateway integration

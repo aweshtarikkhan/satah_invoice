@@ -892,6 +892,8 @@ export type Database = {
           estimate_next_number: number
           estimate_prefix: string
           fiscal_year_start: number
+          gst_enabled: boolean
+          gst_number: string | null
           id: string
           invoice_next_number: number
           invoice_prefix: string
@@ -900,6 +902,8 @@ export type Database = {
           payment_prefix: string
           payment_terms: number
           phone: string | null
+          qr_code_enabled: boolean
+          show_client_gst: boolean
           tax_name: string | null
           tax_number: string | null
           template_accent_color: string
@@ -924,6 +928,8 @@ export type Database = {
           estimate_next_number?: number
           estimate_prefix?: string
           fiscal_year_start?: number
+          gst_enabled?: boolean
+          gst_number?: string | null
           id?: string
           invoice_next_number?: number
           invoice_prefix?: string
@@ -932,6 +938,8 @@ export type Database = {
           payment_prefix?: string
           payment_terms?: number
           phone?: string | null
+          qr_code_enabled?: boolean
+          show_client_gst?: boolean
           tax_name?: string | null
           tax_number?: string | null
           template_accent_color?: string
@@ -956,6 +964,8 @@ export type Database = {
           estimate_next_number?: number
           estimate_prefix?: string
           fiscal_year_start?: number
+          gst_enabled?: boolean
+          gst_number?: string | null
           id?: string
           invoice_next_number?: number
           invoice_prefix?: string
@@ -964,6 +974,8 @@ export type Database = {
           payment_prefix?: string
           payment_terms?: number
           phone?: string | null
+          qr_code_enabled?: boolean
+          show_client_gst?: boolean
           tax_name?: string | null
           tax_number?: string | null
           template_accent_color?: string
@@ -1205,6 +1217,8 @@ export type Database = {
           estimate_next_number: number
           estimate_prefix: string
           fiscal_year_start: number
+          gst_enabled: boolean
+          gst_number: string | null
           id: string
           invoice_next_number: number
           invoice_prefix: string
@@ -1213,6 +1227,8 @@ export type Database = {
           payment_prefix: string
           payment_terms: number
           phone: string | null
+          qr_code_enabled: boolean
+          show_client_gst: boolean
           tax_name: string | null
           tax_number: string | null
           template_accent_color: string

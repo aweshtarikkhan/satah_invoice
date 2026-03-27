@@ -207,13 +207,17 @@ export default function CreditNoteBuilderPage() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Client *</Label>
-              <Select value={clientId} onValueChange={(v) => { if (v === "__add_new") { setAddClientOpen(true); return; } setClientId(v); }}>
-                <SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger>
-                <SelectContent>
-                  {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.display_name}</SelectItem>)}
-                  <SelectItem value="__add_new" className="text-primary font-medium border-t mt-1 pt-1">+ Add New Client</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Select value={clientId} onValueChange={setClientId}>
+                  <SelectTrigger className="flex-1"><SelectValue placeholder="Select client" /></SelectTrigger>
+                  <SelectContent>
+                    {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.display_name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Button type="button" variant="outline" size="icon" onClick={() => setAddClientOpen(true)} title="Add New Client">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
               <AddClientDialog open={addClientOpen} onOpenChange={setAddClientOpen} onClientAdded={(c) => { setClients(prev => [...prev, c]); setClientId(c.id); }} />
             </div>
             <div className="space-y-2">

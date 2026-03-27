@@ -175,6 +175,40 @@ export default function EstimatesPage() {
           </Table>
         </div>
       )}
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        fields={[
+          { key: "estimate_number", label: "Estimate #", required: true },
+          { key: "client_name", label: "Client Name", required: true },
+          { key: "issue_date", label: "Issue Date" },
+          { key: "expiry_date", label: "Expiry Date" },
+          { key: "total", label: "Total Amount" },
+          { key: "notes", label: "Notes" },
+        ]}
+        entityName="Estimates"
+        onImport={async (rows) => {
+          let success = 0, errors = 0;
+          const { data: clients } = await supabase.from("clients").select("id, display_name").eq("org_id", org!.id);
+          for (const row of rows) {
+            const client = clients?.find((c) => c.display_name.toLowerCase() === (row.client_name || "").toLowerCase());
+            if (!client) { errors++; continue; }
+            const { error } = await supabase.from("estimates").insert({
+              org_id: org!.id,
+              client_id: client.id,
+              estimate_number: row.estimate_number,
+              issue_date: row.issue_date || new Date().toISOString().split("T")[0],
+              expiry_date: row.expiry_date || new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0],
+              total: parseFloat(row.total) || 0,
+              notes: row.notes || null,
+              currency_code: org!.currency_code,
+            });
+            if (error) errors++; else success++;
+          }
+          fetchEstimates();
+          return { success, errors };
+        }}
+      />
     </div>
   );
 }

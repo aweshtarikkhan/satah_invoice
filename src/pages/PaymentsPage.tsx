@@ -100,6 +100,34 @@ export default function PaymentsPage() {
           )}
         </CardContent>
       </Card>
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        fields={paymentImportFields}
+        entityName="Payments"
+        onImport={async (rows) => {
+          let success = 0, errors = 0;
+          const { data: clients } = await supabase.from("clients").select("id, display_name").eq("org_id", org!.id);
+          for (const row of rows) {
+            const client = clients?.find((c) => c.display_name.toLowerCase() === (row.client_name || "").toLowerCase());
+            if (!client) { errors++; continue; }
+            const { error } = await supabase.from("payments").insert({
+              org_id: org!.id,
+              client_id: client.id,
+              payment_number: row.payment_number,
+              amount: parseFloat(row.amount) || 0,
+              payment_date: row.payment_date || new Date().toISOString().split("T")[0],
+              payment_mode: row.payment_mode || "bank_transfer",
+              reference_number: row.reference_number || null,
+              notes: row.notes || null,
+              currency_code: org!.currency_code,
+            });
+            if (error) errors++; else success++;
+          }
+          fetchPayments();
+          return { success, errors };
+        }}
+      />
     </div>
   );
 }

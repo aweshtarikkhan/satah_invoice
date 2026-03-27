@@ -247,15 +247,16 @@ export default function InvoiceBuilderPage() {
       setCatalogItems(i.data || []);
       setTaxRates(t.data || []);
 
-      // Auto-generate invoice number
+      // Auto-generate invoice number from fresh DB value
       if (!id) {
-        const prefix = org.invoice_prefix || "INV";
-        const num = org.invoice_next_number || 1;
+        const { data: freshOrg } = await supabase.from("organizations").select("invoice_next_number, invoice_prefix, payment_terms, default_notes, default_terms").eq("id", org.id).single();
+        const prefix = freshOrg?.invoice_prefix || org.invoice_prefix || "INV";
+        const num = freshOrg?.invoice_next_number || org.invoice_next_number || 1;
         const year = new Date().getFullYear();
         setInvoiceNumber(`${prefix}-${year}-${String(num).padStart(4, "0")}`);
-        setPaymentTerms(org.payment_terms || 30);
-        setNotes(org.default_notes || "");
-        setTerms(org.default_terms || "");
+        setPaymentTerms(freshOrg?.payment_terms || org.payment_terms || 30);
+        setNotes(freshOrg?.default_notes || org.default_notes || "");
+        setTerms(freshOrg?.default_terms || org.default_terms || "");
       }
     };
     fetchData();
@@ -408,9 +409,11 @@ export default function InvoiceBuilderPage() {
         const { data, error } = await supabase.from("invoices").insert(invoicePayload).select().single();
         if (error) throw error;
         invoiceId = data.id;
-        // Increment org next number
+        // Increment org next number using fresh DB value
+        const { data: currentOrg } = await supabase.from("organizations").select("invoice_next_number").eq("id", org!.id).single();
+        const currentNum = currentOrg?.invoice_next_number || 1;
         await supabase.from("organizations").update({
-          invoice_next_number: (org!.invoice_next_number || 1) + 1,
+          invoice_next_number: currentNum + 1,
         }).eq("id", org!.id);
       }
 

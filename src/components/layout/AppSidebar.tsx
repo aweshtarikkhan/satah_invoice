@@ -35,8 +35,10 @@ const mainItems = [
   { title: "Estimates", url: "/estimates", icon: ClipboardList },
   { title: "Clients", url: "/clients", icon: Users },
   { title: "Items", url: "/items", icon: Package },
+  { title: "Credit Notes", url: "/credit-notes", icon: FileMinus2 },
   { title: "Payments", url: "/payments", icon: CreditCard },
   { title: "Reports", url: "/reports", icon: BarChart3 },
+  { title: "Templates", url: "/templates", icon: Layout },
 ];
 
 const settingsItems = [

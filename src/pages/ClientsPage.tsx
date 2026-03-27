@@ -148,6 +148,9 @@ export default function ClientsPage() {
       .some((f) => f.toLowerCase().includes(search.toLowerCase()))
   );
 
+  const fmt = (n: number) =>
+    new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);
+
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Clients" description="Manage your clients and contacts">

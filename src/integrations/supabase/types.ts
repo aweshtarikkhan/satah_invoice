@@ -132,6 +132,194 @@ export type Database = {
           },
         ]
       }
+      estimate_lines: {
+        Row: {
+          amount: number
+          description: string | null
+          discount: number
+          discount_type: Database["public"]["Enums"]["discount_type"]
+          estimate_id: string
+          id: string
+          item_id: string | null
+          name: string
+          quantity: number
+          rate: number
+          sort_order: number
+          tax_amount: number
+          tax_id: string | null
+          unit: string | null
+        }
+        Insert: {
+          amount?: number
+          description?: string | null
+          discount?: number
+          discount_type?: Database["public"]["Enums"]["discount_type"]
+          estimate_id: string
+          id?: string
+          item_id?: string | null
+          name: string
+          quantity?: number
+          rate?: number
+          sort_order?: number
+          tax_amount?: number
+          tax_id?: string | null
+          unit?: string | null
+        }
+        Update: {
+          amount?: number
+          description?: string | null
+          discount?: number
+          discount_type?: Database["public"]["Enums"]["discount_type"]
+          estimate_id?: string
+          id?: string
+          item_id?: string | null
+          name?: string
+          quantity?: number
+          rate?: number
+          sort_order?: number
+          tax_amount?: number
+          tax_id?: string | null
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "estimate_lines_estimate_id_fkey"
+            columns: ["estimate_id"]
+            isOneToOne: false
+            referencedRelation: "estimates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "estimate_lines_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "estimate_lines_tax_id_fkey"
+            columns: ["tax_id"]
+            isOneToOne: false
+            referencedRelation: "tax_rates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      estimates: {
+        Row: {
+          accepted_at: string | null
+          adjustment: number
+          adjustment_name: string | null
+          client_id: string
+          converted_invoice_id: string | null
+          created_at: string
+          currency_code: string
+          declined_at: string | null
+          discount: number
+          discount_type: Database["public"]["Enums"]["discount_type"]
+          estimate_number: string
+          exchange_rate: number
+          expiry_date: string
+          id: string
+          issue_date: string
+          notes: string | null
+          org_id: string
+          reference_number: string | null
+          sent_at: string | null
+          shipping_charge: number
+          status: Database["public"]["Enums"]["estimate_status"]
+          subtotal: number
+          terms_conditions: string | null
+          total: number
+          total_discount: number
+          total_tax: number
+          updated_at: string
+          viewed_at: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          adjustment?: number
+          adjustment_name?: string | null
+          client_id: string
+          converted_invoice_id?: string | null
+          created_at?: string
+          currency_code?: string
+          declined_at?: string | null
+          discount?: number
+          discount_type?: Database["public"]["Enums"]["discount_type"]
+          estimate_number: string
+          exchange_rate?: number
+          expiry_date?: string
+          id?: string
+          issue_date?: string
+          notes?: string | null
+          org_id: string
+          reference_number?: string | null
+          sent_at?: string | null
+          shipping_charge?: number
+          status?: Database["public"]["Enums"]["estimate_status"]
+          subtotal?: number
+          terms_conditions?: string | null
+          total?: number
+          total_discount?: number
+          total_tax?: number
+          updated_at?: string
+          viewed_at?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          adjustment?: number
+          adjustment_name?: string | null
+          client_id?: string
+          converted_invoice_id?: string | null
+          created_at?: string
+          currency_code?: string
+          declined_at?: string | null
+          discount?: number
+          discount_type?: Database["public"]["Enums"]["discount_type"]
+          estimate_number?: string
+          exchange_rate?: number
+          expiry_date?: string
+          id?: string
+          issue_date?: string
+          notes?: string | null
+          org_id?: string
+          reference_number?: string | null
+          sent_at?: string | null
+          shipping_charge?: number
+          status?: Database["public"]["Enums"]["estimate_status"]
+          subtotal?: number
+          terms_conditions?: string | null
+          total?: number
+          total_discount?: number
+          total_tax?: number
+          updated_at?: string
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "estimates_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "estimates_converted_invoice_id_fkey"
+            columns: ["converted_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "estimates_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_lines: {
         Row: {
           amount: number
@@ -388,6 +576,7 @@ export type Database = {
           default_notes: string | null
           default_terms: string | null
           email: string | null
+          estimate_next_number: number
           estimate_prefix: string
           fiscal_year_start: number
           id: string
@@ -412,6 +601,7 @@ export type Database = {
           default_notes?: string | null
           default_terms?: string | null
           email?: string | null
+          estimate_next_number?: number
           estimate_prefix?: string
           fiscal_year_start?: number
           id?: string
@@ -436,6 +626,7 @@ export type Database = {
           default_notes?: string | null
           default_terms?: string | null
           email?: string | null
+          estimate_next_number?: number
           estimate_prefix?: string
           fiscal_year_start?: number
           id?: string
@@ -642,6 +833,14 @@ export type Database = {
       app_role: "owner" | "admin" | "staff" | "read_only"
       client_status: "active" | "inactive"
       discount_type: "percentage" | "fixed"
+      estimate_status:
+        | "draft"
+        | "sent"
+        | "viewed"
+        | "accepted"
+        | "declined"
+        | "expired"
+        | "converted"
       invoice_status:
         | "draft"
         | "sent"
@@ -782,6 +981,15 @@ export const Constants = {
       app_role: ["owner", "admin", "staff", "read_only"],
       client_status: ["active", "inactive"],
       discount_type: ["percentage", "fixed"],
+      estimate_status: [
+        "draft",
+        "sent",
+        "viewed",
+        "accepted",
+        "declined",
+        "expired",
+        "converted",
+      ],
       invoice_status: [
         "draft",
         "sent",

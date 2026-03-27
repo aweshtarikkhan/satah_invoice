@@ -444,6 +444,7 @@ export default function InvoiceBuilderPage() {
           item_id: l.item_id,
           name: l.name,
           description: l.description,
+          unit: l.unit || "pcs",
           quantity: l.quantity,
           rate: l.rate,
           discount: l.discount,

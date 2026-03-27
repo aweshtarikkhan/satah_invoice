@@ -216,7 +216,10 @@ export default function InvoiceDetailPage() {
           <Edit className="mr-1 h-4 w-4" /> Edit
         </Button>
         <Button variant="outline" size="sm" onClick={() => window.print()}>
-          <FileDown className="mr-1 h-4 w-4" /> Save PDF
+          <Printer className="mr-1 h-4 w-4" /> Print
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
+          <Download className="mr-1 h-4 w-4" /> Download PDF
         </Button>
         <Button variant="outline" size="sm" onClick={handleDuplicate}>
           <Copy className="mr-1 h-4 w-4" /> Duplicate

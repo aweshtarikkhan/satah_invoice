@@ -108,6 +108,7 @@ export default function InvoiceDetailPage() {
 
     setPaymentDialogOpen(false);
     toast({ title: "Payment recorded!" });
+    if (org && user) await logAudit({ orgId: org.id, userId: user.id, entityType: "payment", entityId: invoice.id, action: "payment_recorded", description: `Payment of ${paymentForm.amount} recorded for ${invoice.invoice_number}` });
     fetchInvoice();
   };
 

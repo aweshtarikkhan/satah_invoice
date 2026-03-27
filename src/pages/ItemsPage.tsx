@@ -113,6 +113,9 @@ export default function ItemsPage() {
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Items" description="Products and services catalog">
+        <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+          <Upload className="mr-1 h-4 w-4" /> Import
+        </Button>
         <Button onClick={openCreate} size="sm">
           <Plus className="mr-1 h-4 w-4" /> Add Item
         </Button>

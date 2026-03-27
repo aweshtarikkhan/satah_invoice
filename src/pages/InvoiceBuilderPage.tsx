@@ -250,6 +250,7 @@ export default function InvoiceBuilderPage() {
   const [adjustmentName, setAdjustmentName] = useState("Adjustment");
   const [lines, setLines] = useState<LineItem[]>([createEmptyLine()]);
   const [saving, setSaving] = useState(false);
+  const [clientInvoices, setClientInvoices] = useState<any[]>([]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),

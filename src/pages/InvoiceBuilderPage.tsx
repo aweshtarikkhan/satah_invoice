@@ -15,8 +15,12 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Eye, Trash2, Plus, GripVertical, Printer, Share2, Clock, ChevronDown, AlertTriangle, IndianRupee } from "lucide-react";
+import { Save, Eye, Trash2, Plus, GripVertical, Printer, Share2, Clock, ChevronDown, AlertTriangle, Layers } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { InvoiceSettingsSheet } from "@/components/shared/InvoiceSettingsSheet";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -55,7 +59,7 @@ interface LineItem {
   amount: number;
 }
 
-const UNITS = ["pcs", "kg", "g", "ltr", "ml", "m", "cm", "ft", "inch", "box", "nos", "hrs", "days", "pair", "set", "sqft", "sqm"];
+const UNITS = ["pcs", "kg", "g", "ltr", "ml", "m", "cm", "ft", "inch", "box", "nos", "hrs", "days", "pair", "set", "sqft", "sqm", "ton", "dozen", "bundle", "roll", "bag", "carton"];
 
 function createEmptyLine(): LineItem {
   return {
@@ -120,15 +124,15 @@ function SortableLineItem({
     new Intl.NumberFormat("en-US", { style: "currency", currency }).format(n);
 
   return (
-    <div ref={setNodeRef} style={style} className="flex items-start gap-2 py-2 border-b last:border-0">
-      <button {...attributes} {...listeners} className="mt-3 cursor-grab text-muted-foreground hover:text-foreground">
-        <GripVertical className="h-4 w-4" />
+    <div ref={setNodeRef} style={style} className="flex items-center gap-1 py-1.5 border-b last:border-0">
+      <button {...attributes} {...listeners} className="cursor-grab text-muted-foreground hover:text-foreground shrink-0">
+        <GripVertical className="h-3.5 w-3.5" />
       </button>
-      <div className="grid flex-1 grid-cols-12 gap-2">
+      <div className="grid flex-1 grid-cols-12 gap-1 items-center">
         <div className="col-span-3">
-          <div className="flex gap-1">
+          <div className="flex gap-0.5">
             <Select value={line.item_id || "none"} onValueChange={handleItemSelect}>
-              <SelectTrigger className="h-9 text-xs flex-1">
+              <SelectTrigger className="h-8 text-xs flex-1">
                 <SelectValue placeholder="Select item..." />
               </SelectTrigger>
               <SelectContent>
@@ -138,85 +142,44 @@ function SortableLineItem({
                 ))}
               </SelectContent>
             </Select>
-            <button type="button" onClick={onAddItem} className="h-9 w-9 flex items-center justify-center rounded-md border border-input bg-background text-muted-foreground hover:text-foreground hover:bg-accent shrink-0" title="Add New Item">
-              <Plus className="h-3.5 w-3.5" />
+            <button type="button" onClick={onAddItem} className="h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-muted-foreground hover:text-foreground hover:bg-accent shrink-0" title="Add New Item">
+              <Plus className="h-3 w-3" />
             </button>
           </div>
-          <Input
-            className="mt-1 h-8 text-xs"
-            placeholder="Item name"
-            value={line.name}
-            onChange={(e) => onChange(index, "name", e.target.value)}
-          />
         </div>
         <div className="col-span-2">
-          <Textarea
-            className="min-h-[60px] text-xs"
-            placeholder="Description"
-            value={line.description}
-            onChange={(e) => onChange(index, "description", e.target.value)}
-          />
+          <Input className="h-8 text-xs" placeholder="Name" value={line.name} onChange={(e) => onChange(index, "name", e.target.value)} />
         </div>
         <div className="col-span-1">
           <Select value={line.unit || "pcs"} onValueChange={(v) => onChange(index, "unit", v)}>
-            <SelectTrigger className="h-9 text-xs">
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {UNITS.map((u) => (
-                <SelectItem key={u} value={u}>{u}</SelectItem>
-              ))}
+              {UNITS.map((u) => (<SelectItem key={u} value={u}>{u}</SelectItem>))}
             </SelectContent>
           </Select>
-          <span className="text-[10px] text-muted-foreground">Unit</span>
         </div>
         <div className="col-span-1">
-          <Input
-            type="number"
-            className="h-9 text-xs text-center"
-            value={line.quantity}
-            onChange={(e) => onChange(index, "quantity", parseFloat(e.target.value) || 0)}
-            min={0}
-            step="0.01"
-          />
-          <span className="text-[10px] text-muted-foreground">Qty</span>
+          <Input type="number" className="h-8 text-xs text-center" value={line.quantity} onChange={(e) => onChange(index, "quantity", parseFloat(e.target.value) || 0)} min={0} step="0.01" />
         </div>
         <div className="col-span-2">
-          <Input
-            type="number"
-            className="h-9 text-xs"
-            value={line.rate}
-            onChange={(e) => onChange(index, "rate", parseFloat(e.target.value) || 0)}
-            min={0}
-            step="0.01"
-          />
-          <span className="text-[10px] text-muted-foreground">Rate</span>
+          <Input type="number" className="h-8 text-xs" value={line.rate} onChange={(e) => onChange(index, "rate", parseFloat(e.target.value) || 0)} min={0} step="0.01" />
         </div>
         <div className="col-span-1">
           <Select value={line.tax_id || "none"} onValueChange={(v) => onChange(index, "tax_id", v === "none" ? null : v)}>
-            <SelectTrigger className="h-9 text-xs">
-              <SelectValue placeholder="Tax" />
-            </SelectTrigger>
+            <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Tax" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="none">No tax</SelectItem>
-              {taxRates.map((t: any) => (
-                <SelectItem key={t.id} value={t.id}>{t.rate}%</SelectItem>
-              ))}
+              {taxRates.map((t: any) => (<SelectItem key={t.id} value={t.id}>{t.rate}%</SelectItem>))}
             </SelectContent>
           </Select>
-          <span className="text-[10px] text-muted-foreground">Tax</span>
         </div>
         <div className="col-span-2 text-right">
-          <div className="h-9 flex items-center justify-end text-sm font-medium">
-            {fmt(line.amount)}
-          </div>
-          {line.tax_amount > 0 && (
-            <span className="text-[10px] text-muted-foreground">+{fmt(line.tax_amount)} tax</span>
-          )}
+          <span className="text-sm font-medium">{fmt(line.amount)}</span>
+          {line.tax_amount > 0 && <span className="text-[10px] text-muted-foreground ml-1">+{fmt(line.tax_amount)}</span>}
         </div>
       </div>
-      <button onClick={() => onRemove(index)} className="mt-3 text-muted-foreground hover:text-destructive">
-        <Trash2 className="h-4 w-4" />
+      <button onClick={() => onRemove(index)} className="text-muted-foreground hover:text-destructive shrink-0">
+        <Trash2 className="h-3.5 w-3.5" />
       </button>
     </div>
   );
@@ -251,6 +214,8 @@ export default function InvoiceBuilderPage() {
   const [lines, setLines] = useState<LineItem[]>([createEmptyLine()]);
   const [saving, setSaving] = useState(false);
   const [clientInvoices, setClientInvoices] = useState<any[]>([]);
+  const [bulkAddOpen, setBulkAddOpen] = useState(false);
+  const [bulkSelected, setBulkSelected] = useState<Set<string>>(new Set());
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -703,13 +668,16 @@ export default function InvoiceBuilderPage() {
 
       {/* Line Items */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between py-3">
           <CardTitle className="text-base">Line Items</CardTitle>
+          <Button variant="outline" size="sm" onClick={() => { setBulkSelected(new Set()); setBulkAddOpen(true); }}>
+            <Layers className="mr-1 h-4 w-4" /> Bulk Add
+          </Button>
         </CardHeader>
         <CardContent>
-          <div className="text-xs font-medium text-muted-foreground grid grid-cols-12 gap-2 px-6 pb-2 border-b">
+          <div className="text-[10px] font-medium text-muted-foreground grid grid-cols-12 gap-1 px-6 pb-1 border-b">
             <div className="col-span-3">Item</div>
-            <div className="col-span-2">Description</div>
+            <div className="col-span-2">Name</div>
             <div className="col-span-1">Unit</div>
             <div className="col-span-1 text-center">Qty</div>
             <div className="col-span-2">Rate</div>
@@ -738,6 +706,81 @@ export default function InvoiceBuilderPage() {
           </Button>
         </CardContent>
       </Card>
+
+      {/* Bulk Add Items Dialog */}
+      <Dialog open={bulkAddOpen} onOpenChange={setBulkAddOpen}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Bulk Add Items</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-1">
+            {catalogItems.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">No items in catalog. Add items first.</p>
+            ) : (
+              <>
+                <div className="flex items-center gap-2 pb-2 border-b">
+                  <Checkbox
+                    checked={bulkSelected.size === catalogItems.length}
+                    onCheckedChange={(checked) => {
+                      if (checked) setBulkSelected(new Set(catalogItems.map((i: any) => i.id)));
+                      else setBulkSelected(new Set());
+                    }}
+                  />
+                  <span className="text-sm font-medium">Select All ({catalogItems.length} items)</span>
+                </div>
+                {catalogItems.map((item: any) => (
+                  <div key={item.id} className="flex items-center gap-2 py-1.5 px-1 rounded hover:bg-accent/50">
+                    <Checkbox
+                      checked={bulkSelected.has(item.id)}
+                      onCheckedChange={(checked) => {
+                        const next = new Set(bulkSelected);
+                        if (checked) next.add(item.id); else next.delete(item.id);
+                        setBulkSelected(next);
+                      }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-medium">{item.name}</span>
+                      {item.description && <span className="text-xs text-muted-foreground ml-2">{item.description}</span>}
+                    </div>
+                    <span className="text-xs text-muted-foreground">{item.unit || "pcs"}</span>
+                    <span className="text-sm font-medium">{formatCurrency(Number(item.unit_price), org?.currency_code || "USD")}</span>
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkAddOpen(false)}>Cancel</Button>
+            <Button
+              disabled={bulkSelected.size === 0}
+              onClick={() => {
+                const newLines: LineItem[] = [];
+                bulkSelected.forEach((itemId) => {
+                  const item = catalogItems.find((i: any) => i.id === itemId);
+                  if (item) {
+                    const line = createEmptyLine();
+                    line.item_id = item.id;
+                    line.name = item.name;
+                    line.description = item.description || "";
+                    line.rate = Number(item.unit_price);
+                    line.unit = item.unit || "pcs";
+                    if (item.tax_id) line.tax_id = item.tax_id;
+                    newLines.push(line);
+                  }
+                });
+                setLines((prev) => {
+                  const filtered = prev.filter((l) => l.name || l.rate > 0);
+                  return [...filtered, ...newLines];
+                });
+                setBulkAddOpen(false);
+                toast({ title: `${newLines.length} items added` });
+              }}
+            >
+              Add {bulkSelected.size} Items
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Totals & Notes */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -847,6 +847,7 @@ export default function InvoiceBuilderPage() {
                 />
                 {expenses > 0 && <span className="text-destructive">-{fmt(expenses)}</span>}
               </div>
+            </div>
             <div className="flex items-center justify-between text-sm gap-2">
               <Input
                 className="h-7 w-24 text-xs"

@@ -39,6 +39,7 @@ export default function EstimatesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("all");
+  const [importOpen, setImportOpen] = useState(false);
 
   const fetchEstimates = async () => {
     if (!org?.id) return;

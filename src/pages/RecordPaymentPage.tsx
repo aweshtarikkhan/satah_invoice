@@ -211,7 +211,7 @@ export default function RecordPaymentPage() {
 
       await logAudit({
         orgId: org.id,
-        userId: "",
+        userId: user?.id || "",
         action: "payment_received",
         entityType: "payment",
         entityId: inv.id,

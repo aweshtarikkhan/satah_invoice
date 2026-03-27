@@ -107,6 +107,7 @@ function SortableLineItem({
       onChange(index, "name", item.name);
       onChange(index, "description", item.description || "");
       onChange(index, "rate", Number(item.unit_price));
+      onChange(index, "unit", item.unit || "pcs");
       if (item.tax_id) onChange(index, "tax_id", item.tax_id);
     }
   };

@@ -607,6 +607,30 @@ export type Database = {
           },
         ]
       }
+      exchange_rates: {
+        Row: {
+          base_currency: string
+          fetched_at: string
+          id: string
+          rate: number
+          target_currency: string
+        }
+        Insert: {
+          base_currency?: string
+          fetched_at?: string
+          id?: string
+          rate: number
+          target_currency: string
+        }
+        Update: {
+          base_currency?: string
+          fetched_at?: string
+          id?: string
+          rate?: number
+          target_currency?: string
+        }
+        Relationships: []
+      }
       invoice_lines: {
         Row: {
           amount: number
@@ -878,6 +902,10 @@ export type Database = {
           phone: string | null
           tax_name: string | null
           tax_number: string | null
+          template_accent_color: string
+          template_font: string
+          template_show_logo: boolean
+          template_style: string
           timezone: string
           updated_at: string
           website: string | null
@@ -905,6 +933,10 @@ export type Database = {
           phone?: string | null
           tax_name?: string | null
           tax_number?: string | null
+          template_accent_color?: string
+          template_font?: string
+          template_show_logo?: boolean
+          template_style?: string
           timezone?: string
           updated_at?: string
           website?: string | null
@@ -932,6 +964,10 @@ export type Database = {
           phone?: string | null
           tax_name?: string | null
           tax_number?: string | null
+          template_accent_color?: string
+          template_font?: string
+          template_show_logo?: boolean
+          template_style?: string
           timezone?: string
           updated_at?: string
           website?: string | null

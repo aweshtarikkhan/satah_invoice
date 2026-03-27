@@ -85,6 +85,8 @@ const App = () => (
               <Route path="/audit-logs" element={<AuditLogsPage />} />
               <Route path="/custom-fields" element={<CustomFieldsPage />} />
               <Route path="/expenses" element={<BusinessExpensesPage />} />
+              <Route path="/statements" element={<CustomerStatementPage />} />
+              <Route path="/statements/:clientId" element={<CustomerStatementPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
 

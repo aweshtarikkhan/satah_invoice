@@ -140,7 +140,7 @@ export default function EstimatesPage() {
                     <TableCell>{est.clients?.display_name}</TableCell>
                     <TableCell className="text-sm">{format(new Date(est.expiry_date), "MMM dd, yyyy")}</TableCell>
                     <TableCell className="font-medium">{fmt(Number(est.total))}</TableCell>
-                    <TableCell><StatusBadge variant={s.variant}>{s.label}</StatusBadge></TableCell>
+                    <TableCell><StatusBadge status={est.status}>{s.label}</StatusBadge></TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>

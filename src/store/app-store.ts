@@ -13,6 +13,8 @@ interface Organization {
   currency_code: string;
   invoice_prefix: string;
   invoice_next_number: number;
+  estimate_prefix: string;
+  estimate_next_number: number;
   payment_terms: number;
   default_notes: string | null;
   default_terms: string | null;

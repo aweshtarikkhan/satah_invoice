@@ -95,7 +95,7 @@ export default function EstimateDetailPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold">{estimate.estimate_number}</h1>
-            <StatusBadge variant={statusVariants[estimate.status] || "muted"}>
+            <StatusBadge status={estimate.status}>
               {estimate.status.charAt(0).toUpperCase() + estimate.status.slice(1)}
             </StatusBadge>
           </div>

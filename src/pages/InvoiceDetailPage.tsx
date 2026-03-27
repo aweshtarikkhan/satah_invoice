@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
@@ -21,8 +21,11 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, Send, FileDown, Copy, Ban, CreditCard, Share2 } from "lucide-react";
+import { Edit, Send, FileDown, Copy, Ban, CreditCard, Share2, Download, Printer } from "lucide-react";
 import { getDocumentPreviewClass, getPaperSizeLabel, getPrintPageCSS } from "@/lib/document-templates";
+import { QRCodeSVG } from "qrcode.react";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 
 export default function InvoiceDetailPage() {
   const { id } = useParams();

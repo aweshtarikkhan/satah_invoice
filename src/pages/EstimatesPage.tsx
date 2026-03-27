@@ -76,12 +76,11 @@ export default function EstimatesPage() {
       <PageHeader
         title="Estimates"
         description="Create and manage estimates for your clients"
-        action={
-          <Button onClick={() => navigate("/estimates/new")}>
-            <Plus className="mr-1 h-4 w-4" /> New Estimate
-          </Button>
-        }
-      />
+      >
+        <Button onClick={() => navigate("/estimates/new")}>
+          <Plus className="mr-1 h-4 w-4" /> New Estimate
+        </Button>
+      </PageHeader>
 
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <Tabs value={tab} onValueChange={setTab}>

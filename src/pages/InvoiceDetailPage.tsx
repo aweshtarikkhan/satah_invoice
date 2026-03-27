@@ -116,6 +116,7 @@ export default function InvoiceDetailPage() {
     if (!invoice) return;
     await supabase.from("invoices").update({ status: "void" }).eq("id", invoice.id);
     toast({ title: "Invoice voided" });
+    if (org && user) await logAudit({ orgId: org.id, userId: user.id, entityType: "invoice", entityId: invoice.id, action: "void", description: `Invoice ${invoice.invoice_number} voided` });
     fetchInvoice();
   };
 

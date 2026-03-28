@@ -159,9 +159,45 @@ export default function ClientsPage() {
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);
 
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selected.size === filtered.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(filtered.map((c) => c.id)));
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    setDeleting(true);
+    const ids = Array.from(selected);
+    const { error } = await supabase.from("clients").delete().in("id", ids);
+    if (error) {
+      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: `${ids.length} client(s) deleted` });
+      setSelected(new Set());
+    }
+    setDeleting(false);
+    setDeleteConfirmOpen(false);
+    fetchClients();
+  };
+
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Clients" description="Manage your clients and contacts">
+        {selected.size > 0 && (
+          <Button variant="destructive" size="sm" onClick={() => setDeleteConfirmOpen(true)}>
+            <Trash2 className="mr-1 h-4 w-4" /> Delete ({selected.size})
+          </Button>
+        )}
         <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
           <Upload className="mr-1 h-4 w-4" /> Import
         </Button>

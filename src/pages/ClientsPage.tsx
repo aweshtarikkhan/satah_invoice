@@ -28,8 +28,18 @@ import { Badge } from "@/components/ui/badge";
 const clientImportFields: ImportField[] = [
   { key: "display_name", label: "Display Name", required: true },
   { key: "company_name", label: "Company Name" },
+  { key: "first_name", label: "First Name" },
+  { key: "last_name", label: "Last Name" },
   { key: "email", label: "Email" },
   { key: "phone", label: "Phone" },
+  { key: "mobile", label: "Mobile Phone" },
+  { key: "website", label: "Website" },
+  { key: "tax_number", label: "Tax Number / GST" },
+  { key: "currency_code", label: "Currency Code" },
+  { key: "payment_terms", label: "Payment Terms (days)" },
+  { key: "billing_address", label: "Billing Address" },
+  { key: "shipping_address", label: "Shipping Address" },
+  { key: "opening_balance", label: "Opening Balance" },
   { key: "notes", label: "Notes" },
 ];
 
@@ -344,8 +354,18 @@ export default function ClientsPage() {
               org_id: org!.id,
               display_name: row.display_name || "Unnamed",
               company_name: row.company_name || null,
+              first_name: row.first_name || null,
+              last_name: row.last_name || null,
               email: row.email || null,
               phone: row.phone || null,
+              mobile: row.mobile || null,
+              website: row.website || null,
+              tax_number: row.tax_number || null,
+              currency_code: row.currency_code || null,
+              payment_terms: parseInt(row.payment_terms) || null,
+              billing_address: row.billing_address ? { street: row.billing_address, city: "", state: "", zip: "", country: "" } : {},
+              shipping_address: row.shipping_address ? { street: row.shipping_address, city: "", state: "", zip: "", country: "" } : null,
+              opening_balance: parseFloat(row.opening_balance) || 0,
               notes: row.notes || null,
             });
             if (error) errors++; else success++;

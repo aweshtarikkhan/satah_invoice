@@ -237,6 +237,7 @@ export default function ItemsPage() {
         onImport={async (rows) => {
           let success = 0, errors = 0;
           for (const row of rows) {
+            const matchedTax = row.tax_name ? taxRates.find((t: any) => t.name.toLowerCase() === row.tax_name.toLowerCase()) : null;
             const { error } = await supabase.from("items").insert({
               org_id: org!.id,
               name: row.name || "Unnamed",
@@ -245,6 +246,8 @@ export default function ItemsPage() {
               type: row.type === "product" ? "product" : "service",
               unit_price: parseFloat(row.unit_price) || 0,
               unit: row.unit || null,
+              tax_id: matchedTax?.id || null,
+              is_active: row.is_active === "false" ? false : true,
             });
             if (error) errors++; else success++;
           }

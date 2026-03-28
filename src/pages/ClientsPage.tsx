@@ -14,10 +14,15 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Users, Search, Upload } from "lucide-react";
+import { Plus, Users, Search, Upload, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const clientImportFields: ImportField[] = [
@@ -38,6 +43,9 @@ export default function ClientsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editClient, setEditClient] = useState<any>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const { toast } = useToast();
 
   const [form, setForm] = useState({
@@ -151,9 +159,45 @@ export default function ClientsPage() {
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);
 
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selected.size === filtered.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(filtered.map((c) => c.id)));
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    setDeleting(true);
+    const ids = Array.from(selected);
+    const { error } = await supabase.from("clients").delete().in("id", ids);
+    if (error) {
+      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: `${ids.length} client(s) deleted` });
+      setSelected(new Set());
+    }
+    setDeleting(false);
+    setDeleteConfirmOpen(false);
+    fetchClients();
+  };
+
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Clients" description="Manage your clients and contacts">
+        {selected.size > 0 && (
+          <Button variant="destructive" size="sm" onClick={() => setDeleteConfirmOpen(true)}>
+            <Trash2 className="mr-1 h-4 w-4" /> Delete ({selected.size})
+          </Button>
+        )}
         <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
           <Upload className="mr-1 h-4 w-4" /> Import
         </Button>
@@ -185,6 +229,12 @@ export default function ClientsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={filtered.length > 0 && selected.size === filtered.length}
+                      onCheckedChange={toggleAll}
+                    />
+                  </TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Company</TableHead>
                   <TableHead>Email</TableHead>
@@ -197,15 +247,21 @@ export default function ClientsPage() {
                 {filtered.map((client) => {
                   const summary = clientDueMap[client.id] || { billed: 0, due: 0 };
                   return (
-                    <TableRow key={client.id} className="cursor-pointer" onClick={() => navigate(`/clients/${client.id}`)}>
-                      <TableCell className="font-medium">{client.display_name}</TableCell>
-                      <TableCell>{client.company_name || "—"}</TableCell>
-                      <TableCell>{client.email || "—"}</TableCell>
-                      <TableCell className="text-right text-blue-600 dark:text-blue-400">{fmt(summary.billed)}</TableCell>
-                      <TableCell className={`text-right font-semibold ${summary.due > 0 ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+                    <TableRow key={client.id} className="cursor-pointer">
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={selected.has(client.id)}
+                          onCheckedChange={() => toggleSelect(client.id)}
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium" onClick={() => navigate(`/clients/${client.id}`)}>{client.display_name}</TableCell>
+                      <TableCell onClick={() => navigate(`/clients/${client.id}`)}>{client.company_name || "—"}</TableCell>
+                      <TableCell onClick={() => navigate(`/clients/${client.id}`)}>{client.email || "—"}</TableCell>
+                      <TableCell className="text-right text-blue-600 dark:text-blue-400" onClick={() => navigate(`/clients/${client.id}`)}>{fmt(summary.billed)}</TableCell>
+                      <TableCell className={`text-right font-semibold ${summary.due > 0 ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"}`} onClick={() => navigate(`/clients/${client.id}`)}>
                         {fmt(summary.due)}
                       </TableCell>
-                      <TableCell>
+                      <TableCell onClick={() => navigate(`/clients/${client.id}`)}>
                         <Badge variant={client.status === "active" ? "default" : "secondary"}>
                           {client.status}
                         </Badge>
@@ -298,6 +354,26 @@ export default function ClientsPage() {
           return { success, errors };
         }}
       />
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selected.size} Client(s)?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the selected clients and cannot be undone. Related invoices, payments, and other data may be affected.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteSelected}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

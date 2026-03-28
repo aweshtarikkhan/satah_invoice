@@ -43,7 +43,9 @@ export default function ClientsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editClient, setEditClient] = useState<any>(null);
   const [importOpen, setImportOpen] = useState(false);
-  const { toast } = useToast();
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const [form, setForm] = useState({
     display_name: "",

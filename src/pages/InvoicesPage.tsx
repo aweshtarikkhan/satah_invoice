@@ -209,13 +209,18 @@ export default function InvoicesPage() {
               org_id: org!.id,
               client_id: client.id,
               invoice_number: row.invoice_number,
-              issue_date: row.issue_date || new Date().toISOString().split("T")[0],
+              issue_date: row.invoice_date || row.issue_date || new Date().toISOString().split("T")[0],
               due_date: row.due_date || new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0],
               total: parseFloat(row.total) || 0,
-              balance_due: parseFloat(row.total) || 0,
+              balance_due: parseFloat(row.balance_due) || parseFloat(row.total) || 0,
               status: ["draft", "sent", "paid", "overdue", "void"].includes(row.status) ? row.status : "draft",
+              reference_number: row.reference_number || null,
+              currency_code: row.currency_code || org!.currency_code,
+              discount: parseFloat(row.discount) || 0,
+              shipping_charge: parseFloat(row.shipping_charge) || 0,
+              adjustment: parseFloat(row.adjustment) || 0,
               notes: row.notes || null,
-              currency_code: org!.currency_code,
+              terms_conditions: row.terms_conditions || null,
             });
             if (error) errors++; else success++;
           }

@@ -201,19 +201,48 @@ export default function InvoicesPage() {
         entityName="Invoices"
         onImport={async (rows) => {
           let success = 0, errors = 0;
-          const { data: clients } = await supabase.from("clients").select("id, display_name").eq("org_id", org!.id);
+          const { data: existingClients } = await supabase.from("clients").select("id, display_name").eq("org_id", org!.id);
+          const clientMap = new Map<string, string>();
+          existingClients?.forEach(c => clientMap.set(c.display_name.toLowerCase(), c.id));
+
+          const parseDate = (d: string) => {
+            if (!d) return null;
+            // Handle DD-MM-YYYY or DD/MM/YYYY
+            const m = d.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
+            if (m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+            // Handle YYYY-MM-DD
+            if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+            return d;
+          };
+
           for (const row of rows) {
-            const client = clients?.find((c) => c.display_name.toLowerCase() === (row.client_name || "").toLowerCase());
-            if (!client) { errors++; continue; }
+            const name = (row.client_name || "").trim();
+            if (!name) { errors++; continue; }
+            let clientId = clientMap.get(name.toLowerCase());
+            // Auto-create client if not found
+            if (!clientId) {
+              const { data: newClient, error: cErr } = await supabase.from("clients").insert({
+                org_id: org!.id,
+                display_name: name,
+              }).select("id").single();
+              if (cErr || !newClient) { errors++; continue; }
+              clientId = newClient.id;
+              clientMap.set(name.toLowerCase(), clientId);
+            }
+            const total = parseFloat(row.total) || 0;
+            const balanceDue = parseFloat(row.balance_due) ?? total;
+            const status = balanceDue === 0 && total > 0 ? "paid" : (["draft","sent","paid","overdue","void"].includes(row.status) ? row.status : "draft");
             const { error } = await supabase.from("invoices").insert({
               org_id: org!.id,
-              client_id: client.id,
+              client_id: clientId,
               invoice_number: row.invoice_number,
-              issue_date: row.invoice_date || row.issue_date || new Date().toISOString().split("T")[0],
-              due_date: row.due_date || new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0],
-              total: parseFloat(row.total) || 0,
-              balance_due: parseFloat(row.balance_due) || parseFloat(row.total) || 0,
-              status: ["draft", "sent", "paid", "overdue", "void"].includes(row.status) ? row.status : "draft",
+              issue_date: parseDate(row.invoice_date || row.issue_date) || new Date().toISOString().split("T")[0],
+              due_date: parseDate(row.due_date) || new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0],
+              total,
+              subtotal: total,
+              balance_due: balanceDue,
+              amount_paid: total - balanceDue,
+              status,
               reference_number: row.reference_number || null,
               currency_code: row.currency_code || org!.currency_code,
               discount: parseFloat(row.discount) || 0,

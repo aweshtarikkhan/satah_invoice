@@ -46,6 +46,7 @@ export default function ClientsPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const { toast } = useToast();
 
   const [form, setForm] = useState({
     display_name: "",

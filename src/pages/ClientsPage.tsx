@@ -229,6 +229,12 @@ export default function ClientsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={filtered.length > 0 && selected.size === filtered.length}
+                      onCheckedChange={toggleAll}
+                    />
+                  </TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Company</TableHead>
                   <TableHead>Email</TableHead>
@@ -241,15 +247,21 @@ export default function ClientsPage() {
                 {filtered.map((client) => {
                   const summary = clientDueMap[client.id] || { billed: 0, due: 0 };
                   return (
-                    <TableRow key={client.id} className="cursor-pointer" onClick={() => navigate(`/clients/${client.id}`)}>
-                      <TableCell className="font-medium">{client.display_name}</TableCell>
-                      <TableCell>{client.company_name || "—"}</TableCell>
-                      <TableCell>{client.email || "—"}</TableCell>
-                      <TableCell className="text-right text-blue-600 dark:text-blue-400">{fmt(summary.billed)}</TableCell>
-                      <TableCell className={`text-right font-semibold ${summary.due > 0 ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+                    <TableRow key={client.id} className="cursor-pointer">
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={selected.has(client.id)}
+                          onCheckedChange={() => toggleSelect(client.id)}
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium" onClick={() => navigate(`/clients/${client.id}`)}>{client.display_name}</TableCell>
+                      <TableCell onClick={() => navigate(`/clients/${client.id}`)}>{client.company_name || "—"}</TableCell>
+                      <TableCell onClick={() => navigate(`/clients/${client.id}`)}>{client.email || "—"}</TableCell>
+                      <TableCell className="text-right text-blue-600 dark:text-blue-400" onClick={() => navigate(`/clients/${client.id}`)}>{fmt(summary.billed)}</TableCell>
+                      <TableCell className={`text-right font-semibold ${summary.due > 0 ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"}`} onClick={() => navigate(`/clients/${client.id}`)}>
                         {fmt(summary.due)}
                       </TableCell>
-                      <TableCell>
+                      <TableCell onClick={() => navigate(`/clients/${client.id}`)}>
                         <Badge variant={client.status === "active" ? "default" : "secondary"}>
                           {client.status}
                         </Badge>

@@ -18,13 +18,20 @@ import { differenceInDays, parseISO, isToday, isBefore, addDays } from "date-fns
 import { format } from "date-fns";
 
 const invoiceImportFields: ImportField[] = [
-  { key: "invoice_number", label: "Invoice #", required: true },
-  { key: "client_name", label: "Client Name", required: true },
-  { key: "issue_date", label: "Issue Date" },
+  { key: "invoice_number", label: "Invoice Number", required: true },
+  { key: "client_name", label: "Customer Name", required: true },
+  { key: "invoice_date", label: "Invoice Date" },
   { key: "due_date", label: "Due Date" },
-  { key: "total", label: "Total Amount" },
+  { key: "total", label: "Total" },
+  { key: "balance_due", label: "Balance" },
   { key: "status", label: "Status" },
+  { key: "reference_number", label: "Reference Number" },
+  { key: "currency_code", label: "Currency Code" },
+  { key: "discount", label: "Discount" },
+  { key: "shipping_charge", label: "Shipping Charge" },
+  { key: "adjustment", label: "Adjustment" },
   { key: "notes", label: "Notes" },
+  { key: "terms_conditions", label: "Terms & Conditions" },
 ];
 
 const statusTabs = ["all", "draft", "sent", "overdue", "partial", "paid", "void"] as const;

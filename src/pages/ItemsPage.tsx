@@ -23,12 +23,14 @@ import { Plus, Package, Search, Upload } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const itemImportFields: ImportField[] = [
-  { key: "name", label: "Name", required: true },
+  { key: "name", label: "Item Name", required: true },
   { key: "description", label: "Description" },
   { key: "sku", label: "SKU" },
-  { key: "type", label: "Type (service/product)" },
-  { key: "unit_price", label: "Unit Price" },
+  { key: "type", label: "Product Type (service/product)" },
+  { key: "unit_price", label: "Rate" },
   { key: "unit", label: "Unit" },
+  { key: "tax_name", label: "Tax Name" },
+  { key: "is_active", label: "Active (true/false)" },
 ];
 
 export default function ItemsPage() {

@@ -28,8 +28,18 @@ import { Badge } from "@/components/ui/badge";
 const clientImportFields: ImportField[] = [
   { key: "display_name", label: "Display Name", required: true },
   { key: "company_name", label: "Company Name" },
+  { key: "first_name", label: "First Name" },
+  { key: "last_name", label: "Last Name" },
   { key: "email", label: "Email" },
   { key: "phone", label: "Phone" },
+  { key: "mobile", label: "Mobile Phone" },
+  { key: "website", label: "Website" },
+  { key: "tax_number", label: "Tax Number / GST" },
+  { key: "currency_code", label: "Currency Code" },
+  { key: "payment_terms", label: "Payment Terms (days)" },
+  { key: "billing_address", label: "Billing Address" },
+  { key: "shipping_address", label: "Shipping Address" },
+  { key: "opening_balance", label: "Opening Balance" },
   { key: "notes", label: "Notes" },
 ];
 

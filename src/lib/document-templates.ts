@@ -55,6 +55,13 @@ export const DOCUMENT_TEMPLATES = [
     preview: "bg-secondary/50 border-secondary",
     features: ["Asymmetric layout", "Creative header", "Accent sidebar"],
   },
+  {
+    id: "compact",
+    name: "Compact Bill",
+    description: "Traditional compact bill format with centered header and numbered items",
+    preview: "bg-background border-primary/30",
+    features: ["Centered header", "Numbered items", "Balance due highlight"],
+  },
 ] as const;
 
 export const PAPER_SIZES = [
@@ -75,6 +82,7 @@ export function getDocumentPreviewClass(templateStyle?: string, paperSize?: stri
     magnam: "rounded-2xl border border-success/30 bg-card text-card-foreground shadow-sm",
     quisquam: "rounded-md border border-warning/30 bg-card text-card-foreground shadow-sm",
     nobis: "rounded-xl border-l-4 border-secondary bg-card text-card-foreground shadow-md",
+    compact: "rounded-lg border border-foreground/20 bg-background text-foreground shadow-sm",
   }[templateStyle || "classic"];
 
   const sizeClass = {

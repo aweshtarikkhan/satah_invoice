@@ -26,6 +26,7 @@ import { getDocumentPreviewClass, getPaperSizeLabel, getPrintPageCSS } from "@/l
 import { QRCodeSVG } from "qrcode.react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
+import { CompactBillTemplate } from "@/components/invoice/CompactBillTemplate";
 
 export default function InvoiceDetailPage() {
   const { id } = useParams();
@@ -260,6 +261,11 @@ export default function InvoiceDetailPage() {
 
       {/* Invoice Preview */}
       <div ref={invoiceRef}>
+      {org?.template_style === "compact" ? (
+        <div className={getDocumentPreviewClass("compact", org?.template_paper_size)}>
+          <CompactBillTemplate org={org} invoice={invoice} lines={lines} fmt={fmt} type="invoice" />
+        </div>
+      ) : (
       <Card className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
         <CardHeader>
           <div className="flex justify-between items-start">
@@ -358,6 +364,7 @@ export default function InvoiceDetailPage() {
           </div>
         </CardContent>
       </Card>
+      )}
       </div>
 
       {/* Payments */}

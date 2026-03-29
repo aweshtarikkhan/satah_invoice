@@ -12,6 +12,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { getDocumentPreviewClass, getPaperSizeLabel, getPrintPageCSS } from "@/lib/document-templates";
+import { CompactBillTemplate } from "@/components/invoice/CompactBillTemplate";
 
 const statusVariants: Record<string, "default" | "info" | "success" | "warning" | "danger" | "muted"> = {
   draft: "muted", sent: "info", viewed: "default", accepted: "success",
@@ -156,6 +157,11 @@ export default function EstimateDetailPage() {
         </Card>
       </div>
 
+      {org?.template_style === "compact" ? (
+        <div className={getDocumentPreviewClass("compact", org?.template_paper_size)}>
+          <CompactBillTemplate org={org} invoice={estimate} lines={lines} fmt={fmt} type="estimate" />
+        </div>
+      ) : (
       <Card className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
         <CardContent className="pt-6">
           <div className="mb-4 flex justify-end">
@@ -206,6 +212,7 @@ export default function EstimateDetailPage() {
           </div>
         </CardContent>
       </Card>
+      )}
 
       {estimate.notes && (
         <Card>

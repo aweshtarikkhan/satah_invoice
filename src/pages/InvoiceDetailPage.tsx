@@ -261,6 +261,11 @@ export default function InvoiceDetailPage() {
 
       {/* Invoice Preview */}
       <div ref={invoiceRef}>
+      {org?.template_style === "compact" ? (
+        <div className={getDocumentPreviewClass("compact", org?.template_paper_size)}>
+          <CompactBillTemplate org={org} invoice={invoice} lines={lines} fmt={fmt} type="invoice" />
+        </div>
+      ) : (
       <Card className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
         <CardHeader>
           <div className="flex justify-between items-start">
@@ -359,6 +364,7 @@ export default function InvoiceDetailPage() {
           </div>
         </CardContent>
       </Card>
+      )}
       </div>
 
       {/* Payments */}

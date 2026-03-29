@@ -59,7 +59,29 @@ export default function ClientsPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [previewClient, setPreviewClient] = useState<any>(null);
+  const [previewInvoices, setPreviewInvoices] = useState<any[]>([]);
+  const [previewPayments, setPreviewPayments] = useState<any[]>([]);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const { toast } = useToast();
+
+  const openPreview = async (client: any) => {
+    setPreviewClient(client);
+    if (!org?.id) return;
+    setPreviewLoading(true);
+    const [{ data: inv }, { data: pay }] = await Promise.all([
+      supabase.from("invoices").select("*").eq("client_id", client.id).eq("org_id", org.id).neq("status", "void").order("issue_date", { ascending: false }),
+      supabase.from("payments").select("*").eq("client_id", client.id).eq("org_id", org.id).order("payment_date", { ascending: false }),
+    ]);
+    setPreviewInvoices(inv || []);
+    setPreviewPayments(pay || []);
+    setPreviewLoading(false);
+  };
+
+  const previewTotalBilled = previewInvoices.reduce((s, i) => s + Number(i.total), 0);
+  const previewTotalPaid = previewPayments.reduce((s, p) => s + Number(p.amount), 0);
+  const previewTotalDue = previewInvoices.reduce((s, i) => s + Number(i.balance_due), 0);
+  const previewOverdue = previewInvoices.filter(i => i.status !== "paid" && new Date(i.due_date) < new Date()).reduce((s, i) => s + Number(i.balance_due), 0);
 
   const [form, setForm] = useState({
     display_name: "",

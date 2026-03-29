@@ -317,21 +317,21 @@ export default function ClientsPage() {
                 {filtered.map((client) => {
                   const summary = clientDueMap[client.id] || { billed: 0, due: 0 };
                   return (
-                    <TableRow key={client.id} className="cursor-pointer">
+                    <TableRow key={client.id} className={`cursor-pointer ${previewClient?.id === client.id ? "bg-muted" : ""}`}>
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <Checkbox
                           checked={selected.has(client.id)}
                           onCheckedChange={() => toggleSelect(client.id)}
                         />
                       </TableCell>
-                      <TableCell className="font-medium" onClick={() => navigate(`/clients/${client.id}`)}>{client.display_name}</TableCell>
-                      <TableCell onClick={() => navigate(`/clients/${client.id}`)}>{client.company_name || "—"}</TableCell>
-                      <TableCell onClick={() => navigate(`/clients/${client.id}`)}>{client.email || "—"}</TableCell>
-                      <TableCell className="text-right text-blue-600 dark:text-blue-400" onClick={() => navigate(`/clients/${client.id}`)}>{fmt(summary.billed)}</TableCell>
-                      <TableCell className={`text-right font-semibold ${summary.due > 0 ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"}`} onClick={() => navigate(`/clients/${client.id}`)}>
+                      <TableCell className="font-medium" onClick={() => openPreview(client)}>{client.display_name}</TableCell>
+                      <TableCell onClick={() => openPreview(client)}>{client.company_name || "—"}</TableCell>
+                      <TableCell onClick={() => openPreview(client)}>{client.email || "—"}</TableCell>
+                      <TableCell className="text-right text-primary" onClick={() => openPreview(client)}>{fmt(summary.billed)}</TableCell>
+                      <TableCell className={`text-right font-semibold ${summary.due > 0 ? "text-destructive" : "text-emerald-600 dark:text-emerald-400"}`} onClick={() => openPreview(client)}>
                         {fmt(summary.due)}
                       </TableCell>
-                      <TableCell onClick={() => navigate(`/clients/${client.id}`)}>
+                      <TableCell onClick={() => openPreview(client)}>
                         <Badge variant={client.status === "active" ? "default" : "secondary"}>
                           {client.status}
                         </Badge>

@@ -157,6 +157,11 @@ export default function EstimateDetailPage() {
         </Card>
       </div>
 
+      {org?.template_style === "compact" ? (
+        <div className={getDocumentPreviewClass("compact", org?.template_paper_size)}>
+          <CompactBillTemplate org={org} invoice={estimate} lines={lines} fmt={fmt} type="estimate" />
+        </div>
+      ) : (
       <Card className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
         <CardContent className="pt-6">
           <div className="mb-4 flex justify-end">
@@ -207,6 +212,7 @@ export default function EstimateDetailPage() {
           </div>
         </CardContent>
       </Card>
+      )}
 
       {estimate.notes && (
         <Card>

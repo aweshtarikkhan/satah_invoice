@@ -188,12 +188,47 @@ export default function ClientsPage() {
   const handleDeleteSelected = async () => {
     setDeleting(true);
     const ids = Array.from(selected);
-    const { error } = await supabase.from("clients").delete().in("id", ids);
-    if (error) {
-      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: `${ids.length} client(s) deleted` });
-      setSelected(new Set());
+    try {
+      // Delete related records first to avoid foreign key constraint errors
+      // Get invoice IDs for these clients
+      const { data: clientInvoices } = await supabase.from("invoices").select("id").in("client_id", ids);
+      const invoiceIds = (clientInvoices || []).map((i: any) => i.id);
+      if (invoiceIds.length > 0) {
+        await supabase.from("invoice_lines").delete().in("invoice_id", invoiceIds);
+        await supabase.from("payments").delete().in("invoice_id", invoiceIds);
+        await supabase.from("portal_tokens").delete().eq("entity_type", "invoice").in("entity_id", invoiceIds);
+        await supabase.from("invoices").delete().in("id", invoiceIds);
+      }
+      // Get estimate IDs
+      const { data: clientEstimates } = await supabase.from("estimates").select("id").in("client_id", ids);
+      const estimateIds = (clientEstimates || []).map((e: any) => e.id);
+      if (estimateIds.length > 0) {
+        await supabase.from("estimate_lines").delete().in("estimate_id", estimateIds);
+        await supabase.from("portal_tokens").delete().eq("entity_type", "estimate").in("entity_id", estimateIds);
+        await supabase.from("estimates").delete().in("id", estimateIds);
+      }
+      // Get credit note IDs
+      const { data: clientCNs } = await supabase.from("credit_notes").select("id").in("client_id", ids);
+      const cnIds = (clientCNs || []).map((c: any) => c.id);
+      if (cnIds.length > 0) {
+        await supabase.from("credit_note_lines").delete().in("credit_note_id", cnIds);
+        await supabase.from("portal_tokens").delete().eq("entity_type", "credit_note").in("entity_id", cnIds);
+        await supabase.from("credit_notes").delete().in("id", cnIds);
+      }
+      // Delete remaining payments linked to client (not tied to invoices)
+      await supabase.from("payments").delete().in("client_id", ids);
+      // Delete contacts
+      await supabase.from("contacts").delete().in("client_id", ids);
+      // Finally delete clients
+      const { error } = await supabase.from("clients").delete().in("id", ids);
+      if (error) {
+        toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: `${ids.length} client(s) deleted with all related data` });
+        setSelected(new Set());
+      }
+    } catch (err: any) {
+      toast({ title: "Delete failed", description: err.message, variant: "destructive" });
     }
     setDeleting(false);
     setDeleteConfirmOpen(false);

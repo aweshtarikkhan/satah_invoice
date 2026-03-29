@@ -454,6 +454,165 @@ export default function ClientsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Client Preview Panel */}
+      <Sheet open={!!previewClient} onOpenChange={(open) => !open && setPreviewClient(null)}>
+        <SheetContent className="w-full sm:max-w-lg p-0 overflow-hidden">
+          <SheetHeader className="p-4 pb-0">
+            <div className="flex items-center justify-between">
+              <SheetTitle className="text-lg">{previewClient?.display_name}</SheetTitle>
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { openEdit(previewClient); setPreviewClient(null); }}>
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(`/clients/${previewClient?.id}`)}>
+                  <ExternalLink className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            {previewClient?.company_name && <p className="text-sm text-muted-foreground">{previewClient.company_name}</p>}
+          </SheetHeader>
+
+          <ScrollArea className="h-[calc(100vh-80px)]">
+            {previewLoading ? (
+              <div className="p-8 text-center text-muted-foreground">Loading...</div>
+            ) : previewClient && (
+              <div className="p-4 space-y-4">
+                {/* Contact Info */}
+                <div className="space-y-2">
+                  {previewClient.email && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span>{previewClient.email}</span>
+                    </div>
+                  )}
+                  {previewClient.phone && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span>{previewClient.phone}</span>
+                    </div>
+                  )}
+                  {previewClient.billing_address?.street && (
+                    <div className="flex items-start gap-2 text-sm">
+                      <MapPin className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
+                      <span>
+                        {[previewClient.billing_address.street, previewClient.billing_address.city, previewClient.billing_address.state, previewClient.billing_address.zip].filter(Boolean).join(", ")}
+                      </span>
+                    </div>
+                  )}
+                  {previewClient.tax_number && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span>GST/Tax: {previewClient.tax_number}</span>
+                    </div>
+                  )}
+                </div>
+
+                <Separator />
+
+                {/* Receivables Summary */}
+                <div>
+                  <h4 className="text-sm font-semibold mb-3">Receivables</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-lg border p-3">
+                      <p className="text-xs text-muted-foreground">Total Billed</p>
+                      <p className="text-lg font-bold text-primary">{fmt(previewTotalBilled)}</p>
+                    </div>
+                    <div className="rounded-lg border p-3">
+                      <p className="text-xs text-muted-foreground">Total Received</p>
+                      <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{fmt(previewTotalPaid)}</p>
+                    </div>
+                    <div className="rounded-lg border p-3 border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/30">
+                      <p className="text-xs text-muted-foreground">Outstanding</p>
+                      <p className="text-lg font-bold text-orange-600 dark:text-orange-400">{fmt(previewTotalDue)}</p>
+                    </div>
+                    <div className="rounded-lg border p-3 border-destructive/30 bg-destructive/5">
+                      <p className="text-xs text-muted-foreground">Overdue</p>
+                      <p className="text-lg font-bold text-destructive">{fmt(previewOverdue)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Recent Invoices */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-sm font-semibold">Recent Invoices</h4>
+                    <span className="text-xs text-muted-foreground">{previewInvoices.length} total</span>
+                  </div>
+                  {previewInvoices.length === 0 ? (
+                    <p className="text-sm text-muted-foreground py-2">No invoices yet</p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {previewInvoices.slice(0, 8).map((inv) => {
+                        const isOverdue = inv.status !== "paid" && new Date(inv.due_date) < new Date();
+                        return (
+                          <div
+                            key={inv.id}
+                            className="flex items-center justify-between rounded-md border px-3 py-2 text-sm cursor-pointer hover:bg-muted/50"
+                            onClick={() => navigate(`/invoices/${inv.id}`)}
+                          >
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+                              <span className="font-medium">{inv.invoice_number}</span>
+                              <Badge variant={inv.status === "paid" ? "default" : isOverdue ? "destructive" : "secondary"} className="text-[10px] h-5">
+                                {inv.status}
+                              </Badge>
+                            </div>
+                            <span className={`font-semibold ${Number(inv.balance_due) > 0 ? (isOverdue ? "text-destructive" : "text-orange-600 dark:text-orange-400") : "text-emerald-600 dark:text-emerald-400"}`}>
+                              {fmt(Number(inv.balance_due))}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                <Separator />
+
+                {/* Recent Payments */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-sm font-semibold">Recent Payments</h4>
+                    <span className="text-xs text-muted-foreground">{previewPayments.length} total</span>
+                  </div>
+                  {previewPayments.length === 0 ? (
+                    <p className="text-sm text-muted-foreground py-2">No payments yet</p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {previewPayments.slice(0, 6).map((p) => (
+                        <div key={p.id} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
+                          <div className="flex items-center gap-2">
+                            <CreditCard className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="font-medium">{p.payment_number}</span>
+                            <span className="text-muted-foreground text-xs">{p.payment_date}</span>
+                          </div>
+                          <span className="font-semibold text-emerald-600 dark:text-emerald-400">{fmt(Number(p.amount))}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2 pt-2">
+                  <Button size="sm" className="flex-1" onClick={() => navigate(`/clients/${previewClient.id}`)}>
+                    Full Details
+                  </Button>
+                  <Button size="sm" variant="outline" className="flex-1" onClick={() => navigate(`/statements/${previewClient.id}`)}>
+                    Statement
+                  </Button>
+                  <Button size="sm" variant="outline" className="flex-1" onClick={() => navigate(`/invoices/new`)}>
+                    New Invoice
+                  </Button>
+                </div>
+              </div>
+            )}
+          </ScrollArea>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

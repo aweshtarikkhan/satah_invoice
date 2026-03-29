@@ -22,8 +22,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Users, Search, Upload, Trash2 } from "lucide-react";
+import { Plus, Users, Search, Upload, Trash2, X, Phone, Mail, MapPin, FileText, CreditCard, ExternalLink, Edit } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 const clientImportFields: ImportField[] = [
   { key: "display_name", label: "Display Name", required: true },

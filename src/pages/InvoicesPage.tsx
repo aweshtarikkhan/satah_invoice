@@ -253,6 +253,13 @@ export default function InvoicesPage() {
             });
             if (error) errors++; else success++;
           }
+          // Update opening_balance for each client based on their total balance_due
+          const uniqueClientIds = Array.from(new Set(clientMap.values()));
+          for (const cid of uniqueClientIds) {
+            const { data: cInvoices } = await supabase.from("invoices").select("balance_due").eq("client_id", cid);
+            const totalDue = (cInvoices || []).reduce((s: number, inv: any) => s + Number(inv.balance_due), 0);
+            await supabase.from("clients").update({ opening_balance: totalDue }).eq("id", cid);
+          }
           window.location.reload();
           return { success, errors };
         }}

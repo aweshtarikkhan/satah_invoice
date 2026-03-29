@@ -55,6 +55,13 @@ export const DOCUMENT_TEMPLATES = [
     preview: "bg-secondary/50 border-secondary",
     features: ["Asymmetric layout", "Creative header", "Accent sidebar"],
   },
+  {
+    id: "compact",
+    name: "Compact Bill",
+    description: "Traditional compact bill format with centered header and numbered items",
+    preview: "bg-background border-primary/30",
+    features: ["Centered header", "Numbered items", "Balance due highlight"],
+  },
 ] as const;
 
 export const PAPER_SIZES = [

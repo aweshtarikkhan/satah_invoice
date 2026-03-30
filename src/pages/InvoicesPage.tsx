@@ -18,7 +18,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, FileText, Search, Upload, TrendingDown, Clock, AlertTriangle, CalendarClock, Trash2 } from "lucide-react";
+import { Plus, FileText, Search, Upload, TrendingDown, Clock, AlertTriangle, CalendarClock, Trash2, Send } from "lucide-react";
 import { differenceInDays, parseISO, isToday, isBefore, addDays } from "date-fns";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
@@ -145,6 +145,31 @@ export default function InvoicesPage() {
     setDeleteOpen(false);
   };
 
+  const handleMarkSent = async () => {
+    const ids = Array.from(selected).filter(id => {
+      const inv = invoices.find(i => i.id === id);
+      return inv && inv.status === "draft";
+    });
+    if (ids.length === 0) {
+      toast({ title: "No draft invoices", description: "Only draft invoices can be marked as sent.", variant: "destructive" });
+      return;
+    }
+    const now = new Date().toISOString();
+    const { error } = await supabase.from("invoices").update({ status: "sent", sent_at: now }).in("id", ids);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Updated", description: `${ids.length} invoice(s) marked as sent.` });
+      setInvoices(prev => prev.map(i => ids.includes(i.id) ? { ...i, status: "sent", sent_at: now } : i));
+      setSelected(new Set());
+    }
+  };
+
+  const selectedHasDrafts = Array.from(selected).some(id => {
+    const inv = invoices.find(i => i.id === id);
+    return inv && inv.status === "draft";
+  });
+
   const summaryItems = [
     { label: "Total Outstanding Receivables", value: fmt(summary.outstanding), icon: TrendingDown, color: "text-primary" },
     { label: "Due Today", value: fmt(summary.dueToday), icon: Clock, color: "text-orange-500" },
@@ -156,6 +181,11 @@ export default function InvoicesPage() {
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Invoices" description="Create and manage invoices">
+        {selected.size > 0 && selectedHasDrafts && (
+          <Button variant="outline" size="sm" onClick={handleMarkSent}>
+            <Send className="mr-1 h-4 w-4" /> Mark as Sent
+          </Button>
+        )}
         {selected.size > 0 && (
           <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
             <Trash2 className="mr-1 h-4 w-4" /> Delete ({selected.size})

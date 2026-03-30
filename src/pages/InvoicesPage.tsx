@@ -297,7 +297,7 @@ export default function InvoicesPage() {
               amount_paid: finalAmountPaid,
               status,
               ...(status === "paid" ? { paid_at: new Date().toISOString() } : {}),
-              status,
+              
               reference_number: row.reference_number || null,
               currency_code: row.currency_code || org!.currency_code,
               discount: parseFloat(row.discount) || 0,

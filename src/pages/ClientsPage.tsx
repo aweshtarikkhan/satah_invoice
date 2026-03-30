@@ -23,8 +23,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import {
   Plus, Users, Search, Upload, Trash2, X, Phone, Mail, MapPin,
-  FileText, CreditCard, ExternalLink, Edit, ChevronRight, Building2, Globe, Receipt,
+  FileText, CreditCard, ExternalLink, Edit, ChevronRight, Building2, Globe, Receipt, Download,
 } from "lucide-react";
+import { downloadCSV } from "@/lib/export-csv";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";

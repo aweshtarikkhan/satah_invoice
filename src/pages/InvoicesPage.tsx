@@ -27,6 +27,7 @@ const invoiceImportFields: ImportField[] = [
   { key: "invoice_number", label: "Invoice Number", required: true },
   { key: "client_name", label: "Customer Name", required: true },
   { key: "invoice_date", label: "Invoice Date" },
+  { key: "issue_date", label: "Issued Date" },
   { key: "due_date", label: "Due Date" },
   { key: "total", label: "Total" },
   { key: "balance_due", label: "Balance" },
@@ -38,6 +39,7 @@ const invoiceImportFields: ImportField[] = [
   { key: "adjustment", label: "Adjustment" },
   { key: "notes", label: "Notes" },
   { key: "terms_conditions", label: "Terms & Conditions" },
+  { key: "amount_paid", label: "Amount Paid" },
 ];
 
 const statusTabs = ["all", "draft", "sent", "overdue", "partial", "paid", "void"] as const;
@@ -278,19 +280,24 @@ export default function InvoicesPage() {
               clientMap.set(name.toLowerCase(), clientId);
             }
             const total = parseFloat(row.total) || 0;
-            const balanceDue = parseFloat(row.balance_due) ?? total;
-            const status = balanceDue === 0 && total > 0 ? "paid" : (["draft","sent","paid","overdue","void"].includes(row.status) ? row.status : "draft");
+            const amountPaid = parseFloat(row.amount_paid) || 0;
+            const balanceDue = row.balance_due !== undefined && row.balance_due !== "" ? parseFloat(row.balance_due) : (total - amountPaid);
+            const finalAmountPaid = amountPaid || (total - balanceDue);
+            const status = balanceDue === 0 && total > 0 ? "paid" : (["draft","sent","paid","overdue","void","partial"].includes(row.status) ? row.status : "draft");
+            const issueDate = parseDate(row.issue_date) || parseDate(row.invoice_date) || new Date().toISOString().split("T")[0];
             const { error } = await supabase.from("invoices").insert({
               org_id: org!.id,
               client_id: clientId,
               invoice_number: row.invoice_number,
-              issue_date: parseDate(row.invoice_date || row.issue_date) || new Date().toISOString().split("T")[0],
+              issue_date: issueDate,
               due_date: parseDate(row.due_date) || new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0],
               total,
               subtotal: total,
               balance_due: balanceDue,
-              amount_paid: total - balanceDue,
+              amount_paid: finalAmountPaid,
               status,
+              ...(status === "paid" ? { paid_at: new Date().toISOString() } : {}),
+              
               reference_number: row.reference_number || null,
               currency_code: row.currency_code || org!.currency_code,
               discount: parseFloat(row.discount) || 0,

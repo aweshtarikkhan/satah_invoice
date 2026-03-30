@@ -125,6 +125,14 @@ export default function InvoiceDetailPage() {
     fetchInvoice();
   };
 
+  const handleMarkSent = async () => {
+    if (!invoice) return;
+    await supabase.from("invoices").update({ status: "sent", sent_at: new Date().toISOString() }).eq("id", invoice.id);
+    toast({ title: "Invoice marked as sent" });
+    if (org && user) await logAudit({ orgId: org.id, userId: user.id, entityType: "invoice", entityId: invoice.id, action: "mark_sent", description: `Invoice ${invoice.invoice_number} marked as sent` });
+    fetchInvoice();
+  };
+
   const handleDuplicate = async () => {
     if (!invoice || !org) return;
     const prefix = org.invoice_prefix || "INV";
@@ -225,6 +233,11 @@ export default function InvoiceDetailPage() {
         <Button variant="outline" size="sm" onClick={handleDuplicate}>
           <Copy className="mr-1 h-4 w-4" /> Duplicate
         </Button>
+        {invoice.status === "draft" && (
+          <Button variant="outline" size="sm" onClick={handleMarkSent}>
+            <Send className="mr-1 h-4 w-4" /> Mark as Sent
+          </Button>
+        )}
         {invoice.status !== "void" && invoice.status !== "paid" && (
           <Button variant="outline" size="sm" onClick={handleVoid}>
             <Ban className="mr-1 h-4 w-4" /> Void

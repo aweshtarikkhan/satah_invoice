@@ -145,6 +145,31 @@ export default function InvoicesPage() {
     setDeleteOpen(false);
   };
 
+  const handleMarkSent = async () => {
+    const ids = Array.from(selected).filter(id => {
+      const inv = invoices.find(i => i.id === id);
+      return inv && inv.status === "draft";
+    });
+    if (ids.length === 0) {
+      toast({ title: "No draft invoices", description: "Only draft invoices can be marked as sent.", variant: "destructive" });
+      return;
+    }
+    const now = new Date().toISOString();
+    const { error } = await supabase.from("invoices").update({ status: "sent", sent_at: now }).in("id", ids);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Updated", description: `${ids.length} invoice(s) marked as sent.` });
+      setInvoices(prev => prev.map(i => ids.includes(i.id) ? { ...i, status: "sent", sent_at: now } : i));
+      setSelected(new Set());
+    }
+  };
+
+  const selectedHasDrafts = Array.from(selected).some(id => {
+    const inv = invoices.find(i => i.id === id);
+    return inv && inv.status === "draft";
+  });
+
   const summaryItems = [
     { label: "Total Outstanding Receivables", value: fmt(summary.outstanding), icon: TrendingDown, color: "text-primary" },
     { label: "Due Today", value: fmt(summary.dueToday), icon: Clock, color: "text-orange-500" },

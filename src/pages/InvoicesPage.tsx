@@ -18,7 +18,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, FileText, Search, Upload, TrendingDown, Clock, AlertTriangle, CalendarClock, Trash2 } from "lucide-react";
+import { Plus, FileText, Search, Upload, TrendingDown, Clock, AlertTriangle, CalendarClock, Trash2, Send } from "lucide-react";
 import { differenceInDays, parseISO, isToday, isBefore, addDays } from "date-fns";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";

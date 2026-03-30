@@ -212,6 +212,7 @@ export default function InvoicesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10"><Checkbox checked={allSelected} onCheckedChange={toggleAll} /></TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Invoice #</TableHead>
                   <TableHead>Order Number</TableHead>
@@ -224,7 +225,8 @@ export default function InvoicesPage() {
               </TableHeader>
               <TableBody>
                 {filtered.map((inv) => (
-                  <TableRow key={inv.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/invoices/${inv.id}`)}>
+                  <TableRow key={inv.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { if (selected.size === 0) navigate(`/invoices/${inv.id}`); }}>
+                    <TableCell onClick={(e) => e.stopPropagation()}><Checkbox checked={selected.has(inv.id)} onCheckedChange={() => toggleOne(inv.id)} /></TableCell>
                     <TableCell className="text-muted-foreground">{inv.issue_date ? format(parseISO(inv.issue_date), "d MMM yyyy") : "-"}</TableCell>
                     <TableCell className="font-medium text-primary">{inv.invoice_number}</TableCell>
                     <TableCell className="text-muted-foreground">{inv.reference_number || "-"}</TableCell>

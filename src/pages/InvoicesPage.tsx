@@ -50,6 +50,9 @@ export default function InvoicesPage() {
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<string>("all");
   const [importOpen, setImportOpen] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!org?.id) return;

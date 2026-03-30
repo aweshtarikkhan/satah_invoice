@@ -111,6 +111,38 @@ export default function InvoicesPage() {
         .some((f) => f.toLowerCase().includes(search.toLowerCase()))
     );
 
+  const allSelected = filtered.length > 0 && filtered.every(i => selected.has(i.id));
+  const toggleAll = () => {
+    if (allSelected) setSelected(new Set());
+    else setSelected(new Set(filtered.map(i => i.id)));
+  };
+  const toggleOne = (id: string) => {
+    const next = new Set(selected);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setSelected(next);
+  };
+
+  const handleDeleteSelected = async () => {
+    setDeleting(true);
+    const ids = Array.from(selected);
+    // Delete related data first
+    for (const id of ids) {
+      await supabase.from("invoice_lines").delete().eq("invoice_id", id);
+      await supabase.from("payments").delete().eq("invoice_id", id);
+      await supabase.from("portal_tokens").delete().eq("entity_id", id).eq("entity_type", "invoice");
+    }
+    const { error } = await supabase.from("invoices").delete().in("id", ids);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Deleted", description: `${ids.length} invoice(s) deleted.` });
+      setInvoices(prev => prev.filter(i => !selected.has(i.id)));
+      setSelected(new Set());
+    }
+    setDeleting(false);
+    setDeleteOpen(false);
+  };
+
   const summaryItems = [
     { label: "Total Outstanding Receivables", value: fmt(summary.outstanding), icon: TrendingDown, color: "text-primary" },
     { label: "Due Today", value: fmt(summary.dueToday), icon: Clock, color: "text-orange-500" },
@@ -122,6 +154,11 @@ export default function InvoicesPage() {
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Invoices" description="Create and manage invoices">
+        {selected.size > 0 && (
+          <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
+            <Trash2 className="mr-1 h-4 w-4" /> Delete ({selected.size})
+          </Button>
+        )}
         <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
           <Upload className="mr-1 h-4 w-4" /> Import
         </Button>

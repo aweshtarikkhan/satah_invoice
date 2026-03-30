@@ -19,7 +19,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Package, Search, Upload } from "lucide-react";
+import { Plus, Package, Search, Upload, Download } from "lucide-react";
+import { downloadCSV } from "@/lib/export-csv";
 import { Badge } from "@/components/ui/badge";
 
 const itemImportFields: ImportField[] = [
@@ -115,6 +116,19 @@ export default function ItemsPage() {
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Items" description="Products and services catalog">
+        <Button variant="outline" size="sm" onClick={() => {
+          downloadCSV(items.map(i => ({
+            name: i.name,
+            description: i.description || "",
+            sku: i.sku || "",
+            type: i.type,
+            rate: i.unit_price,
+            unit: i.unit || "",
+            tax: (i as any).tax_rates?.name || "",
+          })), "items");
+        }}>
+          <Download className="mr-1 h-4 w-4" /> Export
+        </Button>
         <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
           <Upload className="mr-1 h-4 w-4" /> Import
         </Button>

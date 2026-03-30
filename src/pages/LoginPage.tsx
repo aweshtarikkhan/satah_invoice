@@ -6,12 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Receipt } from "lucide-react";
+import { Receipt, Play } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -25,6 +26,30 @@ export default function LoginPage() {
     } else {
       navigate("/dashboard", { replace: true });
     }
+  };
+
+  const handleDemoLogin = async () => {
+    setDemoLoading(true);
+    try {
+      // Call edge function to set up demo account
+      const { data, error } = await supabase.functions.invoke("setup-demo");
+      if (error) throw error;
+
+      const { email: demoEmail, password: demoPassword } = data;
+
+      // Sign in as demo user
+      const { error: signInErr } = await supabase.auth.signInWithPassword({
+        email: demoEmail,
+        password: demoPassword,
+      });
+      if (signInErr) throw signInErr;
+
+      toast({ title: "Welcome to Demo!", description: "Explore all features with sample data." });
+      navigate("/dashboard", { replace: true });
+    } catch (err: any) {
+      toast({ title: "Demo setup failed", description: err.message, variant: "destructive" });
+    }
+    setDemoLoading(false);
   };
 
   return (
@@ -54,6 +79,14 @@ export default function LoginPage() {
           <CardFooter className="flex-col gap-3">
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Signing in..." : "Sign In"}
+            </Button>
+            <div className="relative w-full">
+              <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+              <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">or</span></div>
+            </div>
+            <Button type="button" variant="outline" className="w-full gap-2 border-primary/30 text-primary hover:bg-primary/5" onClick={handleDemoLogin} disabled={demoLoading}>
+              <Play className="h-4 w-4" />
+              {demoLoading ? "Setting up demo..." : "Try Demo Account"}
             </Button>
             <p className="text-sm text-muted-foreground">
               Don't have an account?{" "}

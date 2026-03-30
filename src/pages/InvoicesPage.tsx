@@ -18,7 +18,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, FileText, Search, Upload, TrendingDown, Clock, AlertTriangle, CalendarClock, Trash2, Send } from "lucide-react";
+import { Plus, FileText, Search, Upload, TrendingDown, Clock, AlertTriangle, CalendarClock, Trash2, Send, Download } from "lucide-react";
+import { downloadCSV } from "@/lib/export-csv";
 import { differenceInDays, parseISO, isToday, isBefore, addDays } from "date-fns";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
@@ -213,6 +214,21 @@ export default function InvoicesPage() {
               <Trash2 className="mr-1 h-4 w-4" /> Delete ({selected.size})
             </Button>
           )}
+          <Button variant="outline" size="sm" onClick={() => {
+            downloadCSV(filtered.map(i => ({
+              invoice_number: i.invoice_number,
+              customer: (i.clients as any)?.display_name,
+              issue_date: i.issue_date,
+              due_date: i.due_date,
+              total: i.total,
+              amount_paid: i.amount_paid,
+              balance_due: i.balance_due,
+              status: i.status,
+              reference_number: i.reference_number || "",
+            })), "invoices");
+          }}>
+            <Download className="mr-1 h-4 w-4" /> Export
+          </Button>
           <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
             <Upload className="mr-1 h-4 w-4" /> Import
           </Button>

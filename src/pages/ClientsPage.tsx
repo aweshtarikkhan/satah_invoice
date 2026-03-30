@@ -23,8 +23,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import {
   Plus, Users, Search, Upload, Trash2, X, Phone, Mail, MapPin,
-  FileText, CreditCard, ExternalLink, Edit, ChevronRight, Building2, Globe, Receipt,
+  FileText, CreditCard, ExternalLink, Edit, ChevronRight, Building2, Globe, Receipt, Download,
 } from "lucide-react";
+import { downloadCSV } from "@/lib/export-csv";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -242,6 +243,17 @@ export default function ClientsPage() {
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               )}
+              <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => {
+                downloadCSV(clients.map(c => ({
+                  display_name: c.display_name,
+                  company_name: c.company_name || "",
+                  email: c.email || "",
+                  phone: c.phone || "",
+                  opening_balance: c.opening_balance,
+                })), "clients");
+              }}>
+                <Download className="h-3.5 w-3.5" />
+              </Button>
               <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setImportOpen(true)}>
                 <Upload className="h-3.5 w-3.5" />
               </Button>

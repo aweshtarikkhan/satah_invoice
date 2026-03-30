@@ -75,25 +75,33 @@ export default function InvoicesPage() {
     new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);
 
   const summary = useMemo(() => {
-    const outstanding = invoices
-      .filter(i => ["sent", "viewed", "partial", "overdue"].includes(i.status))
-      .reduce((sum, i) => sum + Number(i.balance_due || 0), 0);
-
     const today = new Date();
-    const dueToday = invoices
-      .filter(i => ["sent", "viewed", "partial", "overdue"].includes(i.status) && i.due_date && isToday(parseISO(i.due_date)))
+    
+    // Outstanding = ALL invoices with balance_due > 0 (except void)
+    const outstanding = invoices
+      .filter(i => i.status !== "void" && Number(i.balance_due || 0) > 0)
       .reduce((sum, i) => sum + Number(i.balance_due || 0), 0);
 
+    // Due today
+    const dueToday = invoices
+      .filter(i => i.status !== "void" && i.status !== "paid" && Number(i.balance_due || 0) > 0 && i.due_date && isToday(parseISO(i.due_date)))
+      .reduce((sum, i) => sum + Number(i.balance_due || 0), 0);
+
+    // Due within 30 days (future, not overdue)
     const dueIn30 = invoices
       .filter(i => {
-        if (!["sent", "viewed", "partial"].includes(i.status) || !i.due_date) return false;
+        if (i.status === "void" || i.status === "paid" || Number(i.balance_due || 0) <= 0 || !i.due_date) return false;
         const due = parseISO(i.due_date);
         return !isToday(due) && isBefore(due, addDays(today, 31)) && !isBefore(due, today);
       })
       .reduce((sum, i) => sum + Number(i.balance_due || 0), 0);
 
+    // Overdue = balance_due > 0 AND due_date < today (dynamic check, not just status)
     const overdue = invoices
-      .filter(i => i.status === "overdue")
+      .filter(i => {
+        if (i.status === "void" || i.status === "paid" || Number(i.balance_due || 0) <= 0 || !i.due_date) return false;
+        return isBefore(parseISO(i.due_date), today) && !isToday(parseISO(i.due_date));
+      })
       .reduce((sum, i) => sum + Number(i.balance_due || 0), 0);
 
     // Average days to get paid

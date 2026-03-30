@@ -13,9 +13,15 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, FileText, Search, Upload, TrendingDown, Clock, AlertTriangle, CalendarClock } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Plus, FileText, Search, Upload, TrendingDown, Clock, AlertTriangle, CalendarClock, Trash2 } from "lucide-react";
 import { differenceInDays, parseISO, isToday, isBefore, addDays } from "date-fns";
 import { format } from "date-fns";
+import { toast } from "@/hooks/use-toast";
 
 const invoiceImportFields: ImportField[] = [
   { key: "invoice_number", label: "Invoice Number", required: true },

@@ -27,6 +27,7 @@ const invoiceImportFields: ImportField[] = [
   { key: "invoice_number", label: "Invoice Number", required: true },
   { key: "client_name", label: "Customer Name", required: true },
   { key: "invoice_date", label: "Invoice Date" },
+  { key: "issue_date", label: "Issued Date" },
   { key: "due_date", label: "Due Date" },
   { key: "total", label: "Total" },
   { key: "balance_due", label: "Balance" },
@@ -38,6 +39,7 @@ const invoiceImportFields: ImportField[] = [
   { key: "adjustment", label: "Adjustment" },
   { key: "notes", label: "Notes" },
   { key: "terms_conditions", label: "Terms & Conditions" },
+  { key: "amount_paid", label: "Amount Paid" },
 ];
 
 const statusTabs = ["all", "draft", "sent", "overdue", "partial", "paid", "void"] as const;

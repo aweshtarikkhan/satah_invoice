@@ -170,64 +170,100 @@ export default function InvoicesPage() {
     return inv && inv.status === "draft";
   });
 
-  const summaryItems = [
-    { label: "Total Outstanding Receivables", value: fmt(summary.outstanding), icon: TrendingDown, color: "text-primary" },
-    { label: "Due Today", value: fmt(summary.dueToday), icon: Clock, color: "text-orange-500" },
-    { label: "Due Within 30 Days", value: fmt(summary.dueIn30), icon: CalendarClock, color: "text-muted-foreground" },
-    { label: "Overdue Invoice", value: fmt(summary.overdue), icon: AlertTriangle, color: "text-destructive" },
-    { label: "Avg. Days to Get Paid", value: `${summary.avgDays} Days`, icon: CalendarClock, color: "text-muted-foreground" },
-  ];
+  const getOverdueDays = (inv: any) => {
+    if (inv.status === "paid" || inv.status === "void" || inv.status === "draft") return 0;
+    if (!inv.due_date) return 0;
+    const days = differenceInDays(new Date(), parseISO(inv.due_date));
+    return days > 0 ? days : 0;
+  };
+
+  const getStatusDisplay = (inv: any) => {
+    if (inv.status === "paid") return <span className="text-emerald-600 dark:text-emerald-400 font-semibold text-xs uppercase">PAID</span>;
+    const overdueDays = getOverdueDays(inv);
+    if (overdueDays > 0) return <span className="text-destructive font-semibold text-xs uppercase">OVERDUE BY {overdueDays} DAYS</span>;
+    if (inv.status === "partial") return <span className="text-orange-500 font-semibold text-xs uppercase">PARTIAL</span>;
+    if (inv.status === "sent" || inv.status === "viewed") return <span className="text-primary font-semibold text-xs uppercase">{inv.status.toUpperCase()}</span>;
+    if (inv.status === "void") return <span className="text-muted-foreground font-semibold text-xs uppercase line-through">VOID</span>;
+    return <span className="text-muted-foreground font-semibold text-xs uppercase">DRAFT</span>;
+  };
 
   return (
-    <div className="p-6 space-y-6">
-      <PageHeader title="Invoices" description="Create and manage invoices">
-        {selected.size > 0 && selectedHasDrafts && (
-          <Button variant="outline" size="sm" onClick={handleMarkSent}>
-            <Send className="mr-1 h-4 w-4" /> Mark as Sent
+    <div className="p-6 space-y-4">
+      {/* Top Bar */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-bold">All Invoices</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          {selected.size > 0 && selectedHasDrafts && (
+            <Button variant="outline" size="sm" onClick={handleMarkSent}>
+              <Send className="mr-1 h-4 w-4" /> Mark as Sent
+            </Button>
+          )}
+          {selected.size > 0 && (
+            <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
+              <Trash2 className="mr-1 h-4 w-4" /> Delete ({selected.size})
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+            <Upload className="mr-1 h-4 w-4" /> Import
           </Button>
-        )}
-        {selected.size > 0 && (
-          <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
-            <Trash2 className="mr-1 h-4 w-4" /> Delete ({selected.size})
+          <Button onClick={() => navigate("/invoices/new")} size="sm">
+            <Plus className="mr-1 h-4 w-4" /> + New
           </Button>
-        )}
-        <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
-          <Upload className="mr-1 h-4 w-4" /> Import
-        </Button>
-        <Button onClick={() => navigate("/invoices/new")} size="sm">
-          <Plus className="mr-1 h-4 w-4" /> New Invoice
-        </Button>
-      </PageHeader>
+        </div>
+      </div>
 
-      {/* Payment Summary */}
-      <Card>
-        <CardContent className="py-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Payment Summary</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            {summaryItems.map((item) => (
-              <div key={item.label} className="space-y-1">
-                <p className="text-xs text-muted-foreground">{item.label}</p>
-                <p className={`text-lg font-bold ${item.color}`}>{item.value}</p>
+      {/* Payment Summary Card */}
+      <Card className="bg-muted/30">
+        <CardContent className="py-4 px-5">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-3">Payment Summary</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="h-8 w-8 rounded-full bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center">
+                  <TrendingDown className="h-4 w-4 text-orange-500" />
+                </div>
               </div>
-            ))}
+              <p className="text-xs text-muted-foreground">Total Outstanding Receivables</p>
+              <p className="text-xl font-bold">{fmt(summary.outstanding)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Due Today</p>
+              <p className="text-xl font-bold text-orange-500">{fmt(summary.dueToday)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Due Within 30 Days</p>
+              <p className="text-xl font-bold">{fmt(summary.dueIn30)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Overdue Invoice</p>
+              <p className="text-xl font-bold text-destructive">{fmt(summary.overdue)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Average No. of Days for Getting Paid</p>
+              <p className="text-xl font-bold">{summary.avgDays} Days</p>
+            </div>
           </div>
         </CardContent>
       </Card>
 
+      {/* Filters Row */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList>
             {statusTabs.map((s) => (
-              <TabsTrigger key={s} value={s} className="capitalize">{s}</TabsTrigger>
+              <TabsTrigger key={s} value={s} className="capitalize text-xs">{s}</TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
         <div className="relative max-w-sm w-full sm:w-auto">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search invoices..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder="Search invoices..." className="pl-9 h-8 text-sm" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
       </div>
 
+      {/* Invoice Table */}
       <Card>
         <CardContent className="p-0">
           {loading ? (
@@ -243,30 +279,30 @@ export default function InvoicesPage() {
           ) : (
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="bg-muted/30">
                   <TableHead className="w-10"><Checkbox checked={allSelected} onCheckedChange={toggleAll} /></TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Invoice #</TableHead>
-                  <TableHead>Order Number</TableHead>
-                  <TableHead>Customer Name</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                  <TableHead className="text-right">Balance Due</TableHead>
+                  <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Date</TableHead>
+                  <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Invoice#</TableHead>
+                  <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Order Number</TableHead>
+                  <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Customer Name</TableHead>
+                  <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Status</TableHead>
+                  <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Due Date</TableHead>
+                  <TableHead className="text-xs uppercase font-semibold text-muted-foreground text-right">Amount</TableHead>
+                  <TableHead className="text-xs uppercase font-semibold text-muted-foreground text-right">Balance Due</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map((inv) => (
                   <TableRow key={inv.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { if (selected.size === 0) navigate(`/invoices/${inv.id}`); }}>
                     <TableCell onClick={(e) => e.stopPropagation()}><Checkbox checked={selected.has(inv.id)} onCheckedChange={() => toggleOne(inv.id)} /></TableCell>
-                    <TableCell className="text-muted-foreground">{inv.issue_date ? format(parseISO(inv.issue_date), "d MMM yyyy") : "-"}</TableCell>
-                    <TableCell className="font-medium text-primary">{inv.invoice_number}</TableCell>
-                    <TableCell className="text-muted-foreground">{inv.reference_number || "-"}</TableCell>
-                    <TableCell>{(inv.clients as any)?.display_name}</TableCell>
-                    <TableCell><StatusBadge status={inv.status} /></TableCell>
-                    <TableCell className="text-muted-foreground">{inv.due_date ? format(parseISO(inv.due_date), "d MMM yyyy") : "-"}</TableCell>
-                    <TableCell className="text-right font-medium">{fmt(Number(inv.total))}</TableCell>
-                    <TableCell className="text-right font-medium">{fmt(Number(inv.balance_due))}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">{inv.issue_date ? format(parseISO(inv.issue_date), "dd/MM/yyyy") : "-"}</TableCell>
+                    <TableCell className="font-medium text-primary text-sm">{inv.invoice_number}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">{inv.reference_number || "-"}</TableCell>
+                    <TableCell className="text-sm">{(inv.clients as any)?.display_name}</TableCell>
+                    <TableCell>{getStatusDisplay(inv)}</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">{inv.due_date ? format(parseISO(inv.due_date), "dd/MM/yyyy") : "-"}</TableCell>
+                    <TableCell className="text-right font-medium text-sm">{fmt(Number(inv.total))}</TableCell>
+                    <TableCell className="text-right font-medium text-sm">{fmt(Number(inv.balance_due))}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

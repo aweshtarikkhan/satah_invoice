@@ -483,6 +483,13 @@ export default function InvoiceBuilderPage() {
         });
       }
 
+      // Sync client opening_balance
+      if (clientId) {
+        const { data: cInvoices } = await supabase.from("invoices").select("balance_due").eq("client_id", clientId);
+        const totalDue = (cInvoices || []).reduce((s: number, inv: any) => s + Number(inv.balance_due), 0);
+        await supabase.from("clients").update({ opening_balance: totalDue }).eq("id", clientId);
+      }
+
       toast({ title: status === "sent" ? "Invoice sent!" : "Invoice saved!" });
       navigate(`/invoices`);
     } catch (err: any) {

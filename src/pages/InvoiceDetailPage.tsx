@@ -233,6 +233,11 @@ export default function InvoiceDetailPage() {
         <Button variant="outline" size="sm" onClick={handleDuplicate}>
           <Copy className="mr-1 h-4 w-4" /> Duplicate
         </Button>
+        {invoice.status === "draft" && (
+          <Button variant="outline" size="sm" onClick={handleMarkSent}>
+            <Send className="mr-1 h-4 w-4" /> Mark as Sent
+          </Button>
+        )}
         {invoice.status !== "void" && invoice.status !== "paid" && (
           <Button variant="outline" size="sm" onClick={handleVoid}>
             <Ban className="mr-1 h-4 w-4" /> Void

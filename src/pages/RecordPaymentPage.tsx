@@ -221,6 +221,11 @@ export default function RecordPaymentPage() {
       });
     }
 
+    // Sync client opening_balance
+    const { data: cInvs } = await supabase.from("invoices").select("balance_due").eq("client_id", clientId).neq("status", "void");
+    const totalDue = (cInvs || []).reduce((s: number, i: any) => s + Number(i.balance_due || 0), 0);
+    await supabase.from("clients").update({ opening_balance: totalDue }).eq("id", clientId);
+
     setSaving(false);
     if (hasError) {
       toast({ title: "Partial error", description: "Some payments could not be recorded.", variant: "destructive" });

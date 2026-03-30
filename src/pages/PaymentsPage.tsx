@@ -158,12 +158,40 @@ export default function PaymentsPage() {
   const handleDeleteSelected = async () => {
     setDeleting(true);
     const ids = Array.from(selected);
+
+    // Get payment details before deleting (to reverse invoice balances)
+    const toDelete = payments.filter(p => selected.has(p.id));
+    
     const { error } = await supabase.from("payments").delete().in("id", ids);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: `${ids.length} payment(s) deleted` });
-      setPayments(prev => prev.filter(p => !selected.has(p.id)));
+      // Reverse invoice balances for deleted payments
+      const invoiceAdjustments: Record<string, number> = {};
+      const affectedClientIds = new Set<string>();
+      toDelete.forEach(p => {
+        if (p.invoice_id) invoiceAdjustments[p.invoice_id] = (invoiceAdjustments[p.invoice_id] || 0) + Number(p.amount);
+        affectedClientIds.add(p.client_id);
+      });
+
+      for (const [invId, reversed] of Object.entries(invoiceAdjustments)) {
+        const { data: inv } = await supabase.from("invoices").select("total, balance_due, amount_paid, status").eq("id", invId).single();
+        if (inv) {
+          const newPaid = Math.max(0, Number(inv.amount_paid) - reversed);
+          const newBalance = Number(inv.total) - newPaid;
+          const newStatus = newPaid <= 0 ? (inv.status === "paid" || inv.status === "partial" ? "sent" : inv.status) : "partial";
+          await supabase.from("invoices").update({ balance_due: newBalance, amount_paid: newPaid, status: newStatus, paid_at: null }).eq("id", invId);
+        }
+      }
+
+      // Sync client opening_balance
+      for (const cId of affectedClientIds) {
+        const { data: cInvs } = await supabase.from("invoices").select("balance_due").eq("client_id", cId).neq("status", "void");
+        const totalDue = (cInvs || []).reduce((s, i) => s + Number(i.balance_due || 0), 0);
+        await supabase.from("clients").update({ opening_balance: totalDue }).eq("id", cId);
+      }
+
+      toast({ title: `${ids.length} payment(s) deleted`, description: "Invoice balances have been updated." });
       setSelected(new Set());
     }
     setDeleting(false);
@@ -468,11 +496,12 @@ export default function PaymentsPage() {
               invoiceId = invMap.get(invNum) || null;
             }
 
+            const payAmount = parseFloat(row.amount) || 0;
             const { error } = await supabase.from("payments").insert({
               org_id: org!.id,
               client_id: clientId,
               payment_number: row.payment_number,
-              amount: parseFloat(row.amount) || 0,
+              amount: payAmount,
               payment_date: parseDate(row.payment_date) || new Date().toISOString().split("T")[0],
               payment_mode: row.payment_mode || "cash",
               reference_number: row.reference_number || null,
@@ -480,8 +509,38 @@ export default function PaymentsPage() {
               notes: row.notes || null,
               currency_code: org!.currency_code,
             });
-            if (error) errors++; else success++;
+            if (error) { errors++; continue; }
+            success++;
+
+            // Update linked invoice balance
+            if (invoiceId) {
+              const { data: inv } = await supabase.from("invoices").select("total, balance_due, amount_paid").eq("id", invoiceId).single();
+              if (inv) {
+                const newBalance = Math.max(0, Number(inv.balance_due) - payAmount);
+                const newPaid = Number(inv.amount_paid) + payAmount;
+                const newStatus = newBalance <= 0 ? "paid" : "partial";
+                await supabase.from("invoices").update({
+                  balance_due: newBalance,
+                  amount_paid: newPaid,
+                  status: newStatus,
+                  ...(newBalance <= 0 ? { paid_at: new Date().toISOString() } : {}),
+                }).eq("id", invoiceId);
+              }
+            }
           }
+
+          // Sync client opening_balance for all affected clients
+          const affectedClients = new Set<string>();
+          rows.forEach(r => {
+            const cId = clientMap.get((r.client_name || "").trim().toLowerCase());
+            if (cId) affectedClients.add(cId);
+          });
+          for (const cId of affectedClients) {
+            const { data: cInvs } = await supabase.from("invoices").select("balance_due, status").eq("client_id", cId).neq("status", "void");
+            const totalDue = (cInvs || []).reduce((s, i) => s + Number(i.balance_due || 0), 0);
+            await supabase.from("clients").update({ opening_balance: totalDue }).eq("id", cId);
+          }
+
           fetchData();
           return { success, errors };
         }}

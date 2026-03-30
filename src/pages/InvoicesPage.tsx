@@ -13,9 +13,15 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, FileText, Search, Upload, TrendingDown, Clock, AlertTriangle, CalendarClock } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Plus, FileText, Search, Upload, TrendingDown, Clock, AlertTriangle, CalendarClock, Trash2 } from "lucide-react";
 import { differenceInDays, parseISO, isToday, isBefore, addDays } from "date-fns";
 import { format } from "date-fns";
+import { toast } from "@/hooks/use-toast";
 
 const invoiceImportFields: ImportField[] = [
   { key: "invoice_number", label: "Invoice Number", required: true },
@@ -44,6 +50,9 @@ export default function InvoicesPage() {
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<string>("all");
   const [importOpen, setImportOpen] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!org?.id) return;
@@ -102,6 +111,38 @@ export default function InvoicesPage() {
         .some((f) => f.toLowerCase().includes(search.toLowerCase()))
     );
 
+  const allSelected = filtered.length > 0 && filtered.every(i => selected.has(i.id));
+  const toggleAll = () => {
+    if (allSelected) setSelected(new Set());
+    else setSelected(new Set(filtered.map(i => i.id)));
+  };
+  const toggleOne = (id: string) => {
+    const next = new Set(selected);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setSelected(next);
+  };
+
+  const handleDeleteSelected = async () => {
+    setDeleting(true);
+    const ids = Array.from(selected);
+    // Delete related data first
+    for (const id of ids) {
+      await supabase.from("invoice_lines").delete().eq("invoice_id", id);
+      await supabase.from("payments").delete().eq("invoice_id", id);
+      await supabase.from("portal_tokens").delete().eq("entity_id", id).eq("entity_type", "invoice");
+    }
+    const { error } = await supabase.from("invoices").delete().in("id", ids);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Deleted", description: `${ids.length} invoice(s) deleted.` });
+      setInvoices(prev => prev.filter(i => !selected.has(i.id)));
+      setSelected(new Set());
+    }
+    setDeleting(false);
+    setDeleteOpen(false);
+  };
+
   const summaryItems = [
     { label: "Total Outstanding Receivables", value: fmt(summary.outstanding), icon: TrendingDown, color: "text-primary" },
     { label: "Due Today", value: fmt(summary.dueToday), icon: Clock, color: "text-orange-500" },
@@ -113,6 +154,11 @@ export default function InvoicesPage() {
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Invoices" description="Create and manage invoices">
+        {selected.size > 0 && (
+          <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
+            <Trash2 className="mr-1 h-4 w-4" /> Delete ({selected.size})
+          </Button>
+        )}
         <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
           <Upload className="mr-1 h-4 w-4" /> Import
         </Button>
@@ -166,6 +212,7 @@ export default function InvoicesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10"><Checkbox checked={allSelected} onCheckedChange={toggleAll} /></TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Invoice #</TableHead>
                   <TableHead>Order Number</TableHead>
@@ -178,7 +225,8 @@ export default function InvoicesPage() {
               </TableHeader>
               <TableBody>
                 {filtered.map((inv) => (
-                  <TableRow key={inv.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/invoices/${inv.id}`)}>
+                  <TableRow key={inv.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { if (selected.size === 0) navigate(`/invoices/${inv.id}`); }}>
+                    <TableCell onClick={(e) => e.stopPropagation()}><Checkbox checked={selected.has(inv.id)} onCheckedChange={() => toggleOne(inv.id)} /></TableCell>
                     <TableCell className="text-muted-foreground">{inv.issue_date ? format(parseISO(inv.issue_date), "d MMM yyyy") : "-"}</TableCell>
                     <TableCell className="font-medium text-primary">{inv.invoice_number}</TableCell>
                     <TableCell className="text-muted-foreground">{inv.reference_number || "-"}</TableCell>
@@ -264,6 +312,22 @@ export default function InvoicesPage() {
           return { success, errors };
         }}
       />
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selected.size} Invoice(s)?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the selected invoices along with their line items, payments, and portal links. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteSelected} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {deleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

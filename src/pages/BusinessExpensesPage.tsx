@@ -170,6 +170,18 @@ export default function BusinessExpensesPage() {
               <SelectItem value="year">12 Months</SelectItem>
             </SelectContent>
           </Select>
+          <Button variant="outline" size="sm" onClick={() => {
+            downloadCSV(expenses.map(e => ({
+              category: e.category,
+              description: e.description || "",
+              amount: e.amount,
+              date: e.expense_date,
+              recurring: e.is_recurring ? "Yes" : "No",
+              frequency: e.recurring_frequency || "",
+            })), "expenses");
+          }}>
+            <Download className="mr-1 h-4 w-4" /> Export
+          </Button>
           <Button onClick={() => { setEditId(null); setForm(emptyForm); setDialogOpen(true); }}>
             <Plus className="mr-1 h-4 w-4" /> Add Expense
           </Button>

@@ -213,6 +213,20 @@ export default function PaymentsPage() {
               <Trash2 className="mr-1 h-4 w-4" /> Delete ({selected.size})
             </Button>
           )}
+          <Button variant="outline" size="sm" onClick={() => {
+            downloadCSV(payments.map(p => ({
+              payment_number: p.payment_number,
+              customer: (p.clients as any)?.display_name,
+              amount: p.amount,
+              payment_date: p.payment_date,
+              payment_mode: p.payment_mode,
+              reference_number: p.reference_number || "",
+              invoice: (p.invoices as any)?.invoice_number || "",
+              notes: p.notes || "",
+            })), "payments");
+          }}>
+            <Download className="mr-1 h-4 w-4" /> Export
+          </Button>
           <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
             <Upload className="mr-1 h-4 w-4" /> Import
           </Button>

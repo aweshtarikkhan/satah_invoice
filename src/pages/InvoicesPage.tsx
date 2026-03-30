@@ -181,6 +181,11 @@ export default function InvoicesPage() {
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Invoices" description="Create and manage invoices">
+        {selected.size > 0 && selectedHasDrafts && (
+          <Button variant="outline" size="sm" onClick={handleMarkSent}>
+            <Send className="mr-1 h-4 w-4" /> Mark as Sent
+          </Button>
+        )}
         {selected.size > 0 && (
           <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
             <Trash2 className="mr-1 h-4 w-4" /> Delete ({selected.size})

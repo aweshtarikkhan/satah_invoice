@@ -19,7 +19,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Package, Search, Upload } from "lucide-react";
+import { Plus, Package, Search, Upload, Download } from "lucide-react";
+import { downloadCSV } from "@/lib/export-csv";
 import { Badge } from "@/components/ui/badge";
 
 const itemImportFields: ImportField[] = [

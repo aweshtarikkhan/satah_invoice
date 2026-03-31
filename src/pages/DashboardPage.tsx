@@ -41,6 +41,16 @@ const STATUS_COLORS: Record<string, string> = {
   void: "hsl(215, 16%, 70%)",
 };
 
+const STATUS_HEX: Record<string, string> = {
+  draft: "#6b7280",
+  sent: "#0369a1",
+  viewed: "#b45309",
+  partial: "#b45309",
+  paid: "#22c55e",
+  overdue: "#dc2626",
+  void: "#9ca3af",
+};
+
 const AGING_COLORS = ["hsl(142, 71%, 45%)", "hsl(32, 95%, 44%)", "hsl(25, 95%, 53%)", "hsl(0, 84%, 60%)", "hsl(0, 72%, 51%)"];
 
 export default function DashboardPage() {
@@ -158,6 +168,7 @@ export default function DashboardPage() {
       name: name.charAt(0).toUpperCase() + name.slice(1),
       value,
       color: STATUS_COLORS[name] || "hsl(215, 16%, 47%)",
+      hex: STATUS_HEX[name] || "#6b7280",
     }));
   }, [invoices]);
 
@@ -176,6 +187,27 @@ export default function DashboardPage() {
       .slice(0, 5);
   }, [invoices, clients]);
 
+  // Overdue clients with aging info
+  const overdueClients = useMemo(() => {
+    const today = new Date();
+    const clientMap: Record<string, { name: string; totalDue: number; maxOverdueDays: number; invoiceCount: number }> = {};
+    invoices.forEach((i) => {
+      const bal = Number(i.balance_due);
+      if (bal <= 0) return;
+      const due = new Date(i.due_date);
+      const daysOverdue = Math.floor((today.getTime() - due.getTime()) / 86400000);
+      if (daysOverdue < 30) return;
+      const clientId = i.client_id || "unknown";
+      const client = clients.find((c) => c.id === clientId);
+      const name = client?.display_name || "Unknown";
+      if (!clientMap[clientId]) clientMap[clientId] = { name, totalDue: 0, maxOverdueDays: 0, invoiceCount: 0 };
+      clientMap[clientId].totalDue += bal;
+      clientMap[clientId].invoiceCount += 1;
+      if (daysOverdue > clientMap[clientId].maxOverdueDays) clientMap[clientId].maxOverdueDays = daysOverdue;
+    });
+    return Object.values(clientMap).sort((a, b) => b.maxOverdueDays - a.maxOverdueDays);
+  }, [invoices, clients]);
+
   const paymentModeData = useMemo(() => {
     const modeMap: Record<string, number> = {};
     payments.forEach((p) => {
@@ -186,6 +218,8 @@ export default function DashboardPage() {
       .map(([name, value]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), value }))
       .sort((a, b) => b.value - a.value);
   }, [payments]);
+
+  const PIE_COLORS = ["#2563eb", "#16a34a", "#f59e0b", "#dc2626", "#8b5cf6", "#06b6d4", "#ec4899"];
 
   const totalSales = invoices.reduce((s, i) => s + Number(i.total), 0);
   const totalReceipts = payments.reduce((s, p) => s + Number(p.amount), 0);
@@ -412,6 +446,40 @@ export default function DashboardPage() {
         </div>
         ` : ""}
 
+        <!-- Overdue Clients (30+ Days) -->
+        ${overdueClients.length > 0 ? `
+        <div style="margin-bottom:30px;">
+          <h2 style="font-size:18px;font-weight:700;color:#dc2626;margin:0 0 12px;border-bottom:2px solid #fecaca;padding-bottom:8px;">⚠️ Overdue Clients — Payment Due 30+ Days</h2>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="background:#fef2f2;">
+                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Client Name</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Outstanding</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Overdue Invoices</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Max Overdue Days</th>
+                <th style="text-align:center;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Risk Level</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${overdueClients.map((c, idx) => {
+                const riskColor = c.maxOverdueDays >= 90 ? "#dc2626" : c.maxOverdueDays >= 60 ? "#f59e0b" : "#fb923c";
+                const riskBg = c.maxOverdueDays >= 90 ? "#fef2f2" : c.maxOverdueDays >= 60 ? "#fffbeb" : "#fff7ed";
+                const riskLabel = c.maxOverdueDays >= 90 ? "🔴 Critical (90+ Days)" : c.maxOverdueDays >= 60 ? "🟠 High Risk (60+ Days)" : "🟡 Warning (30+ Days)";
+                return `
+                <tr style="background:${riskBg};border-left:4px solid ${riskColor};">
+                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:600;">${c.name}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:700;color:${riskColor};">${fmt(c.totalDue)}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${c.invoiceCount}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:700;color:${riskColor};">${c.maxOverdueDays} days</td>
+                  <td style="padding:10px 12px;font-size:12px;text-align:center;border:1px solid #e5e7eb;font-weight:600;color:${riskColor};">${riskLabel}</td>
+                </tr>
+                `;
+              }).join("")}
+            </tbody>
+          </table>
+        </div>
+        ` : ""}
+
         <!-- Recent Invoices -->
         ${recentInvoices.length > 0 ? `
         <div style="margin-bottom:30px;">
@@ -497,8 +565,19 @@ export default function DashboardPage() {
         heightLeft -= pageHeight;
       }
 
-      // Each chart gets its own full page
-      for (const chart of chartImages) {
+      // Build legend data for each chart
+      const chartLegends: { label: string; color: string; value: string }[][] = [
+        // Chart 0: Sales and Collections (bar chart)
+        monthlyData.map((m) => ({ label: m.month, color: "", value: `Sales: ${fmt(m.invoiced)} | Collected: ${fmt(m.collected)}` })),
+        // Chart 1: Invoice Status (pie)
+        statusData.map((s) => ({ label: s.name, color: s.hex, value: `${s.value} invoices (${invoices.length > 0 ? ((s.value / invoices.length) * 100).toFixed(1) : "0"}%)` })),
+        // Chart 2: Payment Mode (pie)
+        paymentModeData.map((m, i) => ({ label: m.name, color: PIE_COLORS[i % PIE_COLORS.length], value: `${fmt(m.value)} (${totalReceipts > 0 ? ((m.value / totalReceipts) * 100).toFixed(1) : "0"}%)` })),
+      ];
+
+      // Each chart gets its own full page with legend
+      for (let ci = 0; ci < chartImages.length; ci++) {
+        const chart = chartImages[ci];
         pdf.addPage();
         // Title
         pdf.setFontSize(18);
@@ -508,25 +587,74 @@ export default function DashboardPage() {
         pdf.setLineWidth(0.5);
         pdf.line(20, 30, 190, 30);
 
-        // Chart image centered on page
-        const chartImg = new Image();
-        chartImg.src = chart.img;
-        const maxW = 170; // mm
-        const maxH = 220; // mm
-        // Approximate aspect ratio from the data URL
-        const tempCanvas = document.createElement("canvas");
-        const tempCtx = tempCanvas.getContext("2d");
-        // Use fixed aspect for simplicity
-        const chartW = maxW;
-        const chartH = maxH * 0.6;
+        // Chart image
+        const chartW = 170;
+        const chartH = 110;
         const chartX = (210 - chartW) / 2;
-        const chartY = 40;
+        const chartY = 38;
         pdf.addImage(chart.img, "PNG", chartX, chartY, chartW, chartH);
 
-        // Add summary text below chart
-        pdf.setFontSize(11);
-        pdf.setTextColor(107, 114, 128);
-        pdf.text(`${org?.name || "Organization"} — Financial Report`, 105, chartY + chartH + 15, { align: "center" });
+        // Legend table below chart
+        const legends = chartLegends[ci] || [];
+        if (legends.length > 0) {
+          let legendY = chartY + chartH + 12;
+          pdf.setFontSize(12);
+          pdf.setTextColor(26, 26, 26);
+          pdf.text("Legend & Values", 20, legendY);
+          legendY += 6;
+          pdf.setDrawColor(229, 231, 235);
+          pdf.setLineWidth(0.3);
+
+          // For bar chart (index 0), show as simple table
+          if (ci === 0) {
+            // Header
+            pdf.setFillColor(243, 244, 246);
+            pdf.rect(20, legendY, 170, 8, "F");
+            pdf.setFontSize(9);
+            pdf.setTextColor(75, 85, 99);
+            pdf.text("Month", 25, legendY + 5.5);
+            pdf.text("Sales", 100, legendY + 5.5);
+            pdf.text("Collections", 145, legendY + 5.5);
+            legendY += 9;
+            pdf.setTextColor(26, 26, 26);
+            for (const item of legends) {
+              const parts = item.value.split(" | ");
+              pdf.setFontSize(9);
+              pdf.text(item.label, 25, legendY + 5);
+              pdf.setTextColor(22, 163, 74);
+              pdf.text(parts[0]?.replace("Sales: ", "") || "", 100, legendY + 5);
+              pdf.setTextColor(37, 99, 235);
+              pdf.text(parts[1]?.replace("Collected: ", "") || "", 145, legendY + 5);
+              pdf.setTextColor(26, 26, 26);
+              legendY += 7;
+            }
+          } else {
+            // Pie chart legends with color dots
+            for (const item of legends) {
+              // Color dot
+              const hex = item.color || "#6b7280";
+              const r = parseInt(hex.slice(1, 3), 16);
+              const g = parseInt(hex.slice(3, 5), 16);
+              const b = parseInt(hex.slice(5, 7), 16);
+              pdf.setFillColor(r, g, b);
+              pdf.circle(25, legendY + 2.5, 2.5, "F");
+              // Label
+              pdf.setFontSize(10);
+              pdf.setTextColor(26, 26, 26);
+              pdf.text(item.label, 32, legendY + 4);
+              // Value
+              pdf.setFontSize(9);
+              pdf.setTextColor(107, 114, 128);
+              pdf.text(item.value, 80, legendY + 4);
+              legendY += 8;
+            }
+          }
+        }
+
+        // Footer
+        pdf.setFontSize(9);
+        pdf.setTextColor(156, 163, 175);
+        pdf.text(`${org?.name || "Organization"} — Financial Report`, 105, 285, { align: "center" });
       }
 
       pdf.save(`Dashboard-Report-${new Date().toISOString().split("T")[0]}.pdf`);
@@ -697,7 +825,7 @@ export default function DashboardPage() {
                   <PieChart>
                     <Pie data={paymentModeData} cx="50%" cy="50%" innerRadius={55} outerRadius={90} paddingAngle={3} dataKey="value" label={false}>
                       {paymentModeData.map((_, idx) => (
-                        <Cell key={idx} fill={AGING_COLORS[idx % AGING_COLORS.length]} />
+                        <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(value: number) => fmt(value)} />
@@ -706,7 +834,7 @@ export default function DashboardPage() {
                 <div className="flex-1 space-y-2">
                   {paymentModeData.map((entry, idx) => (
                     <div key={entry.name} className="flex items-center gap-2 text-sm">
-                      <div className="h-3 w-3 rounded-sm" style={{ background: AGING_COLORS[idx % AGING_COLORS.length] }} />
+                      <div className="h-3 w-3 rounded-sm" style={{ background: PIE_COLORS[idx % PIE_COLORS.length] }} />
                       <span className="text-muted-foreground">{entry.name}</span>
                       <span className="ml-auto font-medium">{fmt(entry.value)}</span>
                     </div>

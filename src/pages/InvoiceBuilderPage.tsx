@@ -673,14 +673,11 @@ export default function InvoiceBuilderPage() {
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="text-[10px] font-medium text-muted-foreground grid grid-cols-12 gap-1 px-6 pb-1 border-b">
-            <div className="col-span-3">Item</div>
-            <div className="col-span-2">Name</div>
-            <div className="col-span-1">Unit</div>
-            <div className="col-span-1 text-center">Qty</div>
-            <div className="col-span-2">Rate</div>
-            <div className="col-span-1">Tax</div>
-            <div className="col-span-2 text-right">Amount</div>
+          <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider grid grid-cols-12 gap-2 px-6 pb-2 border-b">
+            <div className="col-span-5">Item Details</div>
+            <div className="col-span-2 text-center">Quantity</div>
+            <div className="col-span-2 text-right">Rate</div>
+            <div className="col-span-3 text-right">Amount</div>
           </div>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={lines.map((l) => l.id)} strategy={verticalListSortingStrategy}>
@@ -689,7 +686,6 @@ export default function InvoiceBuilderPage() {
                   key={line.id}
                   line={line}
                   index={index}
-                  taxRates={taxRates}
                   items={catalogItems}
                   onChange={handleLineChange}
                   onRemove={removeLine}
@@ -699,6 +695,18 @@ export default function InvoiceBuilderPage() {
               ))}
             </SortableContext>
           </DndContext>
+          {/* Empty row placeholder */}
+          <div className="flex items-center gap-1 py-3 border-b text-muted-foreground">
+            <GripVertical className="h-3.5 w-3.5 opacity-30 shrink-0" />
+            <div className="grid flex-1 grid-cols-12 gap-2 items-center px-1">
+              <div className="col-span-5 text-xs italic cursor-pointer hover:text-foreground" onClick={addLine}>
+                Type or click to select an item.
+              </div>
+              <div className="col-span-2 text-center text-xs">1.00</div>
+              <div className="col-span-2 text-right text-xs">0.00</div>
+              <div className="col-span-3 text-right text-xs">0.00</div>
+            </div>
+          </div>
           <Button variant="ghost" size="sm" onClick={addLine} className="mt-2">
             <Plus className="mr-1 h-4 w-4" /> Add Line
           </Button>

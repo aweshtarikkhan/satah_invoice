@@ -163,7 +163,16 @@ function SortableLineItem({
         {/* Quantity */}
         <div className="col-span-2">
           <Input type="number" className="h-8 text-xs text-center" value={line.quantity} onChange={(e) => onChange(index, "quantity", parseFloat(e.target.value) || 0)} min={0} step="0.01" />
-          {line.unit && <span className="text-[10px] text-muted-foreground text-center block mt-0.5">{line.unit}</span>}
+          {line.item_id ? (
+            line.unit && <span className="text-[10px] text-muted-foreground text-center block mt-0.5">{line.unit}</span>
+          ) : (
+            <Input
+              className="h-5 text-[10px] text-muted-foreground text-center border-0 border-b border-dashed bg-transparent px-1 py-0 focus-visible:ring-0 focus-visible:ring-offset-0 mt-0.5"
+              placeholder="unit"
+              value={line.unit === "pcs" && !line.name ? "" : line.unit}
+              onChange={(e) => onChange(index, "unit", e.target.value)}
+            />
+          )}
         </div>
         {/* Rate */}
         <div className="col-span-2">

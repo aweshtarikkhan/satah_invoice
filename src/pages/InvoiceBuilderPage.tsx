@@ -135,7 +135,7 @@ function SortableLineItem({
                 <SelectValue placeholder="Select an item" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="manual_entry" className="text-muted-foreground italic">Manual entry</SelectItem>
+                <SelectItem value="manual_entry" className="text-muted-foreground italic">&nbsp;</SelectItem>
                 {items.map((item: any) => (
                   <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>
                 ))}

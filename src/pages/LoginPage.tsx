@@ -57,9 +57,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Receipt className="h-6 w-6" />
-          </div>
+          <img src={logoImg} alt="Satah Invoices" className="mx-auto mb-2 h-16 w-16 rounded-xl object-contain" />
           <CardTitle className="text-2xl">Welcome back</CardTitle>
           <CardDescription>Sign in to your invoice management account</CardDescription>
         </CardHeader>

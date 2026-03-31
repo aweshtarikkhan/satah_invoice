@@ -73,7 +73,7 @@ export function AppSidebar() {
           <img src={logoImg} alt="Satah Invoices" className="h-8 w-8 rounded-lg object-contain" />
           {!collapsed && (
             <span className="text-base font-semibold text-sidebar-foreground">
-              InvoiceApp
+              Satah Invoices
             </span>
           )}
         </div>

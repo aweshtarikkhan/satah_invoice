@@ -151,11 +151,11 @@ function SortableLineItem({
             onChange={(e) => onChange(index, "description", e.target.value)}
             rows={2}
           />
-          {line.unit && <span className="text-[10px] text-muted-foreground">{line.unit}</span>}
         </div>
         {/* Quantity */}
         <div className="col-span-2">
           <Input type="number" className="h-8 text-xs text-center" value={line.quantity} onChange={(e) => onChange(index, "quantity", parseFloat(e.target.value) || 0)} min={0} step="0.01" />
+          {line.unit && <span className="text-[10px] text-muted-foreground text-center block mt-0.5">{line.unit}</span>}
         </div>
         {/* Rate */}
         <div className="col-span-2">

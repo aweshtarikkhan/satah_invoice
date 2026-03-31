@@ -390,10 +390,13 @@ export default function InvoiceBuilderPage() {
       toast({ title: "Select a client", variant: "destructive" });
       return;
     }
-    if (!lines.some((l) => l.name.trim())) {
+    // Auto-remove empty/blank lines before saving
+    const validLines = lines.filter((l) => l.name.trim() || l.rate > 0 || l.quantity > 0);
+    if (!validLines.length) {
       toast({ title: "Add at least one line item", variant: "destructive" });
       return;
     }
+    setLines(validLines);
     setSaving(true);
 
     const invoicePayload = {

@@ -889,6 +889,40 @@ export default function InvoiceBuilderPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Add Tax Dialog */}
+      <Dialog open={addTaxOpen} onOpenChange={setAddTaxOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Add New Tax Rate</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label className="text-xs">Tax Name</Label>
+              <Input value={newTaxName} onChange={(e) => setNewTaxName(e.target.value)} placeholder="e.g. GST 18%" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Rate (%)</Label>
+              <Input type="number" value={newTaxRate} onChange={(e) => setNewTaxRate(e.target.value)} placeholder="18" min={0} step="0.01" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddTaxOpen(false)}>Cancel</Button>
+            <Button onClick={async () => {
+              if (!newTaxName.trim() || !newTaxRate) { toast({ title: "Fill all fields", variant: "destructive" }); return; }
+              const { data, error } = await supabase.from("tax_rates").insert({
+                org_id: org!.id, name: newTaxName.trim(), rate: parseFloat(newTaxRate), type: "simple",
+              }).select().single();
+              if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+              setTaxRates((prev) => [...prev, data]);
+              setInvoiceTaxId(data.id);
+              setNewTaxName(""); setNewTaxRate("");
+              setAddTaxOpen(false);
+              toast({ title: `Tax "${data.name}" added` });
+            }}>Add Tax</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -47,6 +47,9 @@ export function CompactBillTemplate({ org, invoice, lines, fmt, type = "invoice"
         <div>
           <span className="font-semibold text-primary">Bill To:</span>{" "}
           <span className="font-medium">{clientName}</span>
+          {org?.gst_enabled && org?.show_client_gst && (invoice.clients as any)?.tax_number && (
+            <p className="text-[10px] text-muted-foreground">GSTIN: {(invoice.clients as any).tax_number}</p>
+          )}
         </div>
         <div className="text-right">
           <span className="font-semibold text-primary">{type === "estimate" ? "Estimate#" : "Invoice#"}:</span>{" "}

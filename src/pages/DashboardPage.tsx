@@ -168,6 +168,7 @@ export default function DashboardPage() {
       name: name.charAt(0).toUpperCase() + name.slice(1),
       value,
       color: STATUS_COLORS[name] || "hsl(215, 16%, 47%)",
+      hex: STATUS_HEX[name] || "#6b7280",
     }));
   }, [invoices]);
 

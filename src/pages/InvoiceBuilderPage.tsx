@@ -15,7 +15,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Eye, Trash2, Plus, GripVertical, Printer, Share2, Clock, ChevronDown, AlertTriangle, Layers } from "lucide-react";
+import { Save, Eye, Trash2, Plus, GripVertical, Printer, Share2, Clock, ChevronDown, AlertTriangle, Layers, Check } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { InvoiceSettingsSheet } from "@/components/shared/InvoiceSettingsSheet";
 import {
@@ -222,7 +223,7 @@ export default function InvoiceBuilderPage() {
   const [clientInvoices, setClientInvoices] = useState<any[]>([]);
   const [bulkAddOpen, setBulkAddOpen] = useState(false);
   const [bulkSelected, setBulkSelected] = useState<Set<string>>(new Set());
-  const [invoiceTaxId, setInvoiceTaxId] = useState<string | null>(null);
+  const [invoiceTaxIds, setInvoiceTaxIds] = useState<string[]>([]);
   const [addTaxOpen, setAddTaxOpen] = useState(false);
   const [newTaxName, setNewTaxName] = useState("");
   const [newTaxRate, setNewTaxRate] = useState("");
@@ -394,8 +395,12 @@ export default function InvoiceBuilderPage() {
   const subtotal = lines.reduce((s, l) => s + l.amount, 0);
   const totalDiscount = discountType === "percentage" ? subtotal * (discount / 100) : discount;
   const discountedSubtotal = subtotal - totalDiscount;
-  const invoiceTaxRate = taxRates.find((t) => t.id === invoiceTaxId);
-  const totalTax = invoiceTaxRate ? discountedSubtotal * (Number(invoiceTaxRate.rate) / 100) : 0;
+  const selectedTaxes = taxRates.filter((t: any) => invoiceTaxIds.includes(t.id));
+  const taxBreakdown = selectedTaxes.map((t: any) => ({
+    id: t.id, name: t.name, rate: Number(t.rate),
+    amount: discountedSubtotal * (Number(t.rate) / 100),
+  }));
+  const totalTax = taxBreakdown.reduce((s, t) => s + t.amount, 0);
   const total = discountedSubtotal + totalTax + shippingCharge + adjustment - expenses;
 
   const fmt = (n: number) =>
@@ -851,22 +856,63 @@ export default function InvoiceBuilderPage() {
                 {totalDiscount > 0 && <span className="text-destructive">-{fmt(totalDiscount)}</span>}
               </div>
             </div>
-            <div className="flex items-center justify-between text-sm gap-2">
-              <span className="text-muted-foreground">Tax</span>
-              <div className="flex items-center gap-1">
-                <Select value={invoiceTaxId || "none"} onValueChange={(v) => {
-                  if (v === "add_new") { setAddTaxOpen(true); return; }
-                  setInvoiceTaxId(v === "none" ? null : v);
-                }}>
-                  <SelectTrigger className="h-7 w-32 text-xs"><SelectValue placeholder="No tax" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No tax</SelectItem>
-                    {taxRates.map((t: any) => (<SelectItem key={t.id} value={t.id}>{t.name} ({t.rate}%)</SelectItem>))}
-                    <SelectItem value="add_new" className="text-primary font-medium">+ Add New Tax</SelectItem>
-                  </SelectContent>
-                </Select>
-                {totalTax > 0 && <span>+{fmt(totalTax)}</span>}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-sm gap-2">
+                <span className="text-muted-foreground">Tax</span>
+                <div className="flex items-center gap-1">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-7 text-xs min-w-[120px] justify-between">
+                        {invoiceTaxIds.length === 0 ? "Select taxes" : `${invoiceTaxIds.length} tax${invoiceTaxIds.length > 1 ? "es" : ""} selected`}
+                        <ChevronDown className="h-3 w-3 ml-1 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-56 p-2" align="end">
+                      <div className="space-y-1 max-h-48 overflow-y-auto">
+                        {taxRates.length === 0 && (
+                          <p className="text-xs text-muted-foreground py-2 text-center">No taxes added yet</p>
+                        )}
+                        {taxRates.map((t: any) => {
+                          const isSelected = invoiceTaxIds.includes(t.id);
+                          return (
+                            <div
+                              key={t.id}
+                              className="flex items-center gap-2 py-1.5 px-2 rounded cursor-pointer hover:bg-accent/50"
+                              onClick={() => {
+                                setInvoiceTaxIds((prev) =>
+                                  isSelected ? prev.filter((id) => id !== t.id) : [...prev, t.id]
+                                );
+                              }}
+                            >
+                              <div className={`h-4 w-4 rounded border flex items-center justify-center ${isSelected ? "bg-primary border-primary" : "border-input"}`}>
+                                {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
+                              </div>
+                              <span className="text-sm flex-1">{t.name}</span>
+                              <span className="text-xs text-muted-foreground">{t.rate}%</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="border-t mt-2 pt-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full text-xs text-primary"
+                          onClick={() => setAddTaxOpen(true)}
+                        >
+                          <Plus className="h-3 w-3 mr-1" /> Add New Tax
+                        </Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
+              {taxBreakdown.map((tb) => (
+                <div key={tb.id} className="flex items-center justify-between text-xs pl-4 text-muted-foreground">
+                  <span>{tb.name} ({tb.rate}%)</span>
+                  <span>+{fmt(tb.amount)}</span>
+                </div>
+              ))}
             </div>
             <div className="flex items-center justify-between text-sm gap-2">
               <span className="text-muted-foreground">Shipping</span>
@@ -935,7 +981,7 @@ export default function InvoiceBuilderPage() {
               }).select().single();
               if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
               setTaxRates((prev) => [...prev, data]);
-              setInvoiceTaxId(data.id);
+              setInvoiceTaxIds((prev) => [...prev, data.id]);
               setNewTaxName(""); setNewTaxRate("");
               setAddTaxOpen(false);
               toast({ title: `Tax "${data.name}" added` });

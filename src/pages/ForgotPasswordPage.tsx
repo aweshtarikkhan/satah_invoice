@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Receipt } from "lucide-react";
+import logoImg from "@/assets/logo.png";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -32,9 +32,7 @@ export default function ForgotPasswordPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Receipt className="h-6 w-6" />
-          </div>
+          <img src={logoImg} alt="Satah Invoices" className="mx-auto mb-2 h-20 w-20 object-contain" />
           <CardTitle className="text-2xl">Reset Password</CardTitle>
           <CardDescription>
             {sent ? "Check your email for a reset link" : "Enter your email to receive a reset link"}

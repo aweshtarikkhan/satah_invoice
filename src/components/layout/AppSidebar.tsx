@@ -70,7 +70,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border px-4 py-3">
         <div className="flex items-center gap-2">
-          <img src={logoImg} alt="Satah Invoices" className="h-8 w-8 rounded-lg object-contain" />
+          <img src={logoImg} alt="Satah Invoices" className="h-9 w-9 rounded-md object-contain" />
           {!collapsed && (
             <span className="text-base font-semibold text-sidebar-foreground">
               Satah Invoices

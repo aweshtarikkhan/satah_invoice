@@ -834,11 +834,15 @@ export default function InvoiceBuilderPage() {
             <div className="flex items-center justify-between text-sm gap-2">
               <span className="text-muted-foreground">Tax</span>
               <div className="flex items-center gap-1">
-                <Select value={invoiceTaxId || "none"} onValueChange={(v) => setInvoiceTaxId(v === "none" ? null : v)}>
-                  <SelectTrigger className="h-7 w-28 text-xs"><SelectValue placeholder="No tax" /></SelectTrigger>
+                <Select value={invoiceTaxId || "none"} onValueChange={(v) => {
+                  if (v === "add_new") { setAddTaxOpen(true); return; }
+                  setInvoiceTaxId(v === "none" ? null : v);
+                }}>
+                  <SelectTrigger className="h-7 w-32 text-xs"><SelectValue placeholder="No tax" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No tax</SelectItem>
                     {taxRates.map((t: any) => (<SelectItem key={t.id} value={t.id}>{t.name} ({t.rate}%)</SelectItem>))}
+                    <SelectItem value="add_new" className="text-primary font-medium">+ Add New Tax</SelectItem>
                   </SelectContent>
                 </Select>
                 {totalTax > 0 && <span>+{fmt(totalTax)}</span>}

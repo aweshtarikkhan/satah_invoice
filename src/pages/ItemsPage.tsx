@@ -11,15 +11,16 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Package, Search, Upload, Download } from "lucide-react";
+import { Plus, Package, Search, Upload, Download, Trash2 } from "lucide-react";
 import { downloadCSV } from "@/lib/export-csv";
 import { Badge } from "@/components/ui/badge";
 
@@ -27,8 +28,8 @@ const itemImportFields: ImportField[] = [
   { key: "name", label: "Item Name", required: true },
   { key: "description", label: "Description" },
   { key: "sku", label: "SKU" },
-  { key: "type", label: "Product Type (service/product)" },
-  { key: "unit_price", label: "Rate" },
+  { key: "type", label: "Product Type (service/product/goods)" },
+  { key: "unit_price", label: "Rate / Price" },
   { key: "unit", label: "Unit" },
   { key: "tax_name", label: "Tax Name" },
   { key: "is_active", label: "Active (true/false)" },
@@ -43,6 +44,9 @@ export default function ItemsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editItem, setEditItem] = useState<any>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const { toast } = useToast();
 
   const [form, setForm] = useState({
@@ -77,6 +81,7 @@ export default function ItemsPage() {
   const openCreate = () => { resetForm(); setDialogOpen(true); };
 
   const openEdit = (item: any) => {
+    if (selected.size > 0) return;
     setEditItem(item);
     setForm({
       name: item.name, description: item.description || "", sku: item.sku || "",
@@ -106,6 +111,41 @@ export default function ItemsPage() {
     fetchItems();
   };
 
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selected.size === filtered.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(filtered.map((i) => i.id)));
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    setDeleting(true);
+    const ids = Array.from(selected);
+    // Remove references in invoice_lines, estimate_lines, credit_note_lines
+    await supabase.from("invoice_lines").update({ item_id: null }).in("item_id", ids);
+    await supabase.from("estimate_lines").update({ item_id: null }).in("item_id", ids);
+    await supabase.from("credit_note_lines").update({ item_id: null }).in("item_id", ids);
+    const { error } = await supabase.from("items").delete().in("id", ids);
+    if (error) {
+      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: `${ids.length} item(s) deleted` });
+    }
+    setSelected(new Set());
+    setDeleteOpen(false);
+    setDeleting(false);
+    fetchItems();
+  };
+
   const filtered = items.filter((i) =>
     [i.name, i.sku, i.description].filter(Boolean).some((f) => f.toLowerCase().includes(search.toLowerCase()))
   );
@@ -113,9 +153,26 @@ export default function ItemsPage() {
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);
 
+  const parsePrice = (val: any): number => {
+    if (val == null) return 0;
+    const s = String(val).replace(/[^0-9.\-]/g, "");
+    return parseFloat(s) || 0;
+  };
+
+  const normalizeType = (val: any): "service" | "product" => {
+    const v = String(val || "").toLowerCase().trim();
+    if (v === "product" || v === "goods") return "product";
+    return "service";
+  };
+
   return (
     <div className="p-6 space-y-6">
       <PageHeader title="Items" description="Products and services catalog">
+        {selected.size > 0 && (
+          <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
+            <Trash2 className="mr-1 h-4 w-4" /> Delete ({selected.size})
+          </Button>
+        )}
         <Button variant="outline" size="sm" onClick={() => {
           downloadCSV(items.map(i => ({
             name: i.name,
@@ -152,9 +209,16 @@ export default function ItemsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={selected.size === filtered.length && filtered.length > 0}
+                      onCheckedChange={toggleAll}
+                    />
+                  </TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>SKU</TableHead>
                   <TableHead>Type</TableHead>
+                  <TableHead>Unit</TableHead>
                   <TableHead className="text-right">Rate</TableHead>
                   <TableHead>Tax</TableHead>
                 </TableRow>
@@ -162,11 +226,18 @@ export default function ItemsPage() {
               <TableBody>
                 {filtered.map((item) => (
                   <TableRow key={item.id} className="cursor-pointer" onClick={() => openEdit(item)}>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={selected.has(item.id)}
+                        onCheckedChange={() => toggleSelect(item.id)}
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell>{item.sku || "—"}</TableCell>
                     <TableCell>
                       <Badge variant="secondary">{item.type}</Badge>
                     </TableCell>
+                    <TableCell>{item.unit || "—"}</TableCell>
                     <TableCell className="text-right">{fmt(Number(item.unit_price))}</TableCell>
                     <TableCell>{item.tax_rates ? `${item.tax_rates.name} (${item.tax_rates.rate}%)` : "—"}</TableCell>
                   </TableRow>
@@ -176,6 +247,24 @@ export default function ItemsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation */}
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete {selected.size} Item(s)?</DialogTitle>
+            <DialogDescription>
+              This will permanently delete the selected items. Invoice/estimate line items referencing them will be unlinked.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDeleteSelected} disabled={deleting}>
+              {deleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">
@@ -252,13 +341,15 @@ export default function ItemsPage() {
           let success = 0, errors = 0;
           for (const row of rows) {
             const matchedTax = row.tax_name ? taxRates.find((t: any) => t.name.toLowerCase() === row.tax_name.toLowerCase()) : null;
+            const price = parsePrice(row.unit_price);
+            const type = normalizeType(row.type);
             const { error } = await supabase.from("items").insert({
               org_id: org!.id,
               name: row.name || "Unnamed",
               description: row.description || null,
               sku: row.sku || null,
-              type: row.type === "product" ? "product" : "service",
-              unit_price: parseFloat(row.unit_price) || 0,
+              type,
+              unit_price: price,
               unit: row.unit || null,
               tax_id: matchedTax?.id || null,
               is_active: row.is_active === "false" ? false : true,

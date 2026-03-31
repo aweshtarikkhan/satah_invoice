@@ -344,10 +344,8 @@ export default function InvoiceBuilderPage() {
       ? lineSubtotal * (line.discount / 100)
       : line.discount;
     const afterDiscount = lineSubtotal - lineDiscount;
-    const taxRate = taxRates.find((t) => t.id === line.tax_id);
-    const taxAmount = taxRate ? afterDiscount * (Number(taxRate.rate) / 100) : 0;
-    return { ...line, tax_amount: taxAmount, amount: afterDiscount };
-  }, [taxRates]);
+    return { ...line, tax_amount: 0, amount: afterDiscount };
+  }, []);
 
   const handleLineChange = (index: number, field: string, value: any) => {
     setLines((prev) => {

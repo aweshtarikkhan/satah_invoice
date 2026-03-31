@@ -764,13 +764,15 @@ export default function InvoiceBuilderPage() {
                 bulkSelected.forEach((itemId) => {
                   const item = catalogItems.find((i: any) => i.id === itemId);
                   if (item) {
-                    const line = createEmptyLine();
+                    let line = createEmptyLine();
                     line.item_id = item.id;
                     line.name = item.name;
                     line.description = item.description || "";
                     line.rate = Number(item.unit_price);
                     line.unit = item.unit || "pcs";
-                    if (item.tax_id) line.tax_id = item.tax_id;
+                    line.quantity = 1;
+                    // Calculate amount
+                    line.amount = line.quantity * line.rate;
                     newLines.push(line);
                   }
                 });

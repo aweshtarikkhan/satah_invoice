@@ -570,7 +570,7 @@ export default function DashboardPage() {
         // Chart 0: Sales and Collections (bar chart)
         monthlyData.map((m) => ({ label: m.month, color: "", value: `Sales: ${fmt(m.invoiced)} | Collected: ${fmt(m.collected)}` })),
         // Chart 1: Invoice Status (pie)
-        statusData.map((s) => ({ label: s.name, color: s.color, value: `${s.value} invoices (${invoices.length > 0 ? ((s.value / invoices.length) * 100).toFixed(1) : "0"}%)` })),
+        statusData.map((s) => ({ label: s.name, color: s.hex, value: `${s.value} invoices (${invoices.length > 0 ? ((s.value / invoices.length) * 100).toFixed(1) : "0"}%)` })),
         // Chart 2: Payment Mode (pie)
         paymentModeData.map((m, i) => ({ label: m.name, color: PIE_COLORS[i % PIE_COLORS.length], value: `${fmt(m.value)} (${totalReceipts > 0 ? ((m.value / totalReceipts) * 100).toFixed(1) : "0"}%)` })),
       ];

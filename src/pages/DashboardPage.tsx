@@ -823,7 +823,7 @@ export default function DashboardPage() {
                 <div className="flex-1 space-y-2">
                   {paymentModeData.map((entry, idx) => (
                     <div key={entry.name} className="flex items-center gap-2 text-sm">
-                      <div className="h-3 w-3 rounded-sm" style={{ background: AGING_COLORS[idx % AGING_COLORS.length] }} />
+                      <div className="h-3 w-3 rounded-sm" style={{ background: PIE_COLORS[idx % PIE_COLORS.length] }} />
                       <span className="text-muted-foreground">{entry.name}</span>
                       <span className="ml-auto font-medium">{fmt(entry.value)}</span>
                     </div>

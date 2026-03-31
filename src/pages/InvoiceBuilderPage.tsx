@@ -81,7 +81,6 @@ function createEmptyLine(): LineItem {
 function SortableLineItem({
   line,
   index,
-  taxRates,
   items,
   onChange,
   onRemove,
@@ -90,7 +89,6 @@ function SortableLineItem({
 }: {
   line: LineItem;
   index: number;
-  taxRates: any[];
   items: any[];
   onChange: (index: number, field: string, value: any) => void;
   onRemove: (index: number) => void;
@@ -116,7 +114,6 @@ function SortableLineItem({
       onChange(index, "description", item.description || "");
       onChange(index, "rate", Number(item.unit_price));
       onChange(index, "unit", item.unit || "pcs");
-      if (item.tax_id) onChange(index, "tax_id", item.tax_id);
     }
   };
 
@@ -124,16 +121,17 @@ function SortableLineItem({
     new Intl.NumberFormat("en-US", { style: "currency", currency }).format(n);
 
   return (
-    <div ref={setNodeRef} style={style} className="flex items-center gap-1 py-1.5 border-b last:border-0">
-      <button {...attributes} {...listeners} className="cursor-grab text-muted-foreground hover:text-foreground shrink-0">
+    <div ref={setNodeRef} style={style} className="flex items-start gap-1 py-3 border-b last:border-0">
+      <button {...attributes} {...listeners} className="cursor-grab text-muted-foreground hover:text-foreground shrink-0 mt-2">
         <GripVertical className="h-3.5 w-3.5" />
       </button>
-      <div className="grid flex-1 grid-cols-12 gap-1 items-center">
-        <div className="col-span-3">
+      <div className="grid flex-1 grid-cols-12 gap-2 items-start">
+        {/* Item Details - Name + Description */}
+        <div className="col-span-5 space-y-1">
           <div className="flex gap-0.5">
             <Select value={line.item_id || "none"} onValueChange={handleItemSelect}>
               <SelectTrigger className="h-8 text-xs flex-1">
-                <SelectValue placeholder="Select item..." />
+                <SelectValue placeholder="Type or click to select an item." />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Custom item</SelectItem>
@@ -146,39 +144,29 @@ function SortableLineItem({
               <Plus className="h-3 w-3" />
             </button>
           </div>
+          <Textarea
+            className="text-xs min-h-[40px] resize-none"
+            placeholder="Add a description to your item"
+            value={line.description}
+            onChange={(e) => onChange(index, "description", e.target.value)}
+            rows={2}
+          />
+          {line.unit && <span className="text-[10px] text-muted-foreground">{line.unit}</span>}
         </div>
+        {/* Quantity */}
         <div className="col-span-2">
-          <Input className="h-8 text-xs" placeholder="Name" value={line.name} onChange={(e) => onChange(index, "name", e.target.value)} />
-        </div>
-        <div className="col-span-1">
-          <Select value={line.unit || "pcs"} onValueChange={(v) => onChange(index, "unit", v)}>
-            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {UNITS.map((u) => (<SelectItem key={u} value={u}>{u}</SelectItem>))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="col-span-1">
           <Input type="number" className="h-8 text-xs text-center" value={line.quantity} onChange={(e) => onChange(index, "quantity", parseFloat(e.target.value) || 0)} min={0} step="0.01" />
         </div>
+        {/* Rate */}
         <div className="col-span-2">
-          <Input type="number" className="h-8 text-xs" value={line.rate} onChange={(e) => onChange(index, "rate", parseFloat(e.target.value) || 0)} min={0} step="0.01" />
+          <Input type="number" className="h-8 text-xs text-right" value={line.rate} onChange={(e) => onChange(index, "rate", parseFloat(e.target.value) || 0)} min={0} step="0.01" />
         </div>
-        <div className="col-span-1">
-          <Select value={line.tax_id || "none"} onValueChange={(v) => onChange(index, "tax_id", v === "none" ? null : v)}>
-            <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Tax" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">No tax</SelectItem>
-              {taxRates.map((t: any) => (<SelectItem key={t.id} value={t.id}>{t.rate}%</SelectItem>))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="col-span-2 text-right">
-          <span className="text-sm font-medium">{fmt(line.amount)}</span>
-          {line.tax_amount > 0 && <span className="text-[10px] text-muted-foreground ml-1">+{fmt(line.tax_amount)}</span>}
+        {/* Amount */}
+        <div className="col-span-3 text-right pt-1">
+          <span className="text-sm font-bold">{fmt(line.amount)}</span>
         </div>
       </div>
-      <button onClick={() => onRemove(index)} className="text-muted-foreground hover:text-destructive shrink-0">
+      <button onClick={() => onRemove(index)} className="text-muted-foreground hover:text-destructive shrink-0 mt-2 ml-1">
         <Trash2 className="h-3.5 w-3.5" />
       </button>
     </div>
@@ -217,6 +205,7 @@ export default function InvoiceBuilderPage() {
   const [clientInvoices, setClientInvoices] = useState<any[]>([]);
   const [bulkAddOpen, setBulkAddOpen] = useState(false);
   const [bulkSelected, setBulkSelected] = useState<Set<string>>(new Set());
+  const [invoiceTaxId, setInvoiceTaxId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -355,10 +344,8 @@ export default function InvoiceBuilderPage() {
       ? lineSubtotal * (line.discount / 100)
       : line.discount;
     const afterDiscount = lineSubtotal - lineDiscount;
-    const taxRate = taxRates.find((t) => t.id === line.tax_id);
-    const taxAmount = taxRate ? afterDiscount * (Number(taxRate.rate) / 100) : 0;
-    return { ...line, tax_amount: taxAmount, amount: afterDiscount };
-  }, [taxRates]);
+    return { ...line, tax_amount: 0, amount: afterDiscount };
+  }, []);
 
   const handleLineChange = (index: number, field: string, value: any) => {
     setLines((prev) => {
@@ -387,7 +374,8 @@ export default function InvoiceBuilderPage() {
   const subtotal = lines.reduce((s, l) => s + l.amount, 0);
   const totalDiscount = discountType === "percentage" ? subtotal * (discount / 100) : discount;
   const discountedSubtotal = subtotal - totalDiscount;
-  const totalTax = lines.reduce((s, l) => s + l.tax_amount, 0);
+  const invoiceTaxRate = taxRates.find((t) => t.id === invoiceTaxId);
+  const totalTax = invoiceTaxRate ? discountedSubtotal * (Number(invoiceTaxRate.rate) / 100) : 0;
   const total = discountedSubtotal + totalTax + shippingCharge + adjustment - expenses;
 
   const fmt = (n: number) =>
@@ -685,14 +673,11 @@ export default function InvoiceBuilderPage() {
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="text-[10px] font-medium text-muted-foreground grid grid-cols-12 gap-1 px-6 pb-1 border-b">
-            <div className="col-span-3">Item</div>
-            <div className="col-span-2">Name</div>
-            <div className="col-span-1">Unit</div>
-            <div className="col-span-1 text-center">Qty</div>
-            <div className="col-span-2">Rate</div>
-            <div className="col-span-1">Tax</div>
-            <div className="col-span-2 text-right">Amount</div>
+          <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider grid grid-cols-12 gap-2 px-6 pb-2 border-b">
+            <div className="col-span-5">Item Details</div>
+            <div className="col-span-2 text-center">Quantity</div>
+            <div className="col-span-2 text-right">Rate</div>
+            <div className="col-span-3 text-right">Amount</div>
           </div>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={lines.map((l) => l.id)} strategy={verticalListSortingStrategy}>
@@ -701,7 +686,6 @@ export default function InvoiceBuilderPage() {
                   key={line.id}
                   line={line}
                   index={index}
-                  taxRates={taxRates}
                   items={catalogItems}
                   onChange={handleLineChange}
                   onRemove={removeLine}
@@ -711,6 +695,18 @@ export default function InvoiceBuilderPage() {
               ))}
             </SortableContext>
           </DndContext>
+          {/* Empty row placeholder */}
+          <div className="flex items-center gap-1 py-3 border-b text-muted-foreground">
+            <GripVertical className="h-3.5 w-3.5 opacity-30 shrink-0" />
+            <div className="grid flex-1 grid-cols-12 gap-2 items-center px-1">
+              <div className="col-span-5 text-xs italic cursor-pointer hover:text-foreground" onClick={addLine}>
+                Type or click to select an item.
+              </div>
+              <div className="col-span-2 text-center text-xs">1.00</div>
+              <div className="col-span-2 text-right text-xs">0.00</div>
+              <div className="col-span-3 text-right text-xs">0.00</div>
+            </div>
+          </div>
           <Button variant="ghost" size="sm" onClick={addLine} className="mt-2">
             <Plus className="mr-1 h-4 w-4" /> Add Line
           </Button>
@@ -768,13 +764,15 @@ export default function InvoiceBuilderPage() {
                 bulkSelected.forEach((itemId) => {
                   const item = catalogItems.find((i: any) => i.id === itemId);
                   if (item) {
-                    const line = createEmptyLine();
+                    let line = createEmptyLine();
                     line.item_id = item.id;
                     line.name = item.name;
                     line.description = item.description || "";
                     line.rate = Number(item.unit_price);
                     line.unit = item.unit || "pcs";
-                    if (item.tax_id) line.tax_id = item.tax_id;
+                    line.quantity = 1;
+                    // Calculate amount
+                    line.amount = line.quantity * line.rate;
                     newLines.push(line);
                   }
                 });
@@ -824,15 +822,24 @@ export default function InvoiceBuilderPage() {
                   <SelectTrigger className="h-7 w-14 text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="percentage">%</SelectItem>
-                    <SelectItem value="fixed">$</SelectItem>
+                    <SelectItem value="fixed">₹</SelectItem>
                   </SelectContent>
                 </Select>
-                <span className="text-destructive">-{fmt(totalDiscount)}</span>
+                {totalDiscount > 0 && <span className="text-destructive">-{fmt(totalDiscount)}</span>}
               </div>
             </div>
-            <div className="flex justify-between text-sm">
+            <div className="flex items-center justify-between text-sm gap-2">
               <span className="text-muted-foreground">Tax</span>
-              <span>+{fmt(totalTax)}</span>
+              <div className="flex items-center gap-1">
+                <Select value={invoiceTaxId || "none"} onValueChange={(v) => setInvoiceTaxId(v === "none" ? null : v)}>
+                  <SelectTrigger className="h-7 w-28 text-xs"><SelectValue placeholder="No tax" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No tax</SelectItem>
+                    {taxRates.map((t: any) => (<SelectItem key={t.id} value={t.id}>{t.name} ({t.rate}%)</SelectItem>))}
+                  </SelectContent>
+                </Select>
+                {totalTax > 0 && <span>+{fmt(totalTax)}</span>}
+              </div>
             </div>
             <div className="flex items-center justify-between text-sm gap-2">
               <span className="text-muted-foreground">Shipping</span>

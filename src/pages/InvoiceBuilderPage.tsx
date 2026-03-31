@@ -374,7 +374,8 @@ export default function InvoiceBuilderPage() {
   const subtotal = lines.reduce((s, l) => s + l.amount, 0);
   const totalDiscount = discountType === "percentage" ? subtotal * (discount / 100) : discount;
   const discountedSubtotal = subtotal - totalDiscount;
-  const totalTax = lines.reduce((s, l) => s + l.tax_amount, 0);
+  const invoiceTaxRate = taxRates.find((t) => t.id === invoiceTaxId);
+  const totalTax = invoiceTaxRate ? discountedSubtotal * (Number(invoiceTaxRate.rate) / 100) : 0;
   const total = discountedSubtotal + totalTax + shippingCharge + adjustment - expenses;
 
   const fmt = (n: number) =>

@@ -103,8 +103,9 @@ function SortableLineItem({
   };
 
   const handleItemSelect = (itemId: string) => {
-    if (itemId === "none") {
+    if (itemId === "manual_entry") {
       onChange(index, "item_id", null);
+      onChange(index, "name", "");
       return;
     }
     const item = items.find((i: any) => i.id === itemId);

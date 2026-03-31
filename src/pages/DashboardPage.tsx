@@ -41,6 +41,16 @@ const STATUS_COLORS: Record<string, string> = {
   void: "hsl(215, 16%, 70%)",
 };
 
+const STATUS_HEX: Record<string, string> = {
+  draft: "#6b7280",
+  sent: "#0369a1",
+  viewed: "#b45309",
+  partial: "#b45309",
+  paid: "#22c55e",
+  overdue: "#dc2626",
+  void: "#9ca3af",
+};
+
 const AGING_COLORS = ["hsl(142, 71%, 45%)", "hsl(32, 95%, 44%)", "hsl(25, 95%, 53%)", "hsl(0, 84%, 60%)", "hsl(0, 72%, 51%)"];
 
 export default function DashboardPage() {

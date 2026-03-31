@@ -981,7 +981,7 @@ export default function InvoiceBuilderPage() {
               }).select().single();
               if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
               setTaxRates((prev) => [...prev, data]);
-              setInvoiceTaxId(data.id);
+              setInvoiceTaxIds((prev) => [...prev, data.id]);
               setNewTaxName(""); setNewTaxRate("");
               setAddTaxOpen(false);
               toast({ title: `Tax "${data.name}" added` });

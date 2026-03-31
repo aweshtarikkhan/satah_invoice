@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -13,6 +13,8 @@ import {
   Users,
   TrendingUp,
   TrendingDown,
+  Download,
+  Loader2,
 } from "lucide-react";
 import {
   Table,
@@ -26,6 +28,8 @@ import {
   BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "hsl(215, 16%, 47%)",
@@ -45,19 +49,24 @@ export default function DashboardPage() {
   const org = useAppStore((s) => s.organization);
   const [invoices, setInvoices] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
   const [recentInvoices, setRecentInvoices] = useState<any[]>([]);
+  const [exporting, setExporting] = useState(false);
+  const dashboardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!org?.id) return;
     const fetchData = async () => {
-      const [invRes, payRes, recentRes] = await Promise.all([
-        supabase.from("invoices").select("balance_due, status, due_date, total, issue_date, created_at, amount_paid").eq("org_id", org.id).neq("status", "void"),
+      const [invRes, payRes, recentRes, clientRes] = await Promise.all([
+        supabase.from("invoices").select("balance_due, status, due_date, total, issue_date, created_at, amount_paid, client_id").eq("org_id", org.id).neq("status", "void"),
         supabase.from("payments").select("amount, payment_date, payment_mode, client_id").eq("org_id", org.id),
         supabase.from("invoices").select("*, clients(display_name)").eq("org_id", org.id).order("created_at", { ascending: false }).limit(10),
+        supabase.from("clients").select("id, display_name").eq("org_id", org.id),
       ]);
       setInvoices(invRes.data || []);
       setPayments(payRes.data || []);
       setRecentInvoices(recentRes.data || []);
+      setClients(clientRes.data || []);
     };
     fetchData();
   }, [org?.id]);
@@ -65,10 +74,8 @@ export default function DashboardPage() {
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);
 
-  // Total Receivables
   const totalReceivable = useMemo(() => invoices.reduce((s, i) => s + Number(i.balance_due), 0), [invoices]);
 
-  // Aging buckets
   const agingData = useMemo(() => {
     const today = new Date();
     const buckets = [
@@ -92,11 +99,9 @@ export default function DashboardPage() {
     return buckets;
   }, [invoices]);
 
-  // Overdue percentage for progress bar
   const overdueTotal = useMemo(() => agingData.slice(1).reduce((s, b) => s + b.amount, 0), [agingData]);
   const overduePercent = totalReceivable > 0 ? Math.min((overdueTotal / totalReceivable) * 100, 100) : 0;
 
-  // Sales, Receipts, Dues summary table
   const salesReceiptsDues = useMemo(() => {
     const today = new Date();
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -124,7 +129,6 @@ export default function DashboardPage() {
     });
   }, [invoices, payments]);
 
-  // Monthly invoiced vs collected (last 6 months)
   const monthlyData = useMemo(() => {
     const monthMap: Record<string, number> = {};
     const paymentMonthMap: Record<string, number> = {};
@@ -147,7 +151,6 @@ export default function DashboardPage() {
     return months;
   }, [invoices, payments]);
 
-  // Status distribution
   const statusData = useMemo(() => {
     const statusMap: Record<string, number> = {};
     invoices.forEach((i) => { statusMap[i.status] = (statusMap[i.status] || 0) + 1; });
@@ -158,22 +161,21 @@ export default function DashboardPage() {
     }));
   }, [invoices]);
 
-  // Top clients by receivable
   const topClients = useMemo(() => {
-    const clientMap: Record<string, number> = {};
+    const clientMap: Record<string, { name: string; amount: number }> = {};
     invoices.forEach((i) => {
-      // We don't have client name here, use client_id
-      const key = i.client_id || "unknown";
-      clientMap[key] = (clientMap[key] || 0) + Number(i.balance_due);
+      const clientId = i.client_id || "unknown";
+      const client = clients.find((c) => c.id === clientId);
+      const name = client?.display_name || "Unknown";
+      if (!clientMap[clientId]) clientMap[clientId] = { name, amount: 0 };
+      clientMap[clientId].amount += Number(i.balance_due);
     });
-    return Object.entries(clientMap)
-      .filter(([, v]) => v > 0)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([, value]) => ({ value }));
-  }, [invoices]);
+    return Object.values(clientMap)
+      .filter((c) => c.amount > 0)
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 5);
+  }, [invoices, clients]);
 
-  // Payment mode breakdown
   const paymentModeData = useMemo(() => {
     const modeMap: Record<string, number> = {};
     payments.forEach((p) => {
@@ -187,10 +189,345 @@ export default function DashboardPage() {
 
   const totalSales = invoices.reduce((s, i) => s + Number(i.total), 0);
   const totalReceipts = payments.reduce((s, p) => s + Number(p.amount), 0);
+  const totalPaid = invoices.filter((i) => i.status === "paid").length;
+  const totalOverdue = invoices.filter((i) => i.status === "overdue").length;
+  const collectionRate = totalSales > 0 ? ((totalReceipts / totalSales) * 100).toFixed(1) : "0";
+
+  // PDF Export
+  const handleExportPDF = async () => {
+    if (!dashboardRef.current) return;
+    setExporting(true);
+
+    try {
+      // Create a hidden container for PDF content
+      const pdfContainer = document.createElement("div");
+      pdfContainer.style.cssText = "position:absolute;left:-9999px;top:0;width:1100px;background:white;color:#1a1a1a;padding:40px;font-family:Inter,system-ui,sans-serif;";
+      document.body.appendChild(pdfContainer);
+
+      const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+
+      pdfContainer.innerHTML = `
+        <div style="margin-bottom:30px;border-bottom:3px solid #2563eb;padding-bottom:20px;">
+          <h1 style="font-size:28px;font-weight:800;color:#1a1a1a;margin:0;">${org?.name || "Organization"}</h1>
+          <p style="font-size:14px;color:#6b7280;margin:4px 0 0;">Financial Dashboard Report — Generated on ${today}</p>
+          ${org?.email ? `<p style="font-size:12px;color:#6b7280;margin:2px 0 0;">${org.email}${org.phone ? ` • ${org.phone}` : ""}</p>` : ""}
+        </div>
+
+        <!-- KPI Summary -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:30px;">
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;">
+            <p style="font-size:11px;color:#16a34a;font-weight:600;text-transform:uppercase;margin:0;">Total Sales</p>
+            <p style="font-size:22px;font-weight:800;color:#15803d;margin:4px 0 0;">${fmt(totalSales)}</p>
+          </div>
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px;">
+            <p style="font-size:11px;color:#2563eb;font-weight:600;text-transform:uppercase;margin:0;">Total Receipts</p>
+            <p style="font-size:22px;font-weight:800;color:#1d4ed8;margin:4px 0 0;">${fmt(totalReceipts)}</p>
+          </div>
+          <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px;">
+            <p style="font-size:11px;color:#dc2626;font-weight:600;text-transform:uppercase;margin:0;">Total Outstanding</p>
+            <p style="font-size:22px;font-weight:800;color:#b91c1c;margin:4px 0 0;">${fmt(totalReceivable)}</p>
+          </div>
+          <div style="background:#fefce8;border:1px solid #fde68a;border-radius:8px;padding:16px;">
+            <p style="font-size:11px;color:#ca8a04;font-weight:600;text-transform:uppercase;margin:0;">Collection Rate</p>
+            <p style="font-size:22px;font-weight:800;color:#a16207;margin:4px 0 0;">${collectionRate}%</p>
+          </div>
+        </div>
+
+        <!-- Invoice Summary -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:30px;">
+          <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:14px;text-align:center;">
+            <p style="font-size:28px;font-weight:800;color:#1a1a1a;margin:0;">${invoices.length}</p>
+            <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Total Invoices</p>
+          </div>
+          <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:14px;text-align:center;">
+            <p style="font-size:28px;font-weight:800;color:#16a34a;margin:0;">${totalPaid}</p>
+            <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Paid Invoices</p>
+          </div>
+          <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:14px;text-align:center;">
+            <p style="font-size:28px;font-weight:800;color:#dc2626;margin:0;">${totalOverdue}</p>
+            <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Overdue Invoices</p>
+          </div>
+          <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:14px;text-align:center;">
+            <p style="font-size:28px;font-weight:800;color:#1a1a1a;margin:0;">${payments.length}</p>
+            <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Total Payments</p>
+          </div>
+        </div>
+
+        <!-- Receivables Aging -->
+        <div style="margin-bottom:30px;">
+          <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">📊 Receivables Aging Summary</h2>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f3f4f6;">
+                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Aging Bucket</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Amount</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">% of Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${agingData.map((b, idx) => `
+                <tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};">
+                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${b.label}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;color:${idx === 0 ? "#16a34a" : "#dc2626"};">${fmt(b.amount)}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${totalReceivable > 0 ? ((b.amount / totalReceivable) * 100).toFixed(1) : "0"}%</td>
+                </tr>
+              `).join("")}
+              <tr style="background:#f3f4f6;font-weight:700;">
+                <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">Total Outstanding</td>
+                <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${fmt(totalReceivable)}</td>
+                <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">100%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Sales, Receipts & Dues -->
+        <div style="margin-bottom:30px;">
+          <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">💰 Sales, Receipts & Dues</h2>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f3f4f6;">
+                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Period</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Sales</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Receipts</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Due</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${salesReceiptsDues.map((row, idx) => `
+                <tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};">
+                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:500;">${row.label}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;color:#16a34a;">${fmt(row.sales)}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;color:#2563eb;">${fmt(row.receipts)}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;color:#dc2626;font-weight:600;">${fmt(row.due)}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Monthly Trends -->
+        <div style="margin-bottom:30px;">
+          <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">📈 Monthly Sales & Collections (Last 6 Months)</h2>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f3f4f6;">
+                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Month</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Sales</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Collections</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Difference</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${monthlyData.map((m, idx) => `
+                <tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};">
+                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:500;">${m.month}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${fmt(m.invoiced)}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${fmt(m.collected)}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;color:${m.invoiced - m.collected > 0 ? "#dc2626" : "#16a34a"};font-weight:600;">${fmt(m.invoiced - m.collected)}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Invoice Status Breakdown -->
+        <div style="margin-bottom:30px;">
+          <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">📋 Invoice Status Breakdown</h2>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f3f4f6;">
+                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Status</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Count</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">% of Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${statusData.map((s, idx) => `
+                <tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};">
+                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">
+                    <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${s.color};margin-right:8px;"></span>
+                    ${s.name}
+                  </td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;">${s.value}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${invoices.length > 0 ? ((s.value / invoices.length) * 100).toFixed(1) : "0"}%</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Payment Mode Breakdown -->
+        ${paymentModeData.length > 0 ? `
+        <div style="margin-bottom:30px;">
+          <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">💳 Payment Mode Breakdown</h2>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f3f4f6;">
+                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Payment Mode</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Amount</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">% of Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${paymentModeData.map((m, idx) => `
+                <tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};">
+                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${m.name}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;">${fmt(m.value)}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${totalReceipts > 0 ? ((m.value / totalReceipts) * 100).toFixed(1) : "0"}%</td>
+                </tr>
+              `).join("")}
+              <tr style="background:#f3f4f6;font-weight:700;">
+                <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">Total</td>
+                <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${fmt(totalReceipts)}</td>
+                <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">100%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        ` : ""}
+
+        <!-- Top Clients -->
+        ${topClients.length > 0 ? `
+        <div style="margin-bottom:30px;">
+          <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">👥 Top Clients by Outstanding</h2>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f3f4f6;">
+                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">#</th>
+                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Client Name</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Outstanding</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${topClients.map((c, idx) => `
+                <tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};">
+                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${idx + 1}</td>
+                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:500;">${c.name}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;color:#dc2626;">${fmt(c.amount)}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+        ` : ""}
+
+        <!-- Recent Invoices -->
+        ${recentInvoices.length > 0 ? `
+        <div style="margin-bottom:30px;">
+          <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">🧾 Recent Invoices</h2>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f3f4f6;">
+                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Invoice #</th>
+                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Client</th>
+                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Date</th>
+                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Due Date</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Amount</th>
+                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${recentInvoices.map((inv, idx) => `
+                <tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};">
+                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:600;">${inv.invoice_number}</td>
+                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${(inv.clients as any)?.display_name || ""}</td>
+                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${inv.issue_date}</td>
+                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${inv.due_date}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;">${fmt(Number(inv.total))}</td>
+                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;"><span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:${STATUS_COLORS[inv.status] || "#6b7280"}20;color:${STATUS_COLORS[inv.status] || "#6b7280"};">${inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}</span></td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+        ` : ""}
+
+        <!-- Footer -->
+        <div style="border-top:2px solid #e5e7eb;padding-top:16px;margin-top:30px;text-align:center;">
+          <p style="font-size:11px;color:#9ca3af;margin:0;">Generated by ${org?.name || "BillFlow"} • ${today}</p>
+          <p style="font-size:10px;color:#d1d5db;margin:4px 0 0;">This is an auto-generated report. All amounts are in ${org?.currency_code || "USD"}.</p>
+        </div>
+      `;
+
+      // Now capture charts from the live dashboard
+      const chartElements = dashboardRef.current?.querySelectorAll(".recharts-wrapper");
+      const chartImages: string[] = [];
+
+      if (chartElements) {
+        for (const chartEl of Array.from(chartElements)) {
+          try {
+            const canvas = await html2canvas(chartEl as HTMLElement, { backgroundColor: "#ffffff", scale: 2 });
+            chartImages.push(canvas.toDataURL("image/png"));
+          } catch {
+            // skip chart if capture fails
+          }
+        }
+      }
+
+      // Insert chart images after the KPI section
+      if (chartImages.length > 0) {
+        const chartSection = document.createElement("div");
+        chartSection.style.cssText = "margin-bottom:30px;";
+        chartSection.innerHTML = `
+          <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">📉 Visual Charts</h2>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
+            ${chartImages.map((img, i) => `<img src="${img}" style="width:100%;border:1px solid #e5e7eb;border-radius:8px;" alt="Chart ${i + 1}" />`).join("")}
+          </div>
+        `;
+        // Insert after the second section (Invoice Summary)
+        const sections = pdfContainer.querySelectorAll("div > div");
+        if (sections.length > 3) {
+          sections[3].after(chartSection);
+        } else {
+          pdfContainer.appendChild(chartSection);
+        }
+      }
+
+      // Render to canvas
+      const canvas = await html2canvas(pdfContainer, {
+        backgroundColor: "#ffffff",
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+
+      document.body.removeChild(pdfContainer);
+
+      // Create multi-page PDF
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const pdf = new jsPDF("p", "mm", "a4");
+
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = -(imgHeight - heightLeft);
+        pdf.addPage();
+        pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`Dashboard-Report-${new Date().toISOString().split("T")[0]}.pdf`);
+    } catch (err) {
+      console.error("PDF export failed:", err);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6" ref={dashboardRef}>
       <PageHeader title="Dashboard" description={`Welcome back${profile?.first_name ? `, ${profile.first_name}` : ""}`}>
+        <Button onClick={handleExportPDF} variant="outline" size="sm" disabled={exporting}>
+          {exporting ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Download className="mr-1 h-4 w-4" />}
+          {exporting ? "Exporting..." : "Export PDF"}
+        </Button>
         <Button onClick={() => navigate("/invoices/new")} size="sm">
           <Plus className="mr-1 h-4 w-4" /> New Invoice
         </Button>

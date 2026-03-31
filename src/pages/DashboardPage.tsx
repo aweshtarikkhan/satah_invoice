@@ -450,42 +450,25 @@ export default function DashboardPage() {
         </div>
       `;
 
-      // Now capture charts from the live dashboard
-      const chartElements = dashboardRef.current?.querySelectorAll(".recharts-wrapper");
-      const chartImages: string[] = [];
+      // Capture charts from the live dashboard
+      const chartCards = dashboardRef.current?.querySelectorAll(".recharts-wrapper");
+      const chartImages: { img: string; title: string }[] = [];
+      const chartTitles = ["Sales and Collections", "Invoice Status Distribution", "Payment Mode Breakdown"];
 
-      if (chartElements) {
-        for (const chartEl of Array.from(chartElements)) {
+      if (chartCards) {
+        for (let ci = 0; ci < chartCards.length; ci++) {
+          const chartEl = chartCards[ci];
           try {
             const canvas = await html2canvas(chartEl as HTMLElement, { backgroundColor: "#ffffff", scale: 2 });
-            chartImages.push(canvas.toDataURL("image/png"));
+            chartImages.push({ img: canvas.toDataURL("image/png"), title: chartTitles[ci] || `Chart ${ci + 1}` });
           } catch {
-            // skip chart if capture fails
+            // skip
           }
         }
       }
 
-      // Insert chart images after the KPI section
-      if (chartImages.length > 0) {
-        const chartSection = document.createElement("div");
-        chartSection.style.cssText = "margin-bottom:30px;";
-        chartSection.innerHTML = `
-          <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">📉 Visual Charts</h2>
-          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
-            ${chartImages.map((img, i) => `<img src="${img}" style="width:100%;border:1px solid #e5e7eb;border-radius:8px;" alt="Chart ${i + 1}" />`).join("")}
-          </div>
-        `;
-        // Insert after the second section (Invoice Summary)
-        const sections = pdfContainer.querySelectorAll("div > div");
-        if (sections.length > 3) {
-          sections[3].after(chartSection);
-        } else {
-          pdfContainer.appendChild(chartSection);
-        }
-      }
-
-      // Render to canvas
-      const canvas = await html2canvas(pdfContainer, {
+      // Render tables page to canvas
+      const tablesCanvas = await html2canvas(pdfContainer, {
         backgroundColor: "#ffffff",
         scale: 2,
         useCORS: true,
@@ -494,23 +477,56 @@ export default function DashboardPage() {
 
       document.body.removeChild(pdfContainer);
 
-      // Create multi-page PDF
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      // Create PDF
+      const imgWidth = 210; // A4 width mm
+      const pageHeight = 297; // A4 height mm
       const pdf = new jsPDF("p", "mm", "a4");
 
-      let heightLeft = imgHeight;
+      // Page 1+: Table data
+      const tablesImgHeight = (tablesCanvas.height * imgWidth) / tablesCanvas.width;
+      let heightLeft = tablesImgHeight;
       let position = 0;
 
-      pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, position, imgWidth, imgHeight);
+      pdf.addImage(tablesCanvas.toDataURL("image/png"), "PNG", 0, position, imgWidth, tablesImgHeight);
       heightLeft -= pageHeight;
 
       while (heightLeft > 0) {
-        position = -(imgHeight - heightLeft);
+        position = -(tablesImgHeight - heightLeft);
         pdf.addPage();
-        pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, position, imgWidth, imgHeight);
+        pdf.addImage(tablesCanvas.toDataURL("image/png"), "PNG", 0, position, imgWidth, tablesImgHeight);
         heightLeft -= pageHeight;
+      }
+
+      // Each chart gets its own full page
+      for (const chart of chartImages) {
+        pdf.addPage();
+        // Title
+        pdf.setFontSize(18);
+        pdf.setTextColor(26, 26, 26);
+        pdf.text(chart.title, 105, 25, { align: "center" });
+        pdf.setDrawColor(37, 99, 235);
+        pdf.setLineWidth(0.5);
+        pdf.line(20, 30, 190, 30);
+
+        // Chart image centered on page
+        const chartImg = new Image();
+        chartImg.src = chart.img;
+        const maxW = 170; // mm
+        const maxH = 220; // mm
+        // Approximate aspect ratio from the data URL
+        const tempCanvas = document.createElement("canvas");
+        const tempCtx = tempCanvas.getContext("2d");
+        // Use fixed aspect for simplicity
+        const chartW = maxW;
+        const chartH = maxH * 0.6;
+        const chartX = (210 - chartW) / 2;
+        const chartY = 40;
+        pdf.addImage(chart.img, "PNG", chartX, chartY, chartW, chartH);
+
+        // Add summary text below chart
+        pdf.setFontSize(11);
+        pdf.setTextColor(107, 114, 128);
+        pdf.text(`${org?.name || "Organization"} — Financial Report`, 105, chartY + chartH + 15, { align: "center" });
       }
 
       pdf.save(`Dashboard-Report-${new Date().toISOString().split("T")[0]}.pdf`);

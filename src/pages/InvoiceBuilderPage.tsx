@@ -822,15 +822,24 @@ export default function InvoiceBuilderPage() {
                   <SelectTrigger className="h-7 w-14 text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="percentage">%</SelectItem>
-                    <SelectItem value="fixed">$</SelectItem>
+                    <SelectItem value="fixed">₹</SelectItem>
                   </SelectContent>
                 </Select>
-                <span className="text-destructive">-{fmt(totalDiscount)}</span>
+                {totalDiscount > 0 && <span className="text-destructive">-{fmt(totalDiscount)}</span>}
               </div>
             </div>
-            <div className="flex justify-between text-sm">
+            <div className="flex items-center justify-between text-sm gap-2">
               <span className="text-muted-foreground">Tax</span>
-              <span>+{fmt(totalTax)}</span>
+              <div className="flex items-center gap-1">
+                <Select value={invoiceTaxId || "none"} onValueChange={(v) => setInvoiceTaxId(v === "none" ? null : v)}>
+                  <SelectTrigger className="h-7 w-28 text-xs"><SelectValue placeholder="No tax" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No tax</SelectItem>
+                    {taxRates.map((t: any) => (<SelectItem key={t.id} value={t.id}>{t.name} ({t.rate}%)</SelectItem>))}
+                  </SelectContent>
+                </Select>
+                {totalTax > 0 && <span>+{fmt(totalTax)}</span>}
+              </div>
             </div>
             <div className="flex items-center justify-between text-sm gap-2">
               <span className="text-muted-foreground">Shipping</span>

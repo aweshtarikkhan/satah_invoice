@@ -223,7 +223,7 @@ export default function InvoiceBuilderPage() {
   const [clientInvoices, setClientInvoices] = useState<any[]>([]);
   const [bulkAddOpen, setBulkAddOpen] = useState(false);
   const [bulkSelected, setBulkSelected] = useState<Set<string>>(new Set());
-  const [invoiceTaxId, setInvoiceTaxId] = useState<string | null>(null);
+  const [invoiceTaxIds, setInvoiceTaxIds] = useState<string[]>([]);
   const [addTaxOpen, setAddTaxOpen] = useState(false);
   const [newTaxName, setNewTaxName] = useState("");
   const [newTaxRate, setNewTaxRate] = useState("");

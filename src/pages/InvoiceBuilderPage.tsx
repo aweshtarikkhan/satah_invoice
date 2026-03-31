@@ -856,22 +856,63 @@ export default function InvoiceBuilderPage() {
                 {totalDiscount > 0 && <span className="text-destructive">-{fmt(totalDiscount)}</span>}
               </div>
             </div>
-            <div className="flex items-center justify-between text-sm gap-2">
-              <span className="text-muted-foreground">Tax</span>
-              <div className="flex items-center gap-1">
-                <Select value={invoiceTaxId || "none"} onValueChange={(v) => {
-                  if (v === "add_new") { setAddTaxOpen(true); return; }
-                  setInvoiceTaxId(v === "none" ? null : v);
-                }}>
-                  <SelectTrigger className="h-7 w-32 text-xs"><SelectValue placeholder="No tax" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No tax</SelectItem>
-                    {taxRates.map((t: any) => (<SelectItem key={t.id} value={t.id}>{t.name} ({t.rate}%)</SelectItem>))}
-                    <SelectItem value="add_new" className="text-primary font-medium">+ Add New Tax</SelectItem>
-                  </SelectContent>
-                </Select>
-                {totalTax > 0 && <span>+{fmt(totalTax)}</span>}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-sm gap-2">
+                <span className="text-muted-foreground">Tax</span>
+                <div className="flex items-center gap-1">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-7 text-xs min-w-[120px] justify-between">
+                        {invoiceTaxIds.length === 0 ? "Select taxes" : `${invoiceTaxIds.length} tax${invoiceTaxIds.length > 1 ? "es" : ""} selected`}
+                        <ChevronDown className="h-3 w-3 ml-1 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-56 p-2" align="end">
+                      <div className="space-y-1 max-h-48 overflow-y-auto">
+                        {taxRates.length === 0 && (
+                          <p className="text-xs text-muted-foreground py-2 text-center">No taxes added yet</p>
+                        )}
+                        {taxRates.map((t: any) => {
+                          const isSelected = invoiceTaxIds.includes(t.id);
+                          return (
+                            <div
+                              key={t.id}
+                              className="flex items-center gap-2 py-1.5 px-2 rounded cursor-pointer hover:bg-accent/50"
+                              onClick={() => {
+                                setInvoiceTaxIds((prev) =>
+                                  isSelected ? prev.filter((id) => id !== t.id) : [...prev, t.id]
+                                );
+                              }}
+                            >
+                              <div className={`h-4 w-4 rounded border flex items-center justify-center ${isSelected ? "bg-primary border-primary" : "border-input"}`}>
+                                {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
+                              </div>
+                              <span className="text-sm flex-1">{t.name}</span>
+                              <span className="text-xs text-muted-foreground">{t.rate}%</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="border-t mt-2 pt-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full text-xs text-primary"
+                          onClick={() => setAddTaxOpen(true)}
+                        >
+                          <Plus className="h-3 w-3 mr-1" /> Add New Tax
+                        </Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
+              {taxBreakdown.map((tb) => (
+                <div key={tb.id} className="flex items-center justify-between text-xs pl-4 text-muted-foreground">
+                  <span>{tb.name} ({tb.rate}%)</span>
+                  <span>+{fmt(tb.amount)}</span>
+                </div>
+              ))}
             </div>
             <div className="flex items-center justify-between text-sm gap-2">
               <span className="text-muted-foreground">Shipping</span>

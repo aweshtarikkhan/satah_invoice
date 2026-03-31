@@ -435,6 +435,40 @@ export default function DashboardPage() {
         </div>
         ` : ""}
 
+        <!-- Overdue Clients (30+ Days) -->
+        ${overdueClients.length > 0 ? `
+        <div style="margin-bottom:30px;">
+          <h2 style="font-size:18px;font-weight:700;color:#dc2626;margin:0 0 12px;border-bottom:2px solid #fecaca;padding-bottom:8px;">⚠️ Overdue Clients — Payment Due 30+ Days</h2>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="background:#fef2f2;">
+                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Client Name</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Outstanding</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Overdue Invoices</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Max Overdue Days</th>
+                <th style="text-align:center;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Risk Level</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${overdueClients.map((c, idx) => {
+                const riskColor = c.maxOverdueDays >= 90 ? "#dc2626" : c.maxOverdueDays >= 60 ? "#f59e0b" : "#fb923c";
+                const riskBg = c.maxOverdueDays >= 90 ? "#fef2f2" : c.maxOverdueDays >= 60 ? "#fffbeb" : "#fff7ed";
+                const riskLabel = c.maxOverdueDays >= 90 ? "🔴 Critical (90+ Days)" : c.maxOverdueDays >= 60 ? "🟠 High Risk (60+ Days)" : "🟡 Warning (30+ Days)";
+                return `
+                <tr style="background:${riskBg};border-left:4px solid ${riskColor};">
+                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:600;">${c.name}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:700;color:${riskColor};">${fmt(c.totalDue)}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${c.invoiceCount}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:700;color:${riskColor};">${c.maxOverdueDays} days</td>
+                  <td style="padding:10px 12px;font-size:12px;text-align:center;border:1px solid #e5e7eb;font-weight:600;color:${riskColor};">${riskLabel}</td>
+                </tr>
+                `;
+              }).join("")}
+            </tbody>
+          </table>
+        </div>
+        ` : ""}
+
         <!-- Recent Invoices -->
         ${recentInvoices.length > 0 ? `
         <div style="margin-bottom:30px;">

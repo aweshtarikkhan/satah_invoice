@@ -176,6 +176,27 @@ export default function DashboardPage() {
       .slice(0, 5);
   }, [invoices, clients]);
 
+  // Overdue clients with aging info
+  const overdueClients = useMemo(() => {
+    const today = new Date();
+    const clientMap: Record<string, { name: string; totalDue: number; maxOverdueDays: number; invoiceCount: number }> = {};
+    invoices.forEach((i) => {
+      const bal = Number(i.balance_due);
+      if (bal <= 0) return;
+      const due = new Date(i.due_date);
+      const daysOverdue = Math.floor((today.getTime() - due.getTime()) / 86400000);
+      if (daysOverdue < 30) return;
+      const clientId = i.client_id || "unknown";
+      const client = clients.find((c) => c.id === clientId);
+      const name = client?.display_name || "Unknown";
+      if (!clientMap[clientId]) clientMap[clientId] = { name, totalDue: 0, maxOverdueDays: 0, invoiceCount: 0 };
+      clientMap[clientId].totalDue += bal;
+      clientMap[clientId].invoiceCount += 1;
+      if (daysOverdue > clientMap[clientId].maxOverdueDays) clientMap[clientId].maxOverdueDays = daysOverdue;
+    });
+    return Object.values(clientMap).sort((a, b) => b.maxOverdueDays - a.maxOverdueDays);
+  }, [invoices, clients]);
+
   const paymentModeData = useMemo(() => {
     const modeMap: Record<string, number> = {};
     payments.forEach((p) => {
@@ -186,6 +207,8 @@ export default function DashboardPage() {
       .map(([name, value]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), value }))
       .sort((a, b) => b.value - a.value);
   }, [payments]);
+
+  const PIE_COLORS = ["#2563eb", "#16a34a", "#f59e0b", "#dc2626", "#8b5cf6", "#06b6d4", "#ec4899"];
 
   const totalSales = invoices.reduce((s, i) => s + Number(i.total), 0);
   const totalReceipts = payments.reduce((s, p) => s + Number(p.amount), 0);

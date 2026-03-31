@@ -206,6 +206,9 @@ export default function InvoiceBuilderPage() {
   const [bulkAddOpen, setBulkAddOpen] = useState(false);
   const [bulkSelected, setBulkSelected] = useState<Set<string>>(new Set());
   const [invoiceTaxId, setInvoiceTaxId] = useState<string | null>(null);
+  const [addTaxOpen, setAddTaxOpen] = useState(false);
+  const [newTaxName, setNewTaxName] = useState("");
+  const [newTaxRate, setNewTaxRate] = useState("");
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -831,11 +834,15 @@ export default function InvoiceBuilderPage() {
             <div className="flex items-center justify-between text-sm gap-2">
               <span className="text-muted-foreground">Tax</span>
               <div className="flex items-center gap-1">
-                <Select value={invoiceTaxId || "none"} onValueChange={(v) => setInvoiceTaxId(v === "none" ? null : v)}>
-                  <SelectTrigger className="h-7 w-28 text-xs"><SelectValue placeholder="No tax" /></SelectTrigger>
+                <Select value={invoiceTaxId || "none"} onValueChange={(v) => {
+                  if (v === "add_new") { setAddTaxOpen(true); return; }
+                  setInvoiceTaxId(v === "none" ? null : v);
+                }}>
+                  <SelectTrigger className="h-7 w-32 text-xs"><SelectValue placeholder="No tax" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No tax</SelectItem>
                     {taxRates.map((t: any) => (<SelectItem key={t.id} value={t.id}>{t.name} ({t.rate}%)</SelectItem>))}
+                    <SelectItem value="add_new" className="text-primary font-medium">+ Add New Tax</SelectItem>
                   </SelectContent>
                 </Select>
                 {totalTax > 0 && <span>+{fmt(totalTax)}</span>}
@@ -882,6 +889,40 @@ export default function InvoiceBuilderPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Add Tax Dialog */}
+      <Dialog open={addTaxOpen} onOpenChange={setAddTaxOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Add New Tax Rate</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label className="text-xs">Tax Name</Label>
+              <Input value={newTaxName} onChange={(e) => setNewTaxName(e.target.value)} placeholder="e.g. GST 18%" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Rate (%)</Label>
+              <Input type="number" value={newTaxRate} onChange={(e) => setNewTaxRate(e.target.value)} placeholder="18" min={0} step="0.01" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddTaxOpen(false)}>Cancel</Button>
+            <Button onClick={async () => {
+              if (!newTaxName.trim() || !newTaxRate) { toast({ title: "Fill all fields", variant: "destructive" }); return; }
+              const { data, error } = await supabase.from("tax_rates").insert({
+                org_id: org!.id, name: newTaxName.trim(), rate: parseFloat(newTaxRate), type: "simple",
+              }).select().single();
+              if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+              setTaxRates((prev) => [...prev, data]);
+              setInvoiceTaxId(data.id);
+              setNewTaxName(""); setNewTaxRate("");
+              setAddTaxOpen(false);
+              toast({ title: `Tax "${data.name}" added` });
+            }}>Add Tax</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

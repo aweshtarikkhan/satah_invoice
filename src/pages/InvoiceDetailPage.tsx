@@ -47,7 +47,7 @@ export default function InvoiceDetailPage() {
     if (!id) return;
     const { data: inv } = await supabase
       .from("invoices")
-      .select("*, clients(display_name, email)")
+      .select("*, clients(display_name, email, tax_number)")
       .eq("id", id)
       .single();
     setInvoice(inv);

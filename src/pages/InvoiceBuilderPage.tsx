@@ -81,7 +81,6 @@ function createEmptyLine(): LineItem {
 function SortableLineItem({
   line,
   index,
-  taxRates,
   items,
   onChange,
   onRemove,
@@ -90,7 +89,6 @@ function SortableLineItem({
 }: {
   line: LineItem;
   index: number;
-  taxRates: any[];
   items: any[];
   onChange: (index: number, field: string, value: any) => void;
   onRemove: (index: number) => void;
@@ -116,7 +114,6 @@ function SortableLineItem({
       onChange(index, "description", item.description || "");
       onChange(index, "rate", Number(item.unit_price));
       onChange(index, "unit", item.unit || "pcs");
-      if (item.tax_id) onChange(index, "tax_id", item.tax_id);
     }
   };
 
@@ -124,16 +121,17 @@ function SortableLineItem({
     new Intl.NumberFormat("en-US", { style: "currency", currency }).format(n);
 
   return (
-    <div ref={setNodeRef} style={style} className="flex items-center gap-1 py-1.5 border-b last:border-0">
-      <button {...attributes} {...listeners} className="cursor-grab text-muted-foreground hover:text-foreground shrink-0">
+    <div ref={setNodeRef} style={style} className="flex items-start gap-1 py-3 border-b last:border-0">
+      <button {...attributes} {...listeners} className="cursor-grab text-muted-foreground hover:text-foreground shrink-0 mt-2">
         <GripVertical className="h-3.5 w-3.5" />
       </button>
-      <div className="grid flex-1 grid-cols-12 gap-1 items-center">
-        <div className="col-span-3">
+      <div className="grid flex-1 grid-cols-12 gap-2 items-start">
+        {/* Item Details - Name + Description */}
+        <div className="col-span-5 space-y-1">
           <div className="flex gap-0.5">
             <Select value={line.item_id || "none"} onValueChange={handleItemSelect}>
               <SelectTrigger className="h-8 text-xs flex-1">
-                <SelectValue placeholder="Select item..." />
+                <SelectValue placeholder="Type or click to select an item." />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Custom item</SelectItem>
@@ -146,39 +144,29 @@ function SortableLineItem({
               <Plus className="h-3 w-3" />
             </button>
           </div>
+          <Textarea
+            className="text-xs min-h-[40px] resize-none"
+            placeholder="Add a description to your item"
+            value={line.description}
+            onChange={(e) => onChange(index, "description", e.target.value)}
+            rows={2}
+          />
+          {line.unit && <span className="text-[10px] text-muted-foreground">{line.unit}</span>}
         </div>
+        {/* Quantity */}
         <div className="col-span-2">
-          <Input className="h-8 text-xs" placeholder="Name" value={line.name} onChange={(e) => onChange(index, "name", e.target.value)} />
-        </div>
-        <div className="col-span-1">
-          <Select value={line.unit || "pcs"} onValueChange={(v) => onChange(index, "unit", v)}>
-            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {UNITS.map((u) => (<SelectItem key={u} value={u}>{u}</SelectItem>))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="col-span-1">
           <Input type="number" className="h-8 text-xs text-center" value={line.quantity} onChange={(e) => onChange(index, "quantity", parseFloat(e.target.value) || 0)} min={0} step="0.01" />
         </div>
+        {/* Rate */}
         <div className="col-span-2">
-          <Input type="number" className="h-8 text-xs" value={line.rate} onChange={(e) => onChange(index, "rate", parseFloat(e.target.value) || 0)} min={0} step="0.01" />
+          <Input type="number" className="h-8 text-xs text-right" value={line.rate} onChange={(e) => onChange(index, "rate", parseFloat(e.target.value) || 0)} min={0} step="0.01" />
         </div>
-        <div className="col-span-1">
-          <Select value={line.tax_id || "none"} onValueChange={(v) => onChange(index, "tax_id", v === "none" ? null : v)}>
-            <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Tax" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">No tax</SelectItem>
-              {taxRates.map((t: any) => (<SelectItem key={t.id} value={t.id}>{t.rate}%</SelectItem>))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="col-span-2 text-right">
-          <span className="text-sm font-medium">{fmt(line.amount)}</span>
-          {line.tax_amount > 0 && <span className="text-[10px] text-muted-foreground ml-1">+{fmt(line.tax_amount)}</span>}
+        {/* Amount */}
+        <div className="col-span-3 text-right pt-1">
+          <span className="text-sm font-bold">{fmt(line.amount)}</span>
         </div>
       </div>
-      <button onClick={() => onRemove(index)} className="text-muted-foreground hover:text-destructive shrink-0">
+      <button onClick={() => onRemove(index)} className="text-muted-foreground hover:text-destructive shrink-0 mt-2 ml-1">
         <Trash2 className="h-3.5 w-3.5" />
       </button>
     </div>

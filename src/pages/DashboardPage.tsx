@@ -814,7 +814,7 @@ export default function DashboardPage() {
                   <PieChart>
                     <Pie data={paymentModeData} cx="50%" cy="50%" innerRadius={55} outerRadius={90} paddingAngle={3} dataKey="value" label={false}>
                       {paymentModeData.map((_, idx) => (
-                        <Cell key={idx} fill={AGING_COLORS[idx % AGING_COLORS.length]} />
+                        <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(value: number) => fmt(value)} />

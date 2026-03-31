@@ -554,8 +554,19 @@ export default function DashboardPage() {
         heightLeft -= pageHeight;
       }
 
-      // Each chart gets its own full page
-      for (const chart of chartImages) {
+      // Build legend data for each chart
+      const chartLegends: { label: string; color: string; value: string }[][] = [
+        // Chart 0: Sales and Collections (bar chart)
+        monthlyData.map((m) => ({ label: m.month, color: "", value: `Sales: ${fmt(m.invoiced)} | Collected: ${fmt(m.collected)}` })),
+        // Chart 1: Invoice Status (pie)
+        statusData.map((s) => ({ label: s.name, color: s.color, value: `${s.value} invoices (${invoices.length > 0 ? ((s.value / invoices.length) * 100).toFixed(1) : "0"}%)` })),
+        // Chart 2: Payment Mode (pie)
+        paymentModeData.map((m, i) => ({ label: m.name, color: PIE_COLORS[i % PIE_COLORS.length], value: `${fmt(m.value)} (${totalReceipts > 0 ? ((m.value / totalReceipts) * 100).toFixed(1) : "0"}%)` })),
+      ];
+
+      // Each chart gets its own full page with legend
+      for (let ci = 0; ci < chartImages.length; ci++) {
+        const chart = chartImages[ci];
         pdf.addPage();
         // Title
         pdf.setFontSize(18);
@@ -565,25 +576,74 @@ export default function DashboardPage() {
         pdf.setLineWidth(0.5);
         pdf.line(20, 30, 190, 30);
 
-        // Chart image centered on page
-        const chartImg = new Image();
-        chartImg.src = chart.img;
-        const maxW = 170; // mm
-        const maxH = 220; // mm
-        // Approximate aspect ratio from the data URL
-        const tempCanvas = document.createElement("canvas");
-        const tempCtx = tempCanvas.getContext("2d");
-        // Use fixed aspect for simplicity
-        const chartW = maxW;
-        const chartH = maxH * 0.6;
+        // Chart image
+        const chartW = 170;
+        const chartH = 110;
         const chartX = (210 - chartW) / 2;
-        const chartY = 40;
+        const chartY = 38;
         pdf.addImage(chart.img, "PNG", chartX, chartY, chartW, chartH);
 
-        // Add summary text below chart
-        pdf.setFontSize(11);
-        pdf.setTextColor(107, 114, 128);
-        pdf.text(`${org?.name || "Organization"} — Financial Report`, 105, chartY + chartH + 15, { align: "center" });
+        // Legend table below chart
+        const legends = chartLegends[ci] || [];
+        if (legends.length > 0) {
+          let legendY = chartY + chartH + 12;
+          pdf.setFontSize(12);
+          pdf.setTextColor(26, 26, 26);
+          pdf.text("Legend & Values", 20, legendY);
+          legendY += 6;
+          pdf.setDrawColor(229, 231, 235);
+          pdf.setLineWidth(0.3);
+
+          // For bar chart (index 0), show as simple table
+          if (ci === 0) {
+            // Header
+            pdf.setFillColor(243, 244, 246);
+            pdf.rect(20, legendY, 170, 8, "F");
+            pdf.setFontSize(9);
+            pdf.setTextColor(75, 85, 99);
+            pdf.text("Month", 25, legendY + 5.5);
+            pdf.text("Sales", 100, legendY + 5.5);
+            pdf.text("Collections", 145, legendY + 5.5);
+            legendY += 9;
+            pdf.setTextColor(26, 26, 26);
+            for (const item of legends) {
+              const parts = item.value.split(" | ");
+              pdf.setFontSize(9);
+              pdf.text(item.label, 25, legendY + 5);
+              pdf.setTextColor(22, 163, 74);
+              pdf.text(parts[0]?.replace("Sales: ", "") || "", 100, legendY + 5);
+              pdf.setTextColor(37, 99, 235);
+              pdf.text(parts[1]?.replace("Collected: ", "") || "", 145, legendY + 5);
+              pdf.setTextColor(26, 26, 26);
+              legendY += 7;
+            }
+          } else {
+            // Pie chart legends with color dots
+            for (const item of legends) {
+              // Color dot
+              const hex = item.color || "#6b7280";
+              const r = parseInt(hex.slice(1, 3), 16);
+              const g = parseInt(hex.slice(3, 5), 16);
+              const b = parseInt(hex.slice(5, 7), 16);
+              pdf.setFillColor(r, g, b);
+              pdf.circle(25, legendY + 2.5, 2.5, "F");
+              // Label
+              pdf.setFontSize(10);
+              pdf.setTextColor(26, 26, 26);
+              pdf.text(item.label, 32, legendY + 4);
+              // Value
+              pdf.setFontSize(9);
+              pdf.setTextColor(107, 114, 128);
+              pdf.text(item.value, 80, legendY + 4);
+              legendY += 8;
+            }
+          }
+        }
+
+        // Footer
+        pdf.setFontSize(9);
+        pdf.setTextColor(156, 163, 175);
+        pdf.text(`${org?.name || "Organization"} — Financial Report`, 105, 285, { align: "center" });
       }
 
       pdf.save(`Dashboard-Report-${new Date().toISOString().split("T")[0]}.pdf`);

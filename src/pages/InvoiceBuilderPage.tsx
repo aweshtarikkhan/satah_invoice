@@ -443,8 +443,8 @@ export default function InvoiceBuilderPage() {
       }
 
       // Insert lines
-      const linePayloads = lines
-        .filter((l) => l.name.trim())
+      const linePayloads = validLines
+        .filter((l) => l.name.trim() || l.rate > 0)
         .map((l, i) => ({
           invoice_id: invoiceId!,
           item_id: l.item_id,

@@ -130,17 +130,24 @@ function SortableLineItem({
         {/* Item Details - Name + Description */}
         <div className="col-span-5 space-y-1">
           <div className="flex gap-0.5">
-            <Select value={line.item_id || ""} onValueChange={handleItemSelect}>
-              <SelectTrigger className="h-8 text-xs flex-1">
-                <SelectValue placeholder="Select an item" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="manual_entry" className="text-muted-foreground italic">&nbsp;</SelectItem>
-                {items.map((item: any) => (
-                  <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="relative flex-1">
+              <Input
+                className="h-8 text-xs pr-7"
+                placeholder="Type item name"
+                value={line.name}
+                onChange={(e) => onChange(index, "name", e.target.value)}
+              />
+              <Select value={line.item_id || ""} onValueChange={handleItemSelect}>
+                <SelectTrigger className="absolute right-0 top-0 h-8 w-7 border-0 bg-transparent shadow-none px-1 focus:ring-0">
+                  <ChevronDown className="h-3 w-3" />
+                </SelectTrigger>
+                <SelectContent>
+                  {items.map((item: any) => (
+                    <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <button type="button" onClick={onAddItem} className="h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-muted-foreground hover:text-foreground hover:bg-accent shrink-0" title="Add New Item">
               <Plus className="h-3 w-3" />
             </button>

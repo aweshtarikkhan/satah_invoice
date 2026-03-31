@@ -103,8 +103,9 @@ function SortableLineItem({
   };
 
   const handleItemSelect = (itemId: string) => {
-    if (itemId === "none") {
+    if (itemId === "manual_entry") {
       onChange(index, "item_id", null);
+      onChange(index, "name", "");
       return;
     }
     const item = items.find((i: any) => i.id === itemId);
@@ -129,12 +130,12 @@ function SortableLineItem({
         {/* Item Details - Name + Description */}
         <div className="col-span-5 space-y-1">
           <div className="flex gap-0.5">
-            <Select value={line.item_id || "none"} onValueChange={handleItemSelect}>
+            <Select value={line.item_id || ""} onValueChange={handleItemSelect}>
               <SelectTrigger className="h-8 text-xs flex-1">
-                <SelectValue placeholder="Type or click to select an item." />
+                <SelectValue placeholder="Select an item" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Custom item</SelectItem>
+                <SelectItem value="manual_entry" className="text-muted-foreground italic">Manual entry</SelectItem>
                 {items.map((item: any) => (
                   <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>
                 ))}
@@ -389,10 +390,13 @@ export default function InvoiceBuilderPage() {
       toast({ title: "Select a client", variant: "destructive" });
       return;
     }
-    if (!lines.some((l) => l.name.trim())) {
+    // Auto-remove empty/blank lines before saving
+    const validLines = lines.filter((l) => l.name.trim() || l.rate > 0 || l.quantity > 0);
+    if (!validLines.length) {
       toast({ title: "Add at least one line item", variant: "destructive" });
       return;
     }
+    setLines(validLines);
     setSaving(true);
 
     const invoicePayload = {
@@ -439,8 +443,8 @@ export default function InvoiceBuilderPage() {
       }
 
       // Insert lines
-      const linePayloads = lines
-        .filter((l) => l.name.trim())
+      const linePayloads = validLines
+        .filter((l) => l.name.trim() || l.rate > 0)
         .map((l, i) => ({
           invoice_id: invoiceId!,
           item_id: l.item_id,

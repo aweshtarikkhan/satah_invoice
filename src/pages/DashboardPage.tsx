@@ -276,18 +276,6 @@ export default function DashboardPage() {
     return Object.values(clientMap).sort((a, b) => b.maxOverdueDays - a.maxOverdueDays);
   }, [invoices, clients]);
 
-  const paymentModeData = useMemo(() => {
-    const modeMap: Record<string, number> = {};
-    payments.forEach((p) => {
-      const mode = (p.payment_mode || "other").replace(/_/g, " ");
-      modeMap[mode] = (modeMap[mode] || 0) + Number(p.amount);
-    });
-    return Object.entries(modeMap)
-      .map(([name, value]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), value }))
-      .sort((a, b) => b.value - a.value);
-  }, [payments]);
-
-  const PIE_COLORS = ["#2563eb", "#16a34a", "#f59e0b", "#dc2626", "#8b5cf6", "#06b6d4", "#ec4899"];
 
   const totalSales = invoices.reduce((s, i) => s + Number(i.total), 0);
   const totalReceipts = payments.reduce((s, p) => s + Number(p.amount), 0);
@@ -308,14 +296,67 @@ export default function DashboardPage() {
 
       const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
-      pdfContainer.innerHTML = `
+      // Capture charts from the live dashboard
+      const chartCards = dashboardRef.current?.querySelectorAll(".recharts-wrapper");
+      const chartImages: { img: string; title: string }[] = [];
+      const chartTitles = [
+        "Sales and Collections",
+        "Cash Flow — Revenue vs Expenses",
+        "Top Customers by Revenue",
+        "Most Selling Items",
+        "Invoice Status Distribution",
+      ];
+
+      if (chartCards) {
+        for (let ci = 0; ci < chartCards.length; ci++) {
+          const chartEl = chartCards[ci];
+          try {
+            const canvas = await html2canvas(chartEl as HTMLElement, { backgroundColor: "#ffffff", scale: 1.5 });
+            chartImages.push({ img: canvas.toDataURL("image/jpeg", 0.8), title: chartTitles[ci] || `Chart ${ci + 1}` });
+          } catch {
+            // skip
+          }
+        }
+      }
+
+      document.body.removeChild(pdfContainer);
+
+      // Create PDF - render each section on its own page
+      const imgWidth = 210;
+      const pageHeight = 297;
+      const pdf = new jsPDF("p", "mm", "a4");
+
+      // Helper: render a section HTML to its own page(s)
+      const renderSection = async (html: string, isFirstPage: boolean) => {
+        const sec = document.createElement("div");
+        sec.style.cssText = "position:absolute;left:-9999px;top:0;width:1100px;background:white;color:#1a1a1a;padding:40px;font-family:Inter,system-ui,sans-serif;";
+        sec.innerHTML = html;
+        document.body.appendChild(sec);
+        const canvas = await html2canvas(sec, { backgroundColor: "#ffffff", scale: 1.5, useCORS: true, logging: false });
+        document.body.removeChild(sec);
+        const imgH = (canvas.height * imgWidth) / canvas.width;
+        const imgData = canvas.toDataURL("image/jpeg", 0.85);
+        if (!isFirstPage) pdf.addPage();
+        let left = imgH;
+        let pos = 0;
+        pdf.addImage(imgData, "JPEG", 0, pos, imgWidth, imgH);
+        left -= pageHeight;
+        while (left > 0) {
+          pos = -(imgH - left);
+          pdf.addPage();
+          pdf.addImage(imgData, "JPEG", 0, pos, imgWidth, imgH);
+          left -= pageHeight;
+        }
+      };
+
+      // Build sections array from the pdfContainer innerHTML
+      // Section 1: Header + KPIs
+      const headerKpi = `
         <div style="margin-bottom:30px;border-bottom:3px solid #2563eb;padding-bottom:20px;">
           <h1 style="font-size:28px;font-weight:800;color:#1a1a1a;margin:0;">${org?.name || "Organization"}</h1>
           <p style="font-size:14px;color:#6b7280;margin:4px 0 0;">Financial Dashboard Report — Generated on ${today}</p>
           ${org?.email ? `<p style="font-size:12px;color:#6b7280;margin:2px 0 0;">${org.email}${org.phone ? ` • ${org.phone}` : ""}</p>` : ""}
         </div>
-
-        <!-- KPI Summary -->
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:30px;">
           <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;">
             <p style="font-size:11px;color:#16a34a;font-weight:600;text-transform:uppercase;margin:0;">Total Sales</p>
@@ -334,8 +375,6 @@ export default function DashboardPage() {
             <p style="font-size:22px;font-weight:800;color:#a16207;margin:4px 0 0;">${collectionRate}%</p>
           </div>
         </div>
-
-        <!-- Invoice Summary -->
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:30px;">
           <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:14px;text-align:center;">
             <p style="font-size:28px;font-weight:800;color:#1a1a1a;margin:0;">${invoices.length}</p>
@@ -354,375 +393,147 @@ export default function DashboardPage() {
             <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Total Payments</p>
           </div>
         </div>
+      `;
+      await renderSection(headerKpi, true);
 
-        <!-- Receivables Aging -->
-        <div style="margin-bottom:30px;">
-          <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">📊 Receivables Aging Summary</h2>
-          <table style="width:100%;border-collapse:collapse;">
-            <thead>
-              <tr style="background:#f3f4f6;">
-                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Aging Bucket</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Amount</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">% of Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${agingData.map((b, idx) => `
-                <tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};">
-                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${b.label}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;color:${idx === 0 ? "#16a34a" : "#dc2626"};">${fmt(b.amount)}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${totalReceivable > 0 ? ((b.amount / totalReceivable) * 100).toFixed(1) : "0"}%</td>
-                </tr>
-              `).join("")}
-              <tr style="background:#f3f4f6;font-weight:700;">
-                <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">Total Outstanding</td>
-                <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${fmt(totalReceivable)}</td>
-                <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">100%</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      // Section 2: Receivables Aging
+      const agingHtml = `
+        <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">📊 Receivables Aging Summary</h2>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr style="background:#f3f4f6;">
+            <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Aging Bucket</th>
+            <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Amount</th>
+            <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">% of Total</th>
+          </tr></thead>
+          <tbody>
+            ${agingData.map((b, idx) => `<tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};"><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${b.label}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;color:${idx === 0 ? "#16a34a" : "#dc2626"};">${fmt(b.amount)}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${totalReceivable > 0 ? ((b.amount / totalReceivable) * 100).toFixed(1) : "0"}%</td></tr>`).join("")}
+            <tr style="background:#f3f4f6;font-weight:700;"><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">Total Outstanding</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${fmt(totalReceivable)}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">100%</td></tr>
+          </tbody>
+        </table>
+      `;
+      await renderSection(agingHtml, false);
 
-        <!-- Sales, Receipts & Dues -->
-        <div style="margin-bottom:30px;">
-          <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">💰 Sales, Receipts & Dues</h2>
-          <table style="width:100%;border-collapse:collapse;">
-            <thead>
-              <tr style="background:#f3f4f6;">
-                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Period</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Sales</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Receipts</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Due</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${salesReceiptsDues.map((row, idx) => `
-                <tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};">
-                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:500;">${row.label}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;color:#16a34a;">${fmt(row.sales)}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;color:#2563eb;">${fmt(row.receipts)}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;color:#dc2626;font-weight:600;">${fmt(row.due)}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
+      // Section 3: Sales, Receipts & Dues + Monthly
+      const salesMonthlyHtml = `
+        <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">💰 Sales, Receipts & Dues</h2>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:30px;">
+          <thead><tr style="background:#f3f4f6;">
+            <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Period</th>
+            <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Sales</th>
+            <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Receipts</th>
+            <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Due</th>
+          </tr></thead>
+          <tbody>${salesReceiptsDues.map((row, idx) => `<tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};"><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:500;">${row.label}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;color:#16a34a;">${fmt(row.sales)}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;color:#2563eb;">${fmt(row.receipts)}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;color:#dc2626;font-weight:600;">${fmt(row.due)}</td></tr>`).join("")}</tbody>
+        </table>
+        <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">📈 Monthly Sales & Collections (Last 6 Months)</h2>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr style="background:#f3f4f6;">
+            <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Month</th>
+            <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Sales</th>
+            <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Collections</th>
+            <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Difference</th>
+          </tr></thead>
+          <tbody>${monthlyData.map((m, idx) => `<tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};"><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:500;">${m.month}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${fmt(m.invoiced)}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${fmt(m.collected)}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;color:${m.invoiced - m.collected > 0 ? "#dc2626" : "#16a34a"};font-weight:600;">${fmt(m.invoiced - m.collected)}</td></tr>`).join("")}</tbody>
+        </table>
+      `;
+      await renderSection(salesMonthlyHtml, false);
 
-        <!-- Monthly Trends -->
-        <div style="margin-bottom:30px;">
-          <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">📈 Monthly Sales & Collections (Last 6 Months)</h2>
-          <table style="width:100%;border-collapse:collapse;">
-            <thead>
-              <tr style="background:#f3f4f6;">
-                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Month</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Sales</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Collections</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Difference</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${monthlyData.map((m, idx) => `
-                <tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};">
-                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:500;">${m.month}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${fmt(m.invoiced)}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${fmt(m.collected)}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;color:${m.invoiced - m.collected > 0 ? "#dc2626" : "#16a34a"};font-weight:600;">${fmt(m.invoiced - m.collected)}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
+      // Section 4: Cash Flow
+      const cashFlowHtml = `
+        <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">📉 Cash Flow — Revenue vs Expenses (Last 12 Months)</h2>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr style="background:#f3f4f6;">
+            <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Month</th>
+            <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Revenue</th>
+            <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Expenses</th>
+            <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Net Profit</th>
+          </tr></thead>
+          <tbody>${cashFlowData.map((m, idx) => `<tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};"><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:500;">${m.month}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;color:#16a34a;">${fmt(m.revenue)}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;color:#dc2626;">${fmt(m.expenses)}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:700;color:${m.profit >= 0 ? "#16a34a" : "#dc2626"};">${fmt(m.profit)}</td></tr>`).join("")}</tbody>
+        </table>
+      `;
+      await renderSection(cashFlowHtml, false);
 
-        <!-- Cash Flow (Revenue vs Expenses) -->
-        <div style="margin-bottom:30px;">
-          <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">📉 Cash Flow — Revenue vs Expenses (Last 12 Months)</h2>
-          <table style="width:100%;border-collapse:collapse;">
-            <thead>
-              <tr style="background:#f3f4f6;">
-                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Month</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Revenue</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Expenses</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Net Profit</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${cashFlowData.map((m, idx) => `
-                <tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};">
-                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:500;">${m.month}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;color:#16a34a;">${fmt(m.revenue)}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;color:#dc2626;">${fmt(m.expenses)}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:700;color:${m.profit >= 0 ? "#16a34a" : "#dc2626"};">${fmt(m.profit)}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Top Customers by Revenue -->
+      // Section 5: Top Customers + Most Selling Items + Invoice Status
+      const detailsHtml = `
         ${topCustomersByRevenue.length > 0 ? `
-        <div style="margin-bottom:30px;">
-          <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">🏆 Top Customers by Revenue</h2>
-          <table style="width:100%;border-collapse:collapse;">
-            <thead>
-              <tr style="background:#f3f4f6;">
-                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">#</th>
-                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Customer</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Total Revenue</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">% of Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${topCustomersByRevenue.map((c, idx) => `
-                <tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};">
-                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${idx + 1}</td>
-                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:600;">${c.name}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:700;color:#16a34a;">${fmt(c.revenue)}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${totalSales > 0 ? ((c.revenue / totalSales) * 100).toFixed(1) : "0"}%</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
-        ` : ""}
-
-        <!-- Most Selling Items -->
+        <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">🏆 Top Customers by Revenue</h2>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:30px;">
+          <thead><tr style="background:#f3f4f6;">
+            <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">#</th>
+            <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Customer</th>
+            <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Total Revenue</th>
+            <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">% of Total</th>
+          </tr></thead>
+          <tbody>${topCustomersByRevenue.map((c, idx) => `<tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};"><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${idx + 1}</td><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:600;">${c.name}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:700;color:#16a34a;">${fmt(c.revenue)}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${totalSales > 0 ? ((c.revenue / totalSales) * 100).toFixed(1) : "0"}%</td></tr>`).join("")}</tbody>
+        </table>` : ""}
         ${mostSellingItems.length > 0 ? `
-        <div style="margin-bottom:30px;">
-          <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">📦 Most Selling Items</h2>
-          <table style="width:100%;border-collapse:collapse;">
-            <thead>
-              <tr style="background:#f3f4f6;">
-                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Item</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Qty Sold</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Revenue</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">% of Revenue</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${mostSellingItems.map((item, idx) => `
-                <tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};">
-                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">
-                    <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${ITEM_COLORS[idx % ITEM_COLORS.length]};margin-right:8px;"></span>
-                    ${item.name}
-                  </td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${item.quantity}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;">${fmt(item.revenue)}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${totalItemRevenue > 0 ? ((item.revenue / totalItemRevenue) * 100).toFixed(1) : "0"}%</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
-        ` : ""}
+        <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">📦 Most Selling Items</h2>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:30px;">
+          <thead><tr style="background:#f3f4f6;">
+            <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Item</th>
+            <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Qty Sold</th>
+            <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Revenue</th>
+            <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">% of Revenue</th>
+          </tr></thead>
+          <tbody>${mostSellingItems.map((item, idx) => `<tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};"><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${ITEM_COLORS[idx % ITEM_COLORS.length]};margin-right:8px;"></span>${item.name}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${item.quantity}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;">${fmt(item.revenue)}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${totalItemRevenue > 0 ? ((item.revenue / totalItemRevenue) * 100).toFixed(1) : "0"}%</td></tr>`).join("")}</tbody>
+        </table>` : ""}
+        <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">📋 Invoice Status Breakdown</h2>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr style="background:#f3f4f6;">
+            <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Status</th>
+            <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Count</th>
+            <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">% of Total</th>
+          </tr></thead>
+          <tbody>${statusData.map((s, idx) => `<tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};"><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${s.color};margin-right:8px;"></span>${s.name}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;">${s.value}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${invoices.length > 0 ? ((s.value / invoices.length) * 100).toFixed(1) : "0"}%</td></tr>`).join("")}</tbody>
+        </table>
+      `;
+      await renderSection(detailsHtml, false);
 
-        <!-- Invoice Status Breakdown -->
-        <div style="margin-bottom:30px;">
-          <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">📋 Invoice Status Breakdown</h2>
-          <table style="width:100%;border-collapse:collapse;">
-            <thead>
-              <tr style="background:#f3f4f6;">
-                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Status</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Count</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">% of Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${statusData.map((s, idx) => `
-                <tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};">
-                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">
-                    <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${s.color};margin-right:8px;"></span>
-                    ${s.name}
-                  </td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;">${s.value}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${invoices.length > 0 ? ((s.value / invoices.length) * 100).toFixed(1) : "0"}%</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Payment Mode Breakdown -->
-        ${paymentModeData.length > 0 ? `
-        <div style="margin-bottom:30px;">
-          <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">💳 Payment Mode Breakdown</h2>
-          <table style="width:100%;border-collapse:collapse;">
-            <thead>
-              <tr style="background:#f3f4f6;">
-                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Payment Mode</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Amount</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">% of Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${paymentModeData.map((m, idx) => `
-                <tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};">
-                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${m.name}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;">${fmt(m.value)}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${totalReceipts > 0 ? ((m.value / totalReceipts) * 100).toFixed(1) : "0"}%</td>
-                </tr>
-              `).join("")}
-              <tr style="background:#f3f4f6;font-weight:700;">
-                <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">Total</td>
-                <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${fmt(totalReceipts)}</td>
-                <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">100%</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        ` : ""}
-
-        <!-- Top Clients by Outstanding -->
-        ${topClients.length > 0 ? `
-        <div style="margin-bottom:30px;">
-          <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">👥 Top Clients by Outstanding</h2>
-          <table style="width:100%;border-collapse:collapse;">
-            <thead>
-              <tr style="background:#f3f4f6;">
-                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">#</th>
-                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Client Name</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Outstanding</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${topClients.map((c, idx) => `
-                <tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};">
-                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${idx + 1}</td>
-                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:500;">${c.name}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;color:#dc2626;">${fmt(c.amount)}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
-        ` : ""}
-
-        <!-- Overdue Clients (30+ Days) -->
+      // Section 6: Overdue + Outstanding + Recent Invoices
+      const overdueRecentHtml = `
         ${overdueClients.length > 0 ? `
-        <div style="margin-bottom:30px;">
-          <h2 style="font-size:18px;font-weight:700;color:#dc2626;margin:0 0 12px;border-bottom:2px solid #fecaca;padding-bottom:8px;">⚠️ Overdue Clients — Payment Due 30+ Days</h2>
-          <table style="width:100%;border-collapse:collapse;">
-            <thead>
-              <tr style="background:#fef2f2;">
-                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Client Name</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Outstanding</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Overdue Invoices</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Max Overdue Days</th>
-                <th style="text-align:center;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Risk Level</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${overdueClients.map((c) => {
-                const riskColor = c.maxOverdueDays >= 90 ? "#dc2626" : c.maxOverdueDays >= 60 ? "#f59e0b" : "#fb923c";
-                const riskBg = c.maxOverdueDays >= 90 ? "#fef2f2" : c.maxOverdueDays >= 60 ? "#fffbeb" : "#fff7ed";
-                const riskLabel = c.maxOverdueDays >= 90 ? "🔴 Critical (90+ Days)" : c.maxOverdueDays >= 60 ? "🟠 High Risk (60+ Days)" : "🟡 Warning (30+ Days)";
-                return `
-                <tr style="background:${riskBg};border-left:4px solid ${riskColor};">
-                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:600;">${c.name}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:700;color:${riskColor};">${fmt(c.totalDue)}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${c.invoiceCount}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:700;color:${riskColor};">${c.maxOverdueDays} days</td>
-                  <td style="padding:10px 12px;font-size:12px;text-align:center;border:1px solid #e5e7eb;font-weight:600;color:${riskColor};">${riskLabel}</td>
-                </tr>
-                `;
-              }).join("")}
-            </tbody>
-          </table>
-        </div>
-        ` : ""}
-
-        <!-- Recent Invoices -->
+        <h2 style="font-size:18px;font-weight:700;color:#dc2626;margin:0 0 12px;border-bottom:2px solid #fecaca;padding-bottom:8px;">⚠️ Overdue Clients — Payment Due 30+ Days</h2>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:30px;">
+          <thead><tr style="background:#fef2f2;">
+            <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Client Name</th>
+            <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Outstanding</th>
+            <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Overdue Invoices</th>
+            <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Max Overdue Days</th>
+            <th style="text-align:center;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Risk Level</th>
+          </tr></thead>
+          <tbody>${overdueClients.map((c) => { const riskColor = c.maxOverdueDays >= 90 ? "#dc2626" : c.maxOverdueDays >= 60 ? "#f59e0b" : "#fb923c"; const riskBg = c.maxOverdueDays >= 90 ? "#fef2f2" : c.maxOverdueDays >= 60 ? "#fffbeb" : "#fff7ed"; const riskLabel = c.maxOverdueDays >= 90 ? "🔴 Critical (90+)" : c.maxOverdueDays >= 60 ? "🟠 High Risk (60+)" : "🟡 Warning (30+)"; return `<tr style="background:${riskBg};border-left:4px solid ${riskColor};"><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:600;">${c.name}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:700;color:${riskColor};">${fmt(c.totalDue)}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${c.invoiceCount}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:700;color:${riskColor};">${c.maxOverdueDays} days</td><td style="padding:10px 12px;font-size:12px;text-align:center;border:1px solid #e5e7eb;font-weight:600;color:${riskColor};">${riskLabel}</td></tr>`; }).join("")}</tbody>
+        </table>` : ""}
+        ${topClients.length > 0 ? `
+        <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">👥 Top Clients by Outstanding</h2>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:30px;">
+          <thead><tr style="background:#f3f4f6;">
+            <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">#</th>
+            <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Client Name</th>
+            <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Outstanding</th>
+          </tr></thead>
+          <tbody>${topClients.map((c, idx) => `<tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};"><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${idx + 1}</td><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:500;">${c.name}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;color:#dc2626;">${fmt(c.amount)}</td></tr>`).join("")}</tbody>
+        </table>` : ""}
         ${recentInvoices.length > 0 ? `
-        <div style="margin-bottom:30px;">
-          <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">🧾 Recent Invoices</h2>
-          <table style="width:100%;border-collapse:collapse;">
-            <thead>
-              <tr style="background:#f3f4f6;">
-                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Invoice #</th>
-                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Client</th>
-                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Date</th>
-                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Due Date</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Amount</th>
-                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${recentInvoices.map((inv, idx) => `
-                <tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};">
-                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:600;">${inv.invoice_number}</td>
-                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${(inv.clients as any)?.display_name || ""}</td>
-                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${inv.issue_date}</td>
-                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${inv.due_date}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;">${fmt(Number(inv.total))}</td>
-                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;"><span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:${STATUS_COLORS[inv.status] || "#6b7280"}20;color:${STATUS_COLORS[inv.status] || "#6b7280"};">${inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}</span></td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
-        ` : ""}
-
-        <!-- Footer -->
+        <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">🧾 Recent Invoices</h2>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr style="background:#f3f4f6;">
+            <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Invoice #</th>
+            <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Client</th>
+            <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Date</th>
+            <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Due Date</th>
+            <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Amount</th>
+            <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Status</th>
+          </tr></thead>
+          <tbody>${recentInvoices.map((inv, idx) => `<tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};"><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:600;">${inv.invoice_number}</td><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${(inv.clients as any)?.display_name || ""}</td><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${inv.issue_date}</td><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${inv.due_date}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;">${fmt(Number(inv.total))}</td><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;"><span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:${STATUS_COLORS[inv.status] || "#6b7280"}20;color:${STATUS_COLORS[inv.status] || "#6b7280"};">${inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}</span></td></tr>`).join("")}</tbody>
+        </table>` : ""}
         <div style="border-top:2px solid #e5e7eb;padding-top:16px;margin-top:30px;text-align:center;">
           <p style="font-size:11px;color:#9ca3af;margin:0;">Generated by ${org?.name || "BillFlow"} • ${today}</p>
           <p style="font-size:10px;color:#d1d5db;margin:4px 0 0;">This is an auto-generated report. All amounts are in ${org?.currency_code || "USD"}.</p>
         </div>
       `;
+      await renderSection(overdueRecentHtml, false);
 
-      // Capture charts from the live dashboard
-      const chartCards = dashboardRef.current?.querySelectorAll(".recharts-wrapper");
-      const chartImages: { img: string; title: string }[] = [];
-      const chartTitles = [
-        "Sales and Collections",
-        "Cash Flow — Revenue vs Expenses",
-        "Top Customers by Revenue",
-        "Invoice Status Distribution",
-        "Payment Mode Breakdown",
-        "Most Selling Items",
-      ];
-
-      if (chartCards) {
-        for (let ci = 0; ci < chartCards.length; ci++) {
-          const chartEl = chartCards[ci];
-          try {
-            const canvas = await html2canvas(chartEl as HTMLElement, { backgroundColor: "#ffffff", scale: 2 });
-            chartImages.push({ img: canvas.toDataURL("image/png"), title: chartTitles[ci] || `Chart ${ci + 1}` });
-          } catch {
-            // skip
-          }
-        }
-      }
-
-      // Render tables page to canvas
-      const tablesCanvas = await html2canvas(pdfContainer, {
-        backgroundColor: "#ffffff",
-        scale: 2,
-        useCORS: true,
-        logging: false,
-      });
-
-      document.body.removeChild(pdfContainer);
-
-      // Create PDF
-      const imgWidth = 210;
-      const pageHeight = 297;
-      const pdf = new jsPDF("p", "mm", "a4");
-
-      // Page 1+: Table data
-      const tablesImgHeight = (tablesCanvas.height * imgWidth) / tablesCanvas.width;
-      let heightLeft = tablesImgHeight;
-      let position = 0;
-
-      pdf.addImage(tablesCanvas.toDataURL("image/png"), "PNG", 0, position, imgWidth, tablesImgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft > 0) {
-        position = -(tablesImgHeight - heightLeft);
-        pdf.addPage();
-        pdf.addImage(tablesCanvas.toDataURL("image/png"), "PNG", 0, position, imgWidth, tablesImgHeight);
-        heightLeft -= pageHeight;
-      }
-
-      // Each chart gets its own full page with legend
+      // Chart pages - each chart on its own page
       for (let ci = 0; ci < chartImages.length; ci++) {
         const chart = chartImages[ci];
         pdf.addPage();
@@ -732,14 +543,9 @@ export default function DashboardPage() {
         pdf.setDrawColor(37, 99, 235);
         pdf.setLineWidth(0.5);
         pdf.line(20, 30, 190, 30);
-
         const chartW = 170;
         const chartH = 110;
-        const chartX = (210 - chartW) / 2;
-        const chartY = 38;
-        pdf.addImage(chart.img, "PNG", chartX, chartY, chartW, chartH);
-
-        // Footer
+        pdf.addImage(chart.img, "JPEG", (210 - chartW) / 2, 38, chartW, chartH, undefined, "FAST");
         pdf.setFontSize(9);
         pdf.setTextColor(156, 163, 175);
         pdf.text(`${org?.name || "Organization"} — Financial Report`, 105, 285, { align: "center" });
@@ -915,19 +721,19 @@ export default function DashboardPage() {
 
       {/* NEW: Top Customers by Revenue + Most Selling Items */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
+        <Card className="overflow-hidden">
           <CardHeader>
             <CardTitle className="text-base">Top Customers by Revenue</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="min-h-[320px]">
             {topCustomersByRevenue.length === 0 ? (
               <p className="py-12 text-center text-sm text-muted-foreground">No invoice data yet</p>
             ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={topCustomersByRevenue} layout="vertical" margin={{ left: 20 }}>
+              <ResponsiveContainer width="100%" height={Math.max(250, topCustomersByRevenue.length * 35)}>
+                <BarChart data={topCustomersByRevenue} layout="vertical" margin={{ left: 10, right: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                   <XAxis type="number" tick={{ fontSize: 11 }} className="fill-muted-foreground" tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
-                  <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} className="fill-muted-foreground" width={100} />
+                  <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} className="fill-muted-foreground" width={90} />
                   <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(value: number) => fmt(value)} />
                   <Bar dataKey="revenue" name="Revenue" fill="hsl(201, 96%, 32%)" radius={[0, 4, 4, 0]} />
                 </BarChart>
@@ -936,26 +742,28 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="overflow-hidden">
           <CardHeader>
             <CardTitle className="text-base">Most Selling Items</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="min-h-[320px]">
             {mostSellingItems.length === 0 ? (
               <p className="py-12 text-center text-sm text-muted-foreground">No items sold yet</p>
             ) : (
-              <div className="flex items-center">
-                <ResponsiveContainer width="60%" height={280}>
-                  <PieChart>
-                    <Pie data={mostSellingItems} cx="50%" cy="50%" innerRadius={55} outerRadius={100} paddingAngle={2} dataKey="revenue" nameKey="name">
-                      {mostSellingItems.map((_, idx) => (
-                        <Cell key={idx} fill={ITEM_COLORS[idx % ITEM_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(value: number) => fmt(value)} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="flex-1 space-y-1.5">
+              <div className="flex items-center gap-4">
+                <div className="w-1/2 shrink-0">
+                  <ResponsiveContainer width="100%" height={250}>
+                    <PieChart>
+                      <Pie data={mostSellingItems} cx="50%" cy="50%" innerRadius={45} outerRadius={85} paddingAngle={2} dataKey="revenue" nameKey="name">
+                        {mostSellingItems.map((_, idx) => (
+                          <Cell key={idx} fill={ITEM_COLORS[idx % ITEM_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(value: number) => fmt(value)} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex-1 space-y-1.5 overflow-hidden">
                   {mostSellingItems.map((item, idx) => (
                     <div key={item.name} className="flex items-center gap-2 text-sm">
                       <div className="h-3 w-3 rounded-sm shrink-0" style={{ background: ITEM_COLORS[idx % ITEM_COLORS.length] }} />
@@ -970,74 +778,39 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* Invoice Status + Payment Mode */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Invoice Status Distribution</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {statusData.length === 0 ? (
-              <p className="py-12 text-center text-sm text-muted-foreground">No invoices yet</p>
-            ) : (
-              <div className="flex items-center">
-                <ResponsiveContainer width="60%" height={240}>
-                  <PieChart>
-                    <Pie data={statusData} cx="50%" cy="50%" innerRadius={55} outerRadius={90} paddingAngle={3} dataKey="value">
-                      {statusData.map((entry, idx) => (
-                        <Cell key={idx} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="flex-1 space-y-2">
-                  {statusData.map((entry) => (
-                    <div key={entry.name} className="flex items-center gap-2 text-sm">
-                      <div className="h-3 w-3 rounded-sm" style={{ background: entry.color }} />
-                      <span className="text-muted-foreground">{entry.name}</span>
-                      <span className="ml-auto font-medium">{entry.value}</span>
-                    </div>
-                  ))}
-                </div>
+      {/* Invoice Status Distribution */}
+      <Card className="overflow-hidden">
+        <CardHeader>
+          <CardTitle className="text-base">Invoice Status Distribution</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {statusData.length === 0 ? (
+            <p className="py-12 text-center text-sm text-muted-foreground">No invoices yet</p>
+          ) : (
+            <div className="flex items-center">
+              <ResponsiveContainer width="50%" height={260}>
+                <PieChart>
+                  <Pie data={statusData} cx="50%" cy="50%" innerRadius={55} outerRadius={100} paddingAngle={3} dataKey="value">
+                    {statusData.map((entry, idx) => (
+                      <Cell key={idx} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex-1 space-y-2">
+                {statusData.map((entry) => (
+                  <div key={entry.name} className="flex items-center gap-2 text-sm">
+                    <div className="h-3 w-3 rounded-sm" style={{ background: entry.color }} />
+                    <span className="text-muted-foreground">{entry.name}</span>
+                    <span className="ml-auto font-medium">{entry.value}</span>
+                  </div>
+                ))}
               </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Payment Mode Breakdown</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {paymentModeData.length === 0 ? (
-              <p className="py-12 text-center text-sm text-muted-foreground">No payments recorded yet</p>
-            ) : (
-              <div className="flex items-center">
-                <ResponsiveContainer width="60%" height={240}>
-                  <PieChart>
-                    <Pie data={paymentModeData} cx="50%" cy="50%" innerRadius={55} outerRadius={90} paddingAngle={3} dataKey="value" label={false}>
-                      {paymentModeData.map((_, idx) => (
-                        <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(value: number) => fmt(value)} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="flex-1 space-y-2">
-                  {paymentModeData.map((entry, idx) => (
-                    <div key={entry.name} className="flex items-center gap-2 text-sm">
-                      <div className="h-3 w-3 rounded-sm" style={{ background: PIE_COLORS[idx % PIE_COLORS.length] }} />
-                      <span className="text-muted-foreground">{entry.name}</span>
-                      <span className="ml-auto font-medium">{fmt(entry.value)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Recent Invoices */}
       <Card>

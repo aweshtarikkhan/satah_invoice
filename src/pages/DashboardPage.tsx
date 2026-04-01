@@ -779,7 +779,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Invoice Status Distribution */}
-      <Card>
+      <Card className="overflow-hidden">
         <CardHeader>
           <CardTitle className="text-base">Invoice Status Distribution</CardTitle>
         </CardHeader>

@@ -302,6 +302,8 @@ export default function InvoiceBuilderPage() {
       if (!inv) return;
 
       setClientId(inv.client_id);
+      const matchedClient = clients.find((c) => c.id === inv.client_id);
+      if (matchedClient) setClientSearch(matchedClient.display_name);
       setInvoiceNumber(inv.invoice_number);
       setIssueDate(inv.issue_date);
       setDueDate(inv.due_date);

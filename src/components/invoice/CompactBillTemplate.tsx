@@ -22,7 +22,7 @@ export function CompactBillTemplate({ org, invoice, lines, fmt, type = "invoice"
   }
 
   return (
-    <div className="bg-background text-foreground p-8 font-sans" style={{ fontFamily: "Arial, sans-serif", fontSize: "14px" }}>
+    <div className="bg-background text-foreground px-4 py-6 font-sans w-full" style={{ fontFamily: "Arial, sans-serif", fontSize: "14px" }}>
       {/* Company Header - Centered */}
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold uppercase tracking-wide text-primary">{org?.name}</h1>

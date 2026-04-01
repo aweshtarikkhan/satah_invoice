@@ -97,27 +97,26 @@ function SortableLineItem({
   currency: string;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: line.id });
+  const [itemDropdownOpen, setItemDropdownOpen] = useState(false);
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
 
-  const handleItemSelect = (itemId: string) => {
-    if (itemId === "manual_entry") {
-      onChange(index, "item_id", null);
-      onChange(index, "name", "");
-      return;
-    }
-    const item = items.find((i: any) => i.id === itemId);
-    if (item) {
-      onChange(index, "item_id", item.id);
-      onChange(index, "name", item.name);
-      onChange(index, "description", item.description || "");
-      onChange(index, "rate", Number(item.unit_price));
-      onChange(index, "unit", item.unit || "pcs");
-    }
+  const handleItemSelect = (item: any) => {
+    onChange(index, "item_id", item.id);
+    onChange(index, "name", item.name);
+    onChange(index, "description", item.description || "");
+    onChange(index, "rate", Number(item.unit_price));
+    onChange(index, "unit", item.unit || "pcs");
+    setItemDropdownOpen(false);
   };
+
+  const filteredItems = useMemo(() => {
+    if (!line.name.trim()) return items;
+    return items.filter((i: any) => i.name.toLowerCase().includes(line.name.toLowerCase()));
+  }, [line.name, items]);
 
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-US", { style: "currency", currency }).format(n);
@@ -134,20 +133,39 @@ function SortableLineItem({
             <div className="relative flex-1">
               <Input
                 className="h-8 text-xs pr-7"
-                placeholder="Type item name"
+                placeholder="Type or click to select an item"
                 value={line.name}
-                onChange={(e) => onChange(index, "name", e.target.value)}
+                onChange={(e) => {
+                  onChange(index, "item_id", null);
+                  onChange(index, "name", e.target.value);
+                  setItemDropdownOpen(true);
+                }}
+                onFocus={() => setItemDropdownOpen(true)}
+                onBlur={() => setTimeout(() => setItemDropdownOpen(false), 200)}
               />
-              <Select value={line.item_id || ""} onValueChange={handleItemSelect}>
-                <SelectTrigger className="absolute right-0 top-0 h-8 w-7 border-0 bg-transparent shadow-none px-1 focus:ring-0">
-                  <ChevronDown className="h-3 w-3" />
-                </SelectTrigger>
-                <SelectContent>
-                  {items.map((item: any) => (
-                    <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>
+              <button
+                type="button"
+                className="absolute right-0 top-0 h-8 w-7 flex items-center justify-center text-muted-foreground hover:text-foreground"
+                onClick={() => setItemDropdownOpen(!itemDropdownOpen)}
+              >
+                <ChevronDown className="h-3 w-3" />
+              </button>
+              {itemDropdownOpen && filteredItems.length > 0 && (
+                <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-popover border border-border rounded-md shadow-md max-h-48 overflow-y-auto">
+                  {filteredItems.map((item: any) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className="w-full text-left px-3 py-2 text-xs hover:bg-accent hover:text-accent-foreground flex justify-between items-center"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => handleItemSelect(item)}
+                    >
+                      <span className="font-medium">{item.name}</span>
+                      <span className="text-muted-foreground">{new Intl.NumberFormat("en-US", { style: "currency", currency }).format(item.unit_price)}</span>
+                    </button>
                   ))}
-                </SelectContent>
-              </Select>
+                </div>
+              )}
             </div>
             <button type="button" onClick={onAddItem} className="h-8 w-8 flex items-center justify-center rounded-md border border-input bg-background text-muted-foreground hover:text-foreground hover:bg-accent shrink-0" title="Add New Item">
               <Plus className="h-3 w-3" />

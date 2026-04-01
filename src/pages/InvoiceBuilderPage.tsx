@@ -614,15 +614,51 @@ export default function InvoiceBuilderPage() {
               <div className="space-y-2">
                 <Label>Client *</Label>
                 <div className="flex gap-2">
-                  <Select value={clientId || "placeholder"} onValueChange={(v) => { if (v !== "placeholder") setClientId(v); }}>
-                    <SelectTrigger className="flex-1"><SelectValue placeholder="Select client..." /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="placeholder" disabled>Select client...</SelectItem>
-                      {clients.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>{c.display_name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="relative flex-1">
+                    <Input
+                      className="h-9"
+                      placeholder="Type to search clients..."
+                      value={clientSearch}
+                      onChange={(e) => {
+                        setClientSearch(e.target.value);
+                        setClientDropdownOpen(true);
+                        if (!e.target.value) setClientId("");
+                      }}
+                      onFocus={() => setClientDropdownOpen(true)}
+                      onBlur={() => setTimeout(() => setClientDropdownOpen(false), 200)}
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-0 top-0 h-9 w-8 flex items-center justify-center text-muted-foreground hover:text-foreground"
+                      onClick={() => setClientDropdownOpen(!clientDropdownOpen)}
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
+                    {clientDropdownOpen && (
+                      <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-popover border border-border rounded-md shadow-md max-h-48 overflow-y-auto">
+                        {clients
+                          .filter((c) => !clientSearch.trim() || c.display_name.toLowerCase().includes(clientSearch.toLowerCase()))
+                          .map((c) => (
+                            <button
+                              key={c.id}
+                              type="button"
+                              className={`w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground ${clientId === c.id ? "bg-accent/50 font-medium" : ""}`}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => {
+                                setClientId(c.id);
+                                setClientSearch(c.display_name);
+                                setClientDropdownOpen(false);
+                              }}
+                            >
+                              {c.display_name}
+                            </button>
+                          ))}
+                        {clients.filter((c) => !clientSearch.trim() || c.display_name.toLowerCase().includes(clientSearch.toLowerCase())).length === 0 && (
+                          <div className="px-3 py-2 text-sm text-muted-foreground">No clients found</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                   <Button type="button" variant="outline" size="icon" onClick={() => setAddClientOpen(true)} title="Add New Client">
                     <Plus className="h-4 w-4" />
                   </Button>

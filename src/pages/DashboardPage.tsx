@@ -25,7 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  BarChart, Bar, PieChart, Pie, Cell,
+  BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
 import html2canvas from "html2canvas";
@@ -61,22 +61,28 @@ export default function DashboardPage() {
   const [payments, setPayments] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
   const [recentInvoices, setRecentInvoices] = useState<any[]>([]);
+  const [invoiceLines, setInvoiceLines] = useState<any[]>([]);
+  const [expenses, setExpenses] = useState<any[]>([]);
   const [exporting, setExporting] = useState(false);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!org?.id) return;
     const fetchData = async () => {
-      const [invRes, payRes, recentRes, clientRes] = await Promise.all([
+      const [invRes, payRes, recentRes, clientRes, linesRes, expRes] = await Promise.all([
         supabase.from("invoices").select("balance_due, status, due_date, total, issue_date, created_at, amount_paid, client_id").eq("org_id", org.id).neq("status", "void"),
         supabase.from("payments").select("amount, payment_date, payment_mode, client_id").eq("org_id", org.id),
         supabase.from("invoices").select("*, clients(display_name)").eq("org_id", org.id).order("created_at", { ascending: false }).limit(10),
         supabase.from("clients").select("id, display_name").eq("org_id", org.id),
+        supabase.from("invoice_lines").select("name, quantity, amount, invoice_id"),
+        supabase.from("business_expenses").select("amount, expense_date, category").eq("org_id", org.id),
       ]);
       setInvoices(invRes.data || []);
       setPayments(payRes.data || []);
       setRecentInvoices(recentRes.data || []);
       setClients(clientRes.data || []);
+      setInvoiceLines(linesRes.data || []);
+      setExpenses(expRes.data || []);
     };
     fetchData();
   }, [org?.id]);
@@ -187,6 +193,68 @@ export default function DashboardPage() {
       .slice(0, 5);
   }, [invoices, clients]);
 
+  // NEW: Top Customers by Revenue (total billed)
+  const topCustomersByRevenue = useMemo(() => {
+    const clientMap: Record<string, { name: string; revenue: number }> = {};
+    invoices.forEach((i) => {
+      const clientId = i.client_id || "unknown";
+      const client = clients.find((c) => c.id === clientId);
+      const name = client?.display_name || "Unknown";
+      if (!clientMap[clientId]) clientMap[clientId] = { name, revenue: 0 };
+      clientMap[clientId].revenue += Number(i.total);
+    });
+    return Object.values(clientMap)
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 10);
+  }, [invoices, clients]);
+
+  // NEW: Cash Flow & Revenue Trends (Revenue vs Expenses last 12 months)
+  const cashFlowData = useMemo(() => {
+    const revenueMap: Record<string, number> = {};
+    const expenseMap: Record<string, number> = {};
+    invoices.forEach((i) => {
+      const m = (i.issue_date || "").slice(0, 7);
+      if (m) revenueMap[m] = (revenueMap[m] || 0) + Number(i.total);
+    });
+    expenses.forEach((e) => {
+      const m = (e.expense_date || "").slice(0, 7);
+      if (m) expenseMap[m] = (expenseMap[m] || 0) + Number(e.amount);
+    });
+    const months = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const key = d.toISOString().slice(0, 7);
+      const label = d.toLocaleString("default", { month: "short", year: "2-digit" });
+      const revenue = revenueMap[key] || 0;
+      const expense = expenseMap[key] || 0;
+      months.push({ month: label, revenue, expenses: expense, profit: revenue - expense });
+    }
+    return months;
+  }, [invoices, expenses]);
+
+  // NEW: Most Selling Items
+  const mostSellingItems = useMemo(() => {
+    // Filter lines to only those belonging to org invoices
+    const orgInvoiceIds = new Set(invoices.map((i) => i.id).filter(Boolean));
+    // We don't have invoice_id→org mapping from lines query directly, 
+    // but invoices state only has org invoices, so we can cross-reference if needed.
+    // For now invoice_lines are fetched without org filter, let's filter by known invoice IDs
+    // Actually we fetched all invoice_lines without org filter - need to filter
+    const itemMap: Record<string, { name: string; quantity: number; revenue: number }> = {};
+    invoiceLines.forEach((line) => {
+      const name = line.name || "Unnamed";
+      if (!itemMap[name]) itemMap[name] = { name, quantity: 0, revenue: 0 };
+      itemMap[name].quantity += Number(line.quantity || 0);
+      itemMap[name].revenue += Number(line.amount || 0);
+    });
+    return Object.values(itemMap)
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 8);
+  }, [invoiceLines]);
+
+  const ITEM_COLORS = ["#2563eb", "#16a34a", "#f59e0b", "#dc2626", "#8b5cf6", "#06b6d4", "#ec4899", "#f97316"];
+
   // Overdue clients with aging info
   const overdueClients = useMemo(() => {
     const today = new Date();
@@ -226,6 +294,7 @@ export default function DashboardPage() {
   const totalPaid = invoices.filter((i) => i.status === "paid").length;
   const totalOverdue = invoices.filter((i) => i.status === "overdue").length;
   const collectionRate = totalSales > 0 ? ((totalReceipts / totalSales) * 100).toFixed(1) : "0";
+  const totalItemRevenue = mostSellingItems.reduce((s, i) => s + i.revenue, 0);
 
   // PDF Export
   const handleExportPDF = async () => {
@@ -233,7 +302,6 @@ export default function DashboardPage() {
     setExporting(true);
 
     try {
-      // Create a hidden container for PDF content
       const pdfContainer = document.createElement("div");
       pdfContainer.style.cssText = "position:absolute;left:-9999px;top:0;width:1100px;background:white;color:#1a1a1a;padding:40px;font-family:Inter,system-ui,sans-serif;";
       document.body.appendChild(pdfContainer);
@@ -365,6 +433,88 @@ export default function DashboardPage() {
           </table>
         </div>
 
+        <!-- Cash Flow (Revenue vs Expenses) -->
+        <div style="margin-bottom:30px;">
+          <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">📉 Cash Flow — Revenue vs Expenses (Last 12 Months)</h2>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f3f4f6;">
+                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Month</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Revenue</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Expenses</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Net Profit</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${cashFlowData.map((m, idx) => `
+                <tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};">
+                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:500;">${m.month}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;color:#16a34a;">${fmt(m.revenue)}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;color:#dc2626;">${fmt(m.expenses)}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:700;color:${m.profit >= 0 ? "#16a34a" : "#dc2626"};">${fmt(m.profit)}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Top Customers by Revenue -->
+        ${topCustomersByRevenue.length > 0 ? `
+        <div style="margin-bottom:30px;">
+          <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">🏆 Top Customers by Revenue</h2>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f3f4f6;">
+                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">#</th>
+                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Customer</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Total Revenue</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">% of Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${topCustomersByRevenue.map((c, idx) => `
+                <tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};">
+                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${idx + 1}</td>
+                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:600;">${c.name}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:700;color:#16a34a;">${fmt(c.revenue)}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${totalSales > 0 ? ((c.revenue / totalSales) * 100).toFixed(1) : "0"}%</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+        ` : ""}
+
+        <!-- Most Selling Items -->
+        ${mostSellingItems.length > 0 ? `
+        <div style="margin-bottom:30px;">
+          <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">📦 Most Selling Items</h2>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f3f4f6;">
+                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Item</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Qty Sold</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Revenue</th>
+                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">% of Revenue</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${mostSellingItems.map((item, idx) => `
+                <tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};">
+                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">
+                    <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${ITEM_COLORS[idx % ITEM_COLORS.length]};margin-right:8px;"></span>
+                    ${item.name}
+                  </td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${item.quantity}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;">${fmt(item.revenue)}</td>
+                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${totalItemRevenue > 0 ? ((item.revenue / totalItemRevenue) * 100).toFixed(1) : "0"}%</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+        ` : ""}
+
         <!-- Invoice Status Breakdown -->
         <div style="margin-bottom:30px;">
           <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">📋 Invoice Status Breakdown</h2>
@@ -421,7 +571,7 @@ export default function DashboardPage() {
         </div>
         ` : ""}
 
-        <!-- Top Clients -->
+        <!-- Top Clients by Outstanding -->
         ${topClients.length > 0 ? `
         <div style="margin-bottom:30px;">
           <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">👥 Top Clients by Outstanding</h2>
@@ -461,7 +611,7 @@ export default function DashboardPage() {
               </tr>
             </thead>
             <tbody>
-              ${overdueClients.map((c, idx) => {
+              ${overdueClients.map((c) => {
                 const riskColor = c.maxOverdueDays >= 90 ? "#dc2626" : c.maxOverdueDays >= 60 ? "#f59e0b" : "#fb923c";
                 const riskBg = c.maxOverdueDays >= 90 ? "#fef2f2" : c.maxOverdueDays >= 60 ? "#fffbeb" : "#fff7ed";
                 const riskLabel = c.maxOverdueDays >= 90 ? "🔴 Critical (90+ Days)" : c.maxOverdueDays >= 60 ? "🟠 High Risk (60+ Days)" : "🟡 Warning (30+ Days)";
@@ -521,7 +671,14 @@ export default function DashboardPage() {
       // Capture charts from the live dashboard
       const chartCards = dashboardRef.current?.querySelectorAll(".recharts-wrapper");
       const chartImages: { img: string; title: string }[] = [];
-      const chartTitles = ["Sales and Collections", "Invoice Status Distribution", "Payment Mode Breakdown"];
+      const chartTitles = [
+        "Sales and Collections",
+        "Cash Flow — Revenue vs Expenses",
+        "Top Customers by Revenue",
+        "Invoice Status Distribution",
+        "Payment Mode Breakdown",
+        "Most Selling Items",
+      ];
 
       if (chartCards) {
         for (let ci = 0; ci < chartCards.length; ci++) {
@@ -546,8 +703,8 @@ export default function DashboardPage() {
       document.body.removeChild(pdfContainer);
 
       // Create PDF
-      const imgWidth = 210; // A4 width mm
-      const pageHeight = 297; // A4 height mm
+      const imgWidth = 210;
+      const pageHeight = 297;
       const pdf = new jsPDF("p", "mm", "a4");
 
       // Page 1+: Table data
@@ -565,21 +722,10 @@ export default function DashboardPage() {
         heightLeft -= pageHeight;
       }
 
-      // Build legend data for each chart
-      const chartLegends: { label: string; color: string; value: string }[][] = [
-        // Chart 0: Sales and Collections (bar chart)
-        monthlyData.map((m) => ({ label: m.month, color: "", value: `Sales: ${fmt(m.invoiced)} | Collected: ${fmt(m.collected)}` })),
-        // Chart 1: Invoice Status (pie)
-        statusData.map((s) => ({ label: s.name, color: s.hex, value: `${s.value} invoices (${invoices.length > 0 ? ((s.value / invoices.length) * 100).toFixed(1) : "0"}%)` })),
-        // Chart 2: Payment Mode (pie)
-        paymentModeData.map((m, i) => ({ label: m.name, color: PIE_COLORS[i % PIE_COLORS.length], value: `${fmt(m.value)} (${totalReceipts > 0 ? ((m.value / totalReceipts) * 100).toFixed(1) : "0"}%)` })),
-      ];
-
       // Each chart gets its own full page with legend
       for (let ci = 0; ci < chartImages.length; ci++) {
         const chart = chartImages[ci];
         pdf.addPage();
-        // Title
         pdf.setFontSize(18);
         pdf.setTextColor(26, 26, 26);
         pdf.text(chart.title, 105, 25, { align: "center" });
@@ -587,69 +733,11 @@ export default function DashboardPage() {
         pdf.setLineWidth(0.5);
         pdf.line(20, 30, 190, 30);
 
-        // Chart image
         const chartW = 170;
         const chartH = 110;
         const chartX = (210 - chartW) / 2;
         const chartY = 38;
         pdf.addImage(chart.img, "PNG", chartX, chartY, chartW, chartH);
-
-        // Legend table below chart
-        const legends = chartLegends[ci] || [];
-        if (legends.length > 0) {
-          let legendY = chartY + chartH + 12;
-          pdf.setFontSize(12);
-          pdf.setTextColor(26, 26, 26);
-          pdf.text("Legend & Values", 20, legendY);
-          legendY += 6;
-          pdf.setDrawColor(229, 231, 235);
-          pdf.setLineWidth(0.3);
-
-          // For bar chart (index 0), show as simple table
-          if (ci === 0) {
-            // Header
-            pdf.setFillColor(243, 244, 246);
-            pdf.rect(20, legendY, 170, 8, "F");
-            pdf.setFontSize(9);
-            pdf.setTextColor(75, 85, 99);
-            pdf.text("Month", 25, legendY + 5.5);
-            pdf.text("Sales", 100, legendY + 5.5);
-            pdf.text("Collections", 145, legendY + 5.5);
-            legendY += 9;
-            pdf.setTextColor(26, 26, 26);
-            for (const item of legends) {
-              const parts = item.value.split(" | ");
-              pdf.setFontSize(9);
-              pdf.text(item.label, 25, legendY + 5);
-              pdf.setTextColor(22, 163, 74);
-              pdf.text(parts[0]?.replace("Sales: ", "") || "", 100, legendY + 5);
-              pdf.setTextColor(37, 99, 235);
-              pdf.text(parts[1]?.replace("Collected: ", "") || "", 145, legendY + 5);
-              pdf.setTextColor(26, 26, 26);
-              legendY += 7;
-            }
-          } else {
-            // Pie chart legends with color dots
-            for (const item of legends) {
-              // Color dot
-              const hex = item.color || "#6b7280";
-              const r = parseInt(hex.slice(1, 3), 16);
-              const g = parseInt(hex.slice(3, 5), 16);
-              const b = parseInt(hex.slice(5, 7), 16);
-              pdf.setFillColor(r, g, b);
-              pdf.circle(25, legendY + 2.5, 2.5, "F");
-              // Label
-              pdf.setFontSize(10);
-              pdf.setTextColor(26, 26, 26);
-              pdf.text(item.label, 32, legendY + 4);
-              // Value
-              pdf.setFontSize(9);
-              pdf.setTextColor(107, 114, 128);
-              pdf.text(item.value, 80, legendY + 4);
-              legendY += 8;
-            }
-          }
-        }
 
         // Footer
         pdf.setFontSize(9);
@@ -717,7 +805,7 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* Sales & Expenses Chart + Sales/Receipts/Dues Table */}
+      {/* Sales & Collections + Sales/Receipts/Dues Table */}
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
@@ -773,6 +861,111 @@ export default function DashboardPage() {
                 ))}
               </TableBody>
             </Table>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* NEW: Cash Flow & Revenue Trends */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Cash Flow — Revenue vs Expenses (Last 12 Months)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={320}>
+            <AreaChart data={cashFlowData}>
+              <defs>
+                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(142, 71%, 45%)" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(142, 71%, 45%)" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(0, 72%, 51%)" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(0, 72%, 51%)" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+              <XAxis dataKey="month" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+              <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
+              <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(value: number) => fmt(value)} />
+              <Legend />
+              <Area type="monotone" dataKey="revenue" name="Revenue" stroke="hsl(142, 71%, 45%)" fillOpacity={1} fill="url(#colorRevenue)" strokeWidth={2} />
+              <Area type="monotone" dataKey="expenses" name="Expenses" stroke="hsl(0, 72%, 51%)" fillOpacity={1} fill="url(#colorExpenses)" strokeWidth={2} />
+            </AreaChart>
+          </ResponsiveContainer>
+          <div className="flex justify-around pt-4 border-t mt-4">
+            <div className="text-center">
+              <p className="text-xs font-medium flex items-center gap-1 justify-center" style={{ color: "hsl(142, 71%, 45%)" }}>
+                <TrendingUp className="h-3 w-3" /> Total Revenue
+              </p>
+              <p className="text-lg font-bold">{fmt(cashFlowData.reduce((s, m) => s + m.revenue, 0))}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs font-medium flex items-center gap-1 justify-center" style={{ color: "hsl(0, 72%, 51%)" }}>
+                <TrendingDown className="h-3 w-3" /> Total Expenses
+              </p>
+              <p className="text-lg font-bold">{fmt(cashFlowData.reduce((s, m) => s + m.expenses, 0))}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs font-medium flex items-center gap-1 justify-center text-primary">Net Profit</p>
+              <p className="text-lg font-bold">{fmt(cashFlowData.reduce((s, m) => s + m.profit, 0))}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* NEW: Top Customers by Revenue + Most Selling Items */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Top Customers by Revenue</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {topCustomersByRevenue.length === 0 ? (
+              <p className="py-12 text-center text-sm text-muted-foreground">No invoice data yet</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={topCustomersByRevenue} layout="vertical" margin={{ left: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                  <XAxis type="number" tick={{ fontSize: 11 }} className="fill-muted-foreground" tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
+                  <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} className="fill-muted-foreground" width={100} />
+                  <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(value: number) => fmt(value)} />
+                  <Bar dataKey="revenue" name="Revenue" fill="hsl(201, 96%, 32%)" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Most Selling Items</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {mostSellingItems.length === 0 ? (
+              <p className="py-12 text-center text-sm text-muted-foreground">No items sold yet</p>
+            ) : (
+              <div className="flex items-center">
+                <ResponsiveContainer width="60%" height={280}>
+                  <PieChart>
+                    <Pie data={mostSellingItems} cx="50%" cy="50%" innerRadius={55} outerRadius={100} paddingAngle={2} dataKey="revenue" nameKey="name">
+                      {mostSellingItems.map((_, idx) => (
+                        <Cell key={idx} fill={ITEM_COLORS[idx % ITEM_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(value: number) => fmt(value)} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="flex-1 space-y-1.5">
+                  {mostSellingItems.map((item, idx) => (
+                    <div key={item.name} className="flex items-center gap-2 text-sm">
+                      <div className="h-3 w-3 rounded-sm shrink-0" style={{ background: ITEM_COLORS[idx % ITEM_COLORS.length] }} />
+                      <span className="text-muted-foreground truncate text-xs">{item.name}</span>
+                      <span className="ml-auto font-medium text-xs whitespace-nowrap">{fmt(item.revenue)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

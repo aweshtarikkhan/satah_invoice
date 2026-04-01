@@ -1107,74 +1107,39 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* Invoice Status + Payment Mode */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Invoice Status Distribution</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {statusData.length === 0 ? (
-              <p className="py-12 text-center text-sm text-muted-foreground">No invoices yet</p>
-            ) : (
-              <div className="flex items-center">
-                <ResponsiveContainer width="60%" height={240}>
-                  <PieChart>
-                    <Pie data={statusData} cx="50%" cy="50%" innerRadius={55} outerRadius={90} paddingAngle={3} dataKey="value">
-                      {statusData.map((entry, idx) => (
-                        <Cell key={idx} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="flex-1 space-y-2">
-                  {statusData.map((entry) => (
-                    <div key={entry.name} className="flex items-center gap-2 text-sm">
-                      <div className="h-3 w-3 rounded-sm" style={{ background: entry.color }} />
-                      <span className="text-muted-foreground">{entry.name}</span>
-                      <span className="ml-auto font-medium">{entry.value}</span>
-                    </div>
-                  ))}
-                </div>
+      {/* Invoice Status Distribution */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Invoice Status Distribution</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {statusData.length === 0 ? (
+            <p className="py-12 text-center text-sm text-muted-foreground">No invoices yet</p>
+          ) : (
+            <div className="flex items-center">
+              <ResponsiveContainer width="50%" height={260}>
+                <PieChart>
+                  <Pie data={statusData} cx="50%" cy="50%" innerRadius={55} outerRadius={100} paddingAngle={3} dataKey="value">
+                    {statusData.map((entry, idx) => (
+                      <Cell key={idx} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex-1 space-y-2">
+                {statusData.map((entry) => (
+                  <div key={entry.name} className="flex items-center gap-2 text-sm">
+                    <div className="h-3 w-3 rounded-sm" style={{ background: entry.color }} />
+                    <span className="text-muted-foreground">{entry.name}</span>
+                    <span className="ml-auto font-medium">{entry.value}</span>
+                  </div>
+                ))}
               </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Payment Mode Breakdown</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {paymentModeData.length === 0 ? (
-              <p className="py-12 text-center text-sm text-muted-foreground">No payments recorded yet</p>
-            ) : (
-              <div className="flex items-center">
-                <ResponsiveContainer width="60%" height={240}>
-                  <PieChart>
-                    <Pie data={paymentModeData} cx="50%" cy="50%" innerRadius={55} outerRadius={90} paddingAngle={3} dataKey="value" label={false}>
-                      {paymentModeData.map((_, idx) => (
-                        <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(value: number) => fmt(value)} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="flex-1 space-y-2">
-                  {paymentModeData.map((entry, idx) => (
-                    <div key={entry.name} className="flex items-center gap-2 text-sm">
-                      <div className="h-3 w-3 rounded-sm" style={{ background: PIE_COLORS[idx % PIE_COLORS.length] }} />
-                      <span className="text-muted-foreground">{entry.name}</span>
-                      <span className="ml-auto font-medium">{fmt(entry.value)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Recent Invoices */}
       <Card>

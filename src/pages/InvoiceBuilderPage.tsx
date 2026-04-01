@@ -222,6 +222,8 @@ export default function InvoiceBuilderPage() {
   const [taxRates, setTaxRates] = useState<any[]>([]);
 
   const [clientId, setClientId] = useState("");
+  const [clientSearch, setClientSearch] = useState("");
+  const [clientDropdownOpen, setClientDropdownOpen] = useState(false);
   const [addClientOpen, setAddClientOpen] = useState(false);
   const [addItemOpen, setAddItemOpen] = useState(false);
   const [invoiceNumber, setInvoiceNumber] = useState("");

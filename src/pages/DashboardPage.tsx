@@ -529,35 +529,6 @@ export default function DashboardPage() {
           </table>
         </div>
 
-        <!-- Payment Mode Breakdown -->
-        ${paymentModeData.length > 0 ? `
-        <div style="margin-bottom:30px;">
-          <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">💳 Payment Mode Breakdown</h2>
-          <table style="width:100%;border-collapse:collapse;">
-            <thead>
-              <tr style="background:#f3f4f6;">
-                <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Payment Mode</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Amount</th>
-                <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">% of Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${paymentModeData.map((m, idx) => `
-                <tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};">
-                  <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${m.name}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;">${fmt(m.value)}</td>
-                  <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${totalReceipts > 0 ? ((m.value / totalReceipts) * 100).toFixed(1) : "0"}%</td>
-                </tr>
-              `).join("")}
-              <tr style="background:#f3f4f6;font-weight:700;">
-                <td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">Total</td>
-                <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${fmt(totalReceipts)}</td>
-                <td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">100%</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        ` : ""}
 
         <!-- Top Clients by Outstanding -->
         ${topClients.length > 0 ? `

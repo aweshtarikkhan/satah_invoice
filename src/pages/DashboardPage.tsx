@@ -533,9 +533,48 @@ export default function DashboardPage() {
       `;
       await renderSection(overdueRecentHtml, false);
 
-      // Chart pages - each chart on its own page
+      // Build legend data for each chart
+      const chartLegends: { label: string; color: string; value: string }[][] = [];
+      // Chart 0: Sales and Collections
+      chartLegends.push([
+        { label: "Invoiced (Sales)", color: "#2563eb", value: monthlyData.reduce((s, m) => s + m.invoiced, 0) > 0 ? fmt(monthlyData.reduce((s, m) => s + m.invoiced, 0)) : "No data" },
+        { label: "Collected (Receipts)", color: "#16a34a", value: monthlyData.reduce((s, m) => s + m.collected, 0) > 0 ? fmt(monthlyData.reduce((s, m) => s + m.collected, 0)) : "No data" },
+      ]);
+      // Chart 1: Cash Flow
+      chartLegends.push([
+        { label: "Revenue", color: "#2563eb", value: fmt(cashFlowData.reduce((s, m) => s + m.revenue, 0)) },
+        { label: "Expenses", color: "#dc2626", value: fmt(cashFlowData.reduce((s, m) => s + m.expenses, 0)) },
+        { label: "Net Profit", color: "#16a34a", value: fmt(cashFlowData.reduce((s, m) => s + m.profit, 0)) },
+      ]);
+      // Chart 2: Top Customers
+      chartLegends.push(
+        topCustomersByRevenue.map((c, i) => ({
+          label: c.name,
+          color: ITEM_COLORS[i % ITEM_COLORS.length],
+          value: fmt(c.revenue),
+        }))
+      );
+      // Chart 3: Most Selling Items
+      chartLegends.push(
+        mostSellingItems.map((item, i) => ({
+          label: item.name,
+          color: ITEM_COLORS[i % ITEM_COLORS.length],
+          value: `${item.quantity} qty — ${fmt(item.revenue)}`,
+        }))
+      );
+      // Chart 4: Invoice Status
+      chartLegends.push(
+        statusData.map((s) => ({
+          label: s.name,
+          color: s.hex,
+          value: `${s.value} invoices (${invoices.length > 0 ? ((s.value / invoices.length) * 100).toFixed(1) : "0"}%)`,
+        }))
+      );
+
+      // Chart pages - each chart on its own page with legend
       for (let ci = 0; ci < chartImages.length; ci++) {
         const chart = chartImages[ci];
+        const legends = chartLegends[ci] || [];
         pdf.addPage();
         pdf.setFontSize(18);
         pdf.setTextColor(26, 26, 26);
@@ -544,8 +583,47 @@ export default function DashboardPage() {
         pdf.setLineWidth(0.5);
         pdf.line(20, 30, 190, 30);
         const chartW = 170;
-        const chartH = 110;
-        pdf.addImage(chart.img, "JPEG", (210 - chartW) / 2, 38, chartW, chartH, undefined, "FAST");
+        const chartH = 100;
+        pdf.addImage(chart.img, "JPEG", (210 - chartW) / 2, 35, chartW, chartH, undefined, "FAST");
+
+        // Legend section with arrows and names
+        let legendY = 142;
+        pdf.setFontSize(11);
+        pdf.setTextColor(55, 65, 81);
+        pdf.text("Legend & Values", 25, legendY);
+        legendY += 3;
+        pdf.setDrawColor(229, 231, 235);
+        pdf.setLineWidth(0.3);
+        pdf.line(25, legendY, 185, legendY);
+        legendY += 6;
+
+        legends.forEach((entry) => {
+          if (legendY > 275) {
+            pdf.addPage();
+            legendY = 20;
+          }
+          // Color dot
+          const hex = entry.color;
+          const r = parseInt(hex.slice(1, 3), 16);
+          const g = parseInt(hex.slice(3, 5), 16);
+          const b = parseInt(hex.slice(5, 7), 16);
+          pdf.setFillColor(r, g, b);
+          pdf.circle(30, legendY - 1.2, 2.5, "F");
+          // Arrow ►
+          pdf.setFontSize(10);
+          pdf.setTextColor(r, g, b);
+          pdf.text("►", 35, legendY);
+          // Label
+          pdf.setTextColor(31, 41, 55);
+          pdf.setFontSize(10);
+          pdf.text(entry.label, 42, legendY);
+          // Value (right aligned)
+          pdf.setTextColor(107, 114, 128);
+          pdf.setFontSize(9);
+          pdf.text(entry.value, 185, legendY, { align: "right" });
+          legendY += 8;
+        });
+
         pdf.setFontSize(9);
         pdf.setTextColor(156, 163, 175);
         pdf.text(`${org?.name || "Organization"} — Financial Report`, 105, 285, { align: "center" });

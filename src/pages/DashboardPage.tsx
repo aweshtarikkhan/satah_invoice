@@ -634,9 +634,8 @@ export default function DashboardPage() {
         "Sales and Collections",
         "Cash Flow — Revenue vs Expenses",
         "Top Customers by Revenue",
-        "Invoice Status Distribution",
-        "Payment Mode Breakdown",
         "Most Selling Items",
+        "Invoice Status Distribution",
       ];
 
       if (chartCards) {

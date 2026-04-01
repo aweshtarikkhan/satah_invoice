@@ -235,14 +235,11 @@ export default function DashboardPage() {
 
   // NEW: Most Selling Items
   const mostSellingItems = useMemo(() => {
-    // Filter lines to only those belonging to org invoices
+    // Filter lines to only those belonging to org invoices (exclude void/draft)
     const orgInvoiceIds = new Set(invoices.map((i) => i.id).filter(Boolean));
-    // We don't have invoice_id→org mapping from lines query directly, 
-    // but invoices state only has org invoices, so we can cross-reference if needed.
-    // For now invoice_lines are fetched without org filter, let's filter by known invoice IDs
-    // Actually we fetched all invoice_lines without org filter - need to filter
     const itemMap: Record<string, { name: string; quantity: number; revenue: number }> = {};
     invoiceLines.forEach((line) => {
+      if (!orgInvoiceIds.has(line.invoice_id)) return; // only count lines from org's non-void invoices
       const name = line.name || "Unnamed";
       if (!itemMap[name]) itemMap[name] = { name, quantity: 0, revenue: 0 };
       itemMap[name].quantity += Number(line.quantity || 0);
@@ -251,7 +248,7 @@ export default function DashboardPage() {
     return Object.values(itemMap)
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 8);
-  }, [invoiceLines]);
+  }, [invoiceLines, invoices]);
 
   const ITEM_COLORS = ["#2563eb", "#16a34a", "#f59e0b", "#dc2626", "#8b5cf6", "#06b6d4", "#ec4899", "#f97316"];
 

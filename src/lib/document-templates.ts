@@ -93,7 +93,8 @@ export function getDocumentPreviewClass(templateStyle?: string, paperSize?: stri
     a6: "max-w-[105mm]",
   }[paperSize || "a4"];
 
-  return `invoice-printable mx-auto w-full ${styleClass || "rounded-xl border border-border bg-card text-card-foreground shadow-sm"} ${sizeClass || "max-w-[210mm]"} print:max-w-none print:shadow-none print:border-0 print:rounded-none`;
+  const isCompact = templateStyle === "compact";
+  return `invoice-printable ${isCompact ? "" : "mx-auto"} w-full ${styleClass || "rounded-xl border border-border bg-card text-card-foreground shadow-sm"} ${isCompact ? "" : (sizeClass || "max-w-[210mm]")} print:max-w-none print:shadow-none print:border-0 print:rounded-none`;
 }
 
 export function getPaperSizeLabel(paperSize?: string) {

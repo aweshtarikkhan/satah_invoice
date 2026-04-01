@@ -276,18 +276,6 @@ export default function DashboardPage() {
     return Object.values(clientMap).sort((a, b) => b.maxOverdueDays - a.maxOverdueDays);
   }, [invoices, clients]);
 
-  const paymentModeData = useMemo(() => {
-    const modeMap: Record<string, number> = {};
-    payments.forEach((p) => {
-      const mode = (p.payment_mode || "other").replace(/_/g, " ");
-      modeMap[mode] = (modeMap[mode] || 0) + Number(p.amount);
-    });
-    return Object.entries(modeMap)
-      .map(([name, value]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), value }))
-      .sort((a, b) => b.value - a.value);
-  }, [payments]);
-
-  const PIE_COLORS = ["#2563eb", "#16a34a", "#f59e0b", "#dc2626", "#8b5cf6", "#06b6d4", "#ec4899"];
 
   const totalSales = invoices.reduce((s, i) => s + Number(i.total), 0);
   const totalReceipts = payments.reduce((s, p) => s + Number(p.amount), 0);

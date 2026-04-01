@@ -721,19 +721,19 @@ export default function DashboardPage() {
 
       {/* NEW: Top Customers by Revenue + Most Selling Items */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
+        <Card className="overflow-hidden">
           <CardHeader>
             <CardTitle className="text-base">Top Customers by Revenue</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="min-h-[320px]">
             {topCustomersByRevenue.length === 0 ? (
               <p className="py-12 text-center text-sm text-muted-foreground">No invoice data yet</p>
             ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={topCustomersByRevenue} layout="vertical" margin={{ left: 20 }}>
+              <ResponsiveContainer width="100%" height={Math.max(250, topCustomersByRevenue.length * 35)}>
+                <BarChart data={topCustomersByRevenue} layout="vertical" margin={{ left: 10, right: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                   <XAxis type="number" tick={{ fontSize: 11 }} className="fill-muted-foreground" tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
-                  <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} className="fill-muted-foreground" width={100} />
+                  <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} className="fill-muted-foreground" width={90} />
                   <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(value: number) => fmt(value)} />
                   <Bar dataKey="revenue" name="Revenue" fill="hsl(201, 96%, 32%)" radius={[0, 4, 4, 0]} />
                 </BarChart>
@@ -742,26 +742,28 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="overflow-hidden">
           <CardHeader>
             <CardTitle className="text-base">Most Selling Items</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="min-h-[320px]">
             {mostSellingItems.length === 0 ? (
               <p className="py-12 text-center text-sm text-muted-foreground">No items sold yet</p>
             ) : (
-              <div className="flex items-center">
-                <ResponsiveContainer width="60%" height={280}>
-                  <PieChart>
-                    <Pie data={mostSellingItems} cx="50%" cy="50%" innerRadius={55} outerRadius={100} paddingAngle={2} dataKey="revenue" nameKey="name">
-                      {mostSellingItems.map((_, idx) => (
-                        <Cell key={idx} fill={ITEM_COLORS[idx % ITEM_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(value: number) => fmt(value)} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="flex-1 space-y-1.5">
+              <div className="flex items-center gap-4">
+                <div className="w-1/2 shrink-0">
+                  <ResponsiveContainer width="100%" height={250}>
+                    <PieChart>
+                      <Pie data={mostSellingItems} cx="50%" cy="50%" innerRadius={45} outerRadius={85} paddingAngle={2} dataKey="revenue" nameKey="name">
+                        {mostSellingItems.map((_, idx) => (
+                          <Cell key={idx} fill={ITEM_COLORS[idx % ITEM_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(value: number) => fmt(value)} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex-1 space-y-1.5 overflow-hidden">
                   {mostSellingItems.map((item, idx) => (
                     <div key={item.name} className="flex items-center gap-2 text-sm">
                       <div className="h-3 w-3 rounded-sm shrink-0" style={{ background: ITEM_COLORS[idx % ITEM_COLORS.length] }} />

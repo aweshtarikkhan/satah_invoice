@@ -273,13 +273,51 @@ export default function DashboardPage() {
     return Object.values(clientMap).sort((a, b) => b.maxOverdueDays - a.maxOverdueDays);
   }, [invoices, clients]);
 
+  // Expense breakdown by category
+  const expenseCategoryData = useMemo(() => {
+    const catMap: Record<string, number> = {};
+    expenses.forEach((e) => {
+      const cat = e.category || "Other";
+      catMap[cat] = (catMap[cat] || 0) + Number(e.amount);
+    });
+    return Object.entries(catMap)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8);
+  }, [expenses]);
+
+  // Monthly invoice count trend
+  const monthlyInvoiceCount = useMemo(() => {
+    const countMap: Record<string, number> = {};
+    invoices.forEach((i) => {
+      const m = (i.issue_date || "").slice(0, 7);
+      if (m) countMap[m] = (countMap[m] || 0) + 1;
+    });
+    const months = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const key = d.toISOString().slice(0, 7);
+      const label = d.toLocaleString("default", { month: "short", year: "2-digit" });
+      months.push({ month: label, count: countMap[key] || 0 });
+    }
+    return months;
+  }, [invoices]);
+
+  // Average invoice value
+  const avgInvoiceValue = useMemo(() => {
+    if (invoices.length === 0) return 0;
+    return invoices.reduce((s, i) => s + Number(i.total), 0) / invoices.length;
+  }, [invoices]);
 
   const totalSales = invoices.reduce((s, i) => s + Number(i.total), 0);
   const totalReceipts = payments.reduce((s, p) => s + Number(p.amount), 0);
+  const totalExpensesSum = expenses.reduce((s, e) => s + Number(e.amount), 0);
   const totalPaid = invoices.filter((i) => i.status === "paid").length;
   const totalOverdue = invoices.filter((i) => i.status === "overdue").length;
   const collectionRate = totalSales > 0 ? ((totalReceipts / totalSales) * 100).toFixed(1) : "0";
   const totalItemRevenue = mostSellingItems.reduce((s, i) => s + i.revenue, 0);
+  const EXPENSE_COLORS = ["#8b5cf6", "#06b6d4", "#f59e0b", "#ec4899", "#16a34a", "#dc2626", "#2563eb", "#f97316"];
 
   // PDF Export
   const handleExportPDF = async () => {

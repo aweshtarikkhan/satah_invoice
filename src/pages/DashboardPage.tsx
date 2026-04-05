@@ -987,7 +987,78 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* Recent Invoices */}
+      {/* Monthly Invoice Count Trend */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Monthly Invoice Volume (Last 12 Months)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={monthlyInvoiceCount}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+              <XAxis dataKey="month" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+              <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" allowDecimals={false} />
+              <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} />
+              <Line type="monotone" dataKey="count" name="Invoices" stroke="hsl(201, 96%, 32%)" strokeWidth={2.5} dot={{ r: 4, fill: "hsl(201, 96%, 32%)" }} activeDot={{ r: 6 }} />
+            </LineChart>
+          </ResponsiveContainer>
+          <div className="flex justify-around pt-4 border-t mt-4">
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground font-medium">Total Invoices</p>
+              <p className="text-lg font-bold">{invoices.length}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs font-medium" style={{ color: "hsl(142, 71%, 45%)" }}>Paid</p>
+              <p className="text-lg font-bold">{totalPaid}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs font-medium" style={{ color: "hsl(0, 72%, 51%)" }}>Overdue</p>
+              <p className="text-lg font-bold">{totalOverdue}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Expense Breakdown by Category */}
+      <Card className="overflow-hidden">
+        <CardHeader>
+          <CardTitle className="text-base">Expense Breakdown by Category</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {expenseCategoryData.length === 0 ? (
+            <p className="py-12 text-center text-sm text-muted-foreground">No expenses recorded yet</p>
+          ) : (
+            <div className="flex items-center">
+              <ResponsiveContainer width="50%" height={280}>
+                <PieChart>
+                  <Pie data={expenseCategoryData} cx="50%" cy="50%" innerRadius={50} outerRadius={100} paddingAngle={2} dataKey="value" nameKey="name">
+                    {expenseCategoryData.map((_, idx) => (
+                      <Cell key={idx} fill={EXPENSE_COLORS[idx % EXPENSE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(value: number) => fmt(value)} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex-1 space-y-2">
+                {expenseCategoryData.map((item, idx) => (
+                  <div key={item.name} className="flex items-center gap-2 text-sm">
+                    <div className="h-3 w-3 rounded-sm shrink-0" style={{ background: EXPENSE_COLORS[idx % EXPENSE_COLORS.length] }} />
+                    <span className="text-muted-foreground truncate">{item.name}</span>
+                    <span className="ml-auto font-medium whitespace-nowrap">{fmt(item.value)}</span>
+                  </div>
+                ))}
+                <div className="pt-2 border-t mt-2">
+                  <div className="flex items-center justify-between text-sm font-bold">
+                    <span>Total</span>
+                    <span>{fmt(totalExpensesSum)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

@@ -335,11 +335,14 @@ export default function DashboardPage() {
       const chartCards = dashboardRef.current?.querySelectorAll(".recharts-wrapper");
       const chartImages: { img: string; title: string }[] = [];
       const chartTitles = [
+        "Receivables Aging Breakdown",
         "Sales and Collections",
         "Cash Flow — Revenue vs Expenses",
         "Top Customers by Revenue",
         "Most Selling Items",
         "Invoice Status Distribution",
+        "Monthly Invoice Volume",
+        "Expense Breakdown by Category",
       ];
 
       if (chartCards) {

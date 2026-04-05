@@ -741,6 +741,7 @@ export default function DashboardPage() {
             <Button size="sm" variant="outline" onClick={() => navigate("/invoices/new")}>
               <Plus className="mr-1 h-4 w-4" /> New
             </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">

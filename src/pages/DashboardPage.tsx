@@ -687,6 +687,46 @@ export default function DashboardPage() {
         </Button>
       </PageHeader>
 
+      {/* KPI Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <Card>
+          <CardContent className="pt-4 pb-3 px-4">
+            <p className="text-xs text-muted-foreground font-medium">Total Sales</p>
+            <p className="text-xl font-bold text-foreground">{fmt(totalSales)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-3 px-4">
+            <p className="text-xs text-muted-foreground font-medium">Total Receipts</p>
+            <p className="text-xl font-bold text-primary">{fmt(totalReceipts)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-3 px-4">
+            <p className="text-xs text-muted-foreground font-medium">Outstanding</p>
+            <p className="text-xl font-bold text-destructive">{fmt(totalReceivable)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-3 px-4">
+            <p className="text-xs text-muted-foreground font-medium">Collection Rate</p>
+            <p className="text-xl font-bold text-foreground">{collectionRate}%</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-3 px-4">
+            <p className="text-xs text-muted-foreground font-medium">Avg Invoice</p>
+            <p className="text-xl font-bold text-foreground">{fmt(avgInvoiceValue)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-3 px-4">
+            <p className="text-xs text-muted-foreground font-medium">Total Expenses</p>
+            <p className="text-xl font-bold text-foreground">{fmt(totalExpensesSum)}</p>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Total Receivables with Aging */}
       <Card>
         <CardHeader className="pb-3">
@@ -721,6 +761,28 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Receivables Aging Bar Chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Receivables Aging Breakdown</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={agingData}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+              <XAxis dataKey="label" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+              <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
+              <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(value: number) => fmt(value)} />
+              <Bar dataKey="amount" name="Outstanding" radius={[4, 4, 0, 0]}>
+                {agingData.map((_, idx) => (
+                  <Cell key={idx} fill={AGING_COLORS[idx]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </CardContent>
       </Card>
 

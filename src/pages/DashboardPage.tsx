@@ -25,7 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area,
+  BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
 import html2canvas from "html2canvas";

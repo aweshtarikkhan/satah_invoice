@@ -704,10 +704,11 @@ export default function DashboardPage() {
             <p className="text-xl font-bold text-primary">{fmt(totalReceipts)}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow border-destructive/20 hover:border-destructive/40" onClick={() => navigate("/aging-details")}>
           <CardContent className="pt-4 pb-3 px-4">
             <p className="text-xs text-muted-foreground font-medium">Outstanding</p>
             <p className="text-xl font-bold text-destructive">{fmt(totalReceivable)}</p>
+            <p className="text-[10px] text-muted-foreground mt-1">Click to view details →</p>
           </CardContent>
         </Card>
         <Card>
@@ -734,7 +735,9 @@ export default function DashboardPage() {
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Total Receivables</CardTitle>
+            <CardTitle className="text-lg cursor-pointer hover:text-primary transition-colors" onClick={() => navigate("/aging-details")}>Total Receivables</CardTitle>
+            <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => navigate("/aging-details")}>View Details</Button>
             <Button size="sm" variant="outline" onClick={() => navigate("/invoices/new")}>
               <Plus className="mr-1 h-4 w-4" /> New
             </Button>

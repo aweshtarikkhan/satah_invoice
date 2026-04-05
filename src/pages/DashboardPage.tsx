@@ -25,7 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area,
+  BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
 import html2canvas from "html2canvas";
@@ -273,13 +273,51 @@ export default function DashboardPage() {
     return Object.values(clientMap).sort((a, b) => b.maxOverdueDays - a.maxOverdueDays);
   }, [invoices, clients]);
 
+  // Expense breakdown by category
+  const expenseCategoryData = useMemo(() => {
+    const catMap: Record<string, number> = {};
+    expenses.forEach((e) => {
+      const cat = e.category || "Other";
+      catMap[cat] = (catMap[cat] || 0) + Number(e.amount);
+    });
+    return Object.entries(catMap)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8);
+  }, [expenses]);
+
+  // Monthly invoice count trend
+  const monthlyInvoiceCount = useMemo(() => {
+    const countMap: Record<string, number> = {};
+    invoices.forEach((i) => {
+      const m = (i.issue_date || "").slice(0, 7);
+      if (m) countMap[m] = (countMap[m] || 0) + 1;
+    });
+    const months = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const key = d.toISOString().slice(0, 7);
+      const label = d.toLocaleString("default", { month: "short", year: "2-digit" });
+      months.push({ month: label, count: countMap[key] || 0 });
+    }
+    return months;
+  }, [invoices]);
+
+  // Average invoice value
+  const avgInvoiceValue = useMemo(() => {
+    if (invoices.length === 0) return 0;
+    return invoices.reduce((s, i) => s + Number(i.total), 0) / invoices.length;
+  }, [invoices]);
 
   const totalSales = invoices.reduce((s, i) => s + Number(i.total), 0);
   const totalReceipts = payments.reduce((s, p) => s + Number(p.amount), 0);
+  const totalExpensesSum = expenses.reduce((s, e) => s + Number(e.amount), 0);
   const totalPaid = invoices.filter((i) => i.status === "paid").length;
   const totalOverdue = invoices.filter((i) => i.status === "overdue").length;
   const collectionRate = totalSales > 0 ? ((totalReceipts / totalSales) * 100).toFixed(1) : "0";
   const totalItemRevenue = mostSellingItems.reduce((s, i) => s + i.revenue, 0);
+  const EXPENSE_COLORS = ["#8b5cf6", "#06b6d4", "#f59e0b", "#ec4899", "#16a34a", "#dc2626", "#2563eb", "#f97316"];
 
   // PDF Export
   const handleExportPDF = async () => {
@@ -297,11 +335,14 @@ export default function DashboardPage() {
       const chartCards = dashboardRef.current?.querySelectorAll(".recharts-wrapper");
       const chartImages: { img: string; title: string }[] = [];
       const chartTitles = [
+        "Receivables Aging Breakdown",
         "Sales and Collections",
         "Cash Flow — Revenue vs Expenses",
         "Top Customers by Revenue",
         "Most Selling Items",
         "Invoice Status Distribution",
+        "Monthly Invoice Volume",
+        "Expense Breakdown by Category",
       ];
 
       if (chartCards) {
@@ -649,6 +690,46 @@ export default function DashboardPage() {
         </Button>
       </PageHeader>
 
+      {/* KPI Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <Card>
+          <CardContent className="pt-4 pb-3 px-4">
+            <p className="text-xs text-muted-foreground font-medium">Total Sales</p>
+            <p className="text-xl font-bold text-foreground">{fmt(totalSales)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-3 px-4">
+            <p className="text-xs text-muted-foreground font-medium">Total Receipts</p>
+            <p className="text-xl font-bold text-primary">{fmt(totalReceipts)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-3 px-4">
+            <p className="text-xs text-muted-foreground font-medium">Outstanding</p>
+            <p className="text-xl font-bold text-destructive">{fmt(totalReceivable)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-3 px-4">
+            <p className="text-xs text-muted-foreground font-medium">Collection Rate</p>
+            <p className="text-xl font-bold text-foreground">{collectionRate}%</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-3 px-4">
+            <p className="text-xs text-muted-foreground font-medium">Avg Invoice</p>
+            <p className="text-xl font-bold text-foreground">{fmt(avgInvoiceValue)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-3 px-4">
+            <p className="text-xs text-muted-foreground font-medium">Total Expenses</p>
+            <p className="text-xl font-bold text-foreground">{fmt(totalExpensesSum)}</p>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Total Receivables with Aging */}
       <Card>
         <CardHeader className="pb-3">
@@ -683,6 +764,28 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Receivables Aging Bar Chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Receivables Aging Breakdown</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={agingData}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+              <XAxis dataKey="label" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+              <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
+              <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(value: number) => fmt(value)} />
+              <Bar dataKey="amount" name="Outstanding" radius={[4, 4, 0, 0]}>
+                {agingData.map((_, idx) => (
+                  <Cell key={idx} fill={AGING_COLORS[idx]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </CardContent>
       </Card>
 
@@ -887,7 +990,78 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* Recent Invoices */}
+      {/* Monthly Invoice Count Trend */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Monthly Invoice Volume (Last 12 Months)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={monthlyInvoiceCount}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+              <XAxis dataKey="month" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+              <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" allowDecimals={false} />
+              <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} />
+              <Line type="monotone" dataKey="count" name="Invoices" stroke="hsl(201, 96%, 32%)" strokeWidth={2.5} dot={{ r: 4, fill: "hsl(201, 96%, 32%)" }} activeDot={{ r: 6 }} />
+            </LineChart>
+          </ResponsiveContainer>
+          <div className="flex justify-around pt-4 border-t mt-4">
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground font-medium">Total Invoices</p>
+              <p className="text-lg font-bold">{invoices.length}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs font-medium" style={{ color: "hsl(142, 71%, 45%)" }}>Paid</p>
+              <p className="text-lg font-bold">{totalPaid}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs font-medium" style={{ color: "hsl(0, 72%, 51%)" }}>Overdue</p>
+              <p className="text-lg font-bold">{totalOverdue}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Expense Breakdown by Category */}
+      <Card className="overflow-hidden">
+        <CardHeader>
+          <CardTitle className="text-base">Expense Breakdown by Category</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {expenseCategoryData.length === 0 ? (
+            <p className="py-12 text-center text-sm text-muted-foreground">No expenses recorded yet</p>
+          ) : (
+            <div className="flex items-center">
+              <ResponsiveContainer width="50%" height={280}>
+                <PieChart>
+                  <Pie data={expenseCategoryData} cx="50%" cy="50%" innerRadius={50} outerRadius={100} paddingAngle={2} dataKey="value" nameKey="name">
+                    {expenseCategoryData.map((_, idx) => (
+                      <Cell key={idx} fill={EXPENSE_COLORS[idx % EXPENSE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(value: number) => fmt(value)} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex-1 space-y-2">
+                {expenseCategoryData.map((item, idx) => (
+                  <div key={item.name} className="flex items-center gap-2 text-sm">
+                    <div className="h-3 w-3 rounded-sm shrink-0" style={{ background: EXPENSE_COLORS[idx % EXPENSE_COLORS.length] }} />
+                    <span className="text-muted-foreground truncate">{item.name}</span>
+                    <span className="ml-auto font-medium whitespace-nowrap">{fmt(item.value)}</span>
+                  </div>
+                ))}
+                <div className="pt-2 border-t mt-2">
+                  <div className="flex items-center justify-between text-sm font-bold">
+                    <span>Total</span>
+                    <span>{fmt(totalExpensesSum)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

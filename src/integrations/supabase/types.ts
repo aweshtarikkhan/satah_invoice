@@ -110,6 +110,7 @@ export type Database = {
           billing_address: Json | null
           company_name: string | null
           created_at: string
+          credit_limit: number
           currency_code: string | null
           display_name: string
           email: string | null
@@ -124,6 +125,7 @@ export type Database = {
           phone: string | null
           shipping_address: Json | null
           status: Database["public"]["Enums"]["client_status"]
+          tags: string[] | null
           tax_number: string | null
           updated_at: string
           website: string | null
@@ -132,6 +134,7 @@ export type Database = {
           billing_address?: Json | null
           company_name?: string | null
           created_at?: string
+          credit_limit?: number
           currency_code?: string | null
           display_name: string
           email?: string | null
@@ -146,6 +149,7 @@ export type Database = {
           phone?: string | null
           shipping_address?: Json | null
           status?: Database["public"]["Enums"]["client_status"]
+          tags?: string[] | null
           tax_number?: string | null
           updated_at?: string
           website?: string | null
@@ -154,6 +158,7 @@ export type Database = {
           billing_address?: Json | null
           company_name?: string | null
           created_at?: string
+          credit_limit?: number
           currency_code?: string | null
           display_name?: string
           email?: string | null
@@ -168,6 +173,7 @@ export type Database = {
           phone?: string | null
           shipping_address?: Json | null
           status?: Database["public"]["Enums"]["client_status"]
+          tags?: string[] | null
           tax_number?: string | null
           updated_at?: string
           website?: string | null
@@ -870,6 +876,7 @@ export type Database = {
       }
       items: {
         Row: {
+          category: string | null
           created_at: string
           description: string | null
           id: string
@@ -877,6 +884,7 @@ export type Database = {
           name: string
           org_id: string
           sku: string | null
+          stock_quantity: number
           tax_id: string | null
           type: Database["public"]["Enums"]["item_type"]
           unit: string | null
@@ -884,6 +892,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -891,6 +900,7 @@ export type Database = {
           name: string
           org_id: string
           sku?: string | null
+          stock_quantity?: number
           tax_id?: string | null
           type?: Database["public"]["Enums"]["item_type"]
           unit?: string | null
@@ -898,6 +908,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -905,6 +916,7 @@ export type Database = {
           name?: string
           org_id?: string
           sku?: string | null
+          stock_quantity?: number
           tax_id?: string | null
           type?: Database["public"]["Enums"]["item_type"]
           unit?: string | null
@@ -1187,6 +1199,73 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recurring_invoices: {
+        Row: {
+          client_id: string
+          created_at: string
+          currency_code: string
+          frequency: string
+          id: string
+          is_active: boolean
+          last_generated_at: string | null
+          next_run_date: string
+          notes: string | null
+          org_id: string
+          template_invoice_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          currency_code?: string
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_generated_at?: string | null
+          next_run_date?: string
+          notes?: string | null
+          org_id: string
+          template_invoice_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          currency_code?: string
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_generated_at?: string | null
+          next_run_date?: string
+          notes?: string | null
+          org_id?: string
+          template_invoice_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_invoices_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_invoices_template_invoice_id_fkey"
+            columns: ["template_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
         ]

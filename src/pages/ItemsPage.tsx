@@ -49,9 +49,11 @@ export default function ItemsPage() {
   const [deleting, setDeleting] = useState(false);
   const { toast } = useToast();
 
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [form, setForm] = useState({
     name: "", description: "", sku: "", type: "service" as "service" | "product",
     unit_price: 0, unit: "", tax_id: null as string | null,
+    category: "", stock_quantity: 0,
   });
 
   const fetchItems = async () => {
@@ -74,9 +76,14 @@ export default function ItemsPage() {
   useEffect(() => { fetchItems(); }, [org?.id]);
 
   const resetForm = () => {
-    setForm({ name: "", description: "", sku: "", type: "service", unit_price: 0, unit: "", tax_id: null });
+    setForm({ name: "", description: "", sku: "", type: "service", unit_price: 0, unit: "", tax_id: null, category: "", stock_quantity: 0 });
     setEditItem(null);
   };
+
+  const categories = useMemo(() => {
+    const cats = new Set(items.map((i: any) => i.category).filter(Boolean));
+    return Array.from(cats).sort();
+  }, [items]);
 
   const openCreate = () => { resetForm(); setDialogOpen(true); };
 
@@ -86,7 +93,7 @@ export default function ItemsPage() {
     setForm({
       name: item.name, description: item.description || "", sku: item.sku || "",
       type: item.type, unit_price: Number(item.unit_price), unit: item.unit || "",
-      tax_id: item.tax_id,
+      tax_id: item.tax_id, category: item.category || "", stock_quantity: Number(item.stock_quantity || 0),
     });
     setDialogOpen(true);
   };
@@ -146,9 +153,11 @@ export default function ItemsPage() {
     fetchItems();
   };
 
-  const filtered = items.filter((i) =>
-    [i.name, i.sku, i.description].filter(Boolean).some((f) => f.toLowerCase().includes(search.toLowerCase()))
-  );
+  const filtered = items.filter((i) => {
+    const matchSearch = [i.name, i.sku, i.description].filter(Boolean).some((f) => f.toLowerCase().includes(search.toLowerCase()));
+    const matchCategory = categoryFilter === "all" || (i.category || "") === categoryFilter;
+    return matchSearch && matchCategory;
+  });
 
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);
@@ -194,9 +203,18 @@ export default function ItemsPage() {
         </Button>
       </PageHeader>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Search items..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+      <div className="flex items-center gap-3">
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Search items..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="w-40"><SelectValue placeholder="Category" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+          </SelectContent>
+        </Select>
       </div>
 
       <Card>
@@ -218,8 +236,10 @@ export default function ItemsPage() {
                   <TableHead>Name</TableHead>
                   <TableHead>SKU</TableHead>
                   <TableHead>Type</TableHead>
+                  <TableHead>Category</TableHead>
                   <TableHead>Unit</TableHead>
                   <TableHead className="text-right">Rate</TableHead>
+                  <TableHead className="text-right">Stock</TableHead>
                   <TableHead>Tax</TableHead>
                 </TableRow>
               </TableHeader>
@@ -237,8 +257,12 @@ export default function ItemsPage() {
                     <TableCell>
                       <Badge variant="secondary">{item.type}</Badge>
                     </TableCell>
+                    <TableCell>{item.category ? <Badge variant="outline">{item.category}</Badge> : "—"}</TableCell>
                     <TableCell>{item.unit || "—"}</TableCell>
                     <TableCell className="text-right">{fmt(Number(item.unit_price))}</TableCell>
+                    <TableCell className={`text-right ${Number(item.stock_quantity) <= 0 ? "text-destructive font-medium" : ""}`}>
+                      {item.type === "product" ? Number(item.stock_quantity) : "—"}
+                    </TableCell>
                     <TableCell>{item.tax_rates ? `${item.tax_rates.name} (${item.tax_rates.rate}%)` : "—"}</TableCell>
                   </TableRow>
                 ))}
@@ -312,6 +336,18 @@ export default function ItemsPage() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Category</Label>
+                <Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="e.g. Electronics, Services" />
+              </div>
+              {form.type === "product" && (
+                <div className="space-y-2">
+                  <Label>Stock Quantity</Label>
+                  <Input type="number" value={form.stock_quantity} onChange={(e) => setForm({ ...form, stock_quantity: parseFloat(e.target.value) || 0 })} />
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label>Tax Rate</Label>

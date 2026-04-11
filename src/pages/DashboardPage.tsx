@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useAppStore } from "@/store/app-store";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { SmartInsights } from "@/components/shared/SmartInsights";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/shared/StatusBadge";
@@ -689,6 +690,9 @@ export default function DashboardPage() {
           <Users className="mr-1 h-4 w-4" /> New Client
         </Button>
       </PageHeader>
+
+      {/* Smart Insights */}
+      <SmartInsights invoices={invoices} payments={payments} expenses={expenses} clients={clients} currency={org?.currency_code || "USD"} />
 
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">

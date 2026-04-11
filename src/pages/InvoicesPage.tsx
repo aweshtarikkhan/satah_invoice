@@ -1,4 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
+import { usePagination } from "@/hooks/use-pagination";
+import { TablePagination } from "@/components/shared/TablePagination";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
@@ -121,6 +123,8 @@ export default function InvoicesPage() {
         .filter(Boolean)
         .some((f) => f.toLowerCase().includes(search.toLowerCase()))
     );
+
+  const { paginatedItems, page, totalPages, totalItems, pageSize, setPage, setPageSize } = usePagination(filtered, 25);
 
   const allSelected = filtered.length > 0 && filtered.every(i => selected.has(i.id));
   const toggleAll = () => {
@@ -300,7 +304,7 @@ export default function InvoicesPage() {
               actionLabel="New Invoice"
               onAction={() => navigate("/invoices/new")}
             />
-          ) : (
+          ) : (<>
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30">
@@ -316,7 +320,7 @@ export default function InvoicesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((inv) => (
+                {paginatedItems.map((inv) => (
                   <TableRow key={inv.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { if (selected.size === 0) navigate(`/invoices/${inv.id}`); }}>
                     <TableCell onClick={(e) => e.stopPropagation()}><Checkbox checked={selected.has(inv.id)} onCheckedChange={() => toggleOne(inv.id)} /></TableCell>
                     <TableCell className="text-muted-foreground text-sm">{inv.issue_date ? format(parseISO(inv.issue_date), "dd/MM/yyyy") : "-"}</TableCell>
@@ -331,6 +335,8 @@ export default function InvoicesPage() {
                 ))}
               </TableBody>
             </Table>
+            <TablePagination page={page} totalPages={totalPages} totalItems={totalItems} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={setPageSize} />
+            </>
           )}
         </CardContent>
       </Card>

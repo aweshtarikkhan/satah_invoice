@@ -1,4 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
+import { usePagination } from "@/hooks/use-pagination";
+import { TablePagination } from "@/components/shared/TablePagination";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
@@ -121,6 +123,8 @@ export default function InvoicesPage() {
         .filter(Boolean)
         .some((f) => f.toLowerCase().includes(search.toLowerCase()))
     );
+
+  const { paginatedItems, page, totalPages, totalItems, pageSize, setPage, setPageSize } = usePagination(filtered, 25);
 
   const allSelected = filtered.length > 0 && filtered.every(i => selected.has(i.id));
   const toggleAll = () => {

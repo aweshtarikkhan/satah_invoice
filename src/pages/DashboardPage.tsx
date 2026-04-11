@@ -691,6 +691,9 @@ export default function DashboardPage() {
         </Button>
       </PageHeader>
 
+      {/* Smart Insights */}
+      <SmartInsights invoices={invoices} payments={payments} expenses={expenses} clients={clients} currency={org?.currency_code || "USD"} />
+
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
         <Card>

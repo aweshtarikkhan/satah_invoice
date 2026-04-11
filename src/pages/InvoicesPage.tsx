@@ -336,6 +336,7 @@ export default function InvoicesPage() {
               </TableBody>
             </Table>
             <TablePagination page={page} totalPages={totalPages} totalItems={totalItems} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={setPageSize} />
+            </>
           )}
         </CardContent>
       </Card>

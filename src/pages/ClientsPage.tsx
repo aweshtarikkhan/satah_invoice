@@ -110,7 +110,7 @@ export default function ClientsPage() {
   const [form, setForm] = useState({
     display_name: "", company_name: "", email: "", phone: "",
     billing_address: { street: "", city: "", state: "", zip: "", country: "" },
-    payment_terms: 30, notes: "",
+    payment_terms: 30, notes: "", tags: [] as string[], credit_limit: 0,
   });
 
   const fetchClients = async () => {
@@ -138,7 +138,7 @@ export default function ClientsPage() {
   }, [invoices]);
 
   const resetForm = () => {
-    setForm({ display_name: "", company_name: "", email: "", phone: "", billing_address: { street: "", city: "", state: "", zip: "", country: "" }, payment_terms: 30, notes: "" });
+    setForm({ display_name: "", company_name: "", email: "", phone: "", billing_address: { street: "", city: "", state: "", zip: "", country: "" }, payment_terms: 30, notes: "", tags: [], credit_limit: 0 });
     setEditClient(null);
   };
 
@@ -151,6 +151,7 @@ export default function ClientsPage() {
       email: client.email || "", phone: client.phone || "",
       billing_address: client.billing_address || { street: "", city: "", state: "", zip: "", country: "" },
       payment_terms: client.payment_terms ?? 30, notes: client.notes || "",
+      tags: client.tags || [], credit_limit: Number(client.credit_limit || 0),
     });
     setDialogOpen(true);
   };

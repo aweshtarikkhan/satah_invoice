@@ -85,16 +85,29 @@ export default function RecordPaymentPage() {
       .in("status", ["sent", "viewed", "partial", "overdue"])
       .order("due_date", { ascending: true })
       .then(({ data }) => {
-        setInvoices(
-          (data || []).map((inv) => ({
-            ...inv,
-            total: Number(inv.total),
-            balance_due: Number(inv.balance_due),
-            selected: false,
-            payment: 0,
-          }))
-        );
-        setLoadingInvoices(false);
+          setInvoices(
+            (data || []).map((inv) => ({
+              ...inv,
+              total: Number(inv.total),
+              balance_due: Number(inv.balance_due),
+              selected: false,
+              payment: 0,
+            }))
+          );
+          setLoadingInvoices(false);
+
+          // Auto-suggest: if there's a payment amount, auto-select best matching invoice
+          const amt = parseFloat(amountReceived) || 0;
+          if (amt > 0 && data && data.length > 0) {
+            const exactMatch = data.find(i => Math.abs(Number(i.balance_due) - amt) < 0.01);
+            if (exactMatch) {
+              setInvoices(prev => prev.map(inv => 
+                inv.id === exactMatch.id 
+                  ? { ...inv, selected: true, payment: amt }
+                  : inv
+              ));
+            }
+          }
       });
   }, [clientId]);
 
@@ -115,6 +128,18 @@ export default function RecordPaymentPage() {
   const handleAmountChange = (value: string) => {
     setAmountReceived(value);
     const amt = parseFloat(value) || 0;
+    
+    // Auto-match: find exact match first
+    const exactMatch = invoices.find(i => Math.abs(i.balance_due - amt) < 0.01);
+    if (exactMatch && !invoices.some(i => i.selected)) {
+      setInvoices(prev => prev.map(inv => 
+        inv.id === exactMatch.id 
+          ? { ...inv, selected: true, payment: amt }
+          : { ...inv, selected: false, payment: 0 }
+      ));
+      return;
+    }
+
     let remaining = amt;
     setInvoices((prev) =>
       prev.map((inv) => {

@@ -110,7 +110,7 @@ export default function ClientsPage() {
   const [form, setForm] = useState({
     display_name: "", company_name: "", email: "", phone: "",
     billing_address: { street: "", city: "", state: "", zip: "", country: "" },
-    payment_terms: 30, notes: "",
+    payment_terms: 30, notes: "", tags: [] as string[], credit_limit: 0,
   });
 
   const fetchClients = async () => {
@@ -138,7 +138,7 @@ export default function ClientsPage() {
   }, [invoices]);
 
   const resetForm = () => {
-    setForm({ display_name: "", company_name: "", email: "", phone: "", billing_address: { street: "", city: "", state: "", zip: "", country: "" }, payment_terms: 30, notes: "" });
+    setForm({ display_name: "", company_name: "", email: "", phone: "", billing_address: { street: "", city: "", state: "", zip: "", country: "" }, payment_terms: 30, notes: "", tags: [], credit_limit: 0 });
     setEditClient(null);
   };
 
@@ -151,6 +151,7 @@ export default function ClientsPage() {
       email: client.email || "", phone: client.phone || "",
       billing_address: client.billing_address || { street: "", city: "", state: "", zip: "", country: "" },
       payment_terms: client.payment_terms ?? 30, notes: client.notes || "",
+      tags: client.tags || [], credit_limit: Number(client.credit_limit || 0),
     });
     setDialogOpen(true);
   };
@@ -294,10 +295,20 @@ export default function ClientsPage() {
                       className="shrink-0"
                     />
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium truncate ${isActive ? "text-primary" : ""}`}>{client.display_name}</p>
-                      <p className={`text-xs ${summary.due > 0 ? "text-destructive font-medium" : "text-muted-foreground"}`}>
-                        {fmt(summary.due)}
-                      </p>
+                      <div className="flex items-center gap-1">
+                        <p className={`text-sm font-medium truncate ${isActive ? "text-primary" : ""}`}>{client.display_name}</p>
+                        {client.tags?.length > 0 && client.tags.map((tag: string) => (
+                          <Badge key={tag} variant="outline" className="text-[9px] px-1 py-0 h-4 shrink-0">{tag}</Badge>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <p className={`text-xs ${summary.due > 0 ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                          {fmt(summary.due)}
+                        </p>
+                        {client.credit_limit > 0 && summary.due > client.credit_limit && (
+                          <Badge variant="destructive" className="text-[9px] px-1 py-0 h-4">Over Limit</Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -625,9 +636,23 @@ export default function ClientsPage() {
                 <Input value={form.billing_address.zip} onChange={(e) => setForm({ ...form, billing_address: { ...form.billing_address, zip: e.target.value } })} />
               </div>
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Payment Terms (days)</Label>
+                <Input type="number" value={form.payment_terms} onChange={(e) => setForm({ ...form, payment_terms: parseInt(e.target.value) || 30 })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Credit Limit</Label>
+                <Input type="number" value={form.credit_limit} onChange={(e) => setForm({ ...form, credit_limit: parseFloat(e.target.value) || 0 })} />
+              </div>
+            </div>
             <div className="space-y-2">
-              <Label>Payment Terms (days)</Label>
-              <Input type="number" value={form.payment_terms} onChange={(e) => setForm({ ...form, payment_terms: parseInt(e.target.value) || 30 })} />
+              <Label>Tags (comma-separated)</Label>
+              <Input
+                value={form.tags.join(", ")}
+                onChange={(e) => setForm({ ...form, tags: e.target.value.split(",").map(t => t.trim()).filter(Boolean) })}
+                placeholder="e.g. VIP, Regular, Priority"
+              />
             </div>
             <div className="space-y-2">
               <Label>Notes</Label>

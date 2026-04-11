@@ -626,9 +626,23 @@ export default function ClientsPage() {
                 <Input value={form.billing_address.zip} onChange={(e) => setForm({ ...form, billing_address: { ...form.billing_address, zip: e.target.value } })} />
               </div>
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Payment Terms (days)</Label>
+                <Input type="number" value={form.payment_terms} onChange={(e) => setForm({ ...form, payment_terms: parseInt(e.target.value) || 30 })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Credit Limit</Label>
+                <Input type="number" value={form.credit_limit} onChange={(e) => setForm({ ...form, credit_limit: parseFloat(e.target.value) || 0 })} />
+              </div>
+            </div>
             <div className="space-y-2">
-              <Label>Payment Terms (days)</Label>
-              <Input type="number" value={form.payment_terms} onChange={(e) => setForm({ ...form, payment_terms: parseInt(e.target.value) || 30 })} />
+              <Label>Tags (comma-separated)</Label>
+              <Input
+                value={form.tags.join(", ")}
+                onChange={(e) => setForm({ ...form, tags: e.target.value.split(",").map(t => t.trim()).filter(Boolean) })}
+                placeholder="e.g. VIP, Regular, Priority"
+              />
             </div>
             <div className="space-y-2">
               <Label>Notes</Label>

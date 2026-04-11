@@ -35,6 +35,8 @@ import TemplateCustomizationPage from "./pages/TemplateCustomizationPage";
 import BusinessExpensesPage from "./pages/BusinessExpensesPage";
 import CustomerStatementPage from "./pages/CustomerStatementPage";
 import AgingDetailsPage from "./pages/AgingDetailsPage";
+import ProfitLossPage from "./pages/ProfitLossPage";
+import RecurringInvoicesPage from "./pages/RecurringInvoicesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -87,6 +89,8 @@ const App = () => (
               <Route path="/custom-fields" element={<CustomFieldsPage />} />
               <Route path="/expenses" element={<BusinessExpensesPage />} />
               <Route path="/aging-details" element={<AgingDetailsPage />} />
+              <Route path="/profit-loss" element={<ProfitLossPage />} />
+              <Route path="/recurring-invoices" element={<RecurringInvoicesPage />} />
               <Route path="/statements" element={<CustomerStatementPage />} />
               <Route path="/statements/:clientId" element={<CustomerStatementPage />} />
               <Route path="/settings" element={<SettingsPage />} />

@@ -304,7 +304,7 @@ export default function InvoicesPage() {
               actionLabel="New Invoice"
               onAction={() => navigate("/invoices/new")}
             />
-          ) : (
+          ) : (<>
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/30">

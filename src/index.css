@@ -111,4 +111,44 @@
   .animate-pulse-slow {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
+
+  /* Soft pastel icon tile backgrounds (light) */
+  .icon-tile {
+    @apply flex items-center justify-center rounded-xl shrink-0 transition-all duration-300;
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  .icon-tile-violet { background: hsl(258 90% 96%); color: hsl(258 70% 55%); }
+  .icon-tile-blue   { background: hsl(214 95% 95%); color: hsl(214 80% 50%); }
+  .icon-tile-rose   { background: hsl(350 90% 96%); color: hsl(350 75% 55%); }
+  .icon-tile-emerald{ background: hsl(152 70% 94%); color: hsl(152 60% 38%); }
+  .icon-tile-amber  { background: hsl(40 95% 92%);  color: hsl(35 85% 50%); }
+  .icon-tile-sky    { background: hsl(199 90% 94%); color: hsl(199 80% 45%); }
+  .icon-tile-indigo { background: hsl(230 90% 95%); color: hsl(230 75% 58%); }
+
+  .dark .icon-tile-violet { background: hsl(258 40% 18%); color: hsl(258 80% 75%); }
+  .dark .icon-tile-blue   { background: hsl(214 40% 18%); color: hsl(214 85% 70%); }
+  .dark .icon-tile-rose   { background: hsl(350 40% 20%); color: hsl(350 85% 75%); }
+  .dark .icon-tile-emerald{ background: hsl(152 35% 16%); color: hsl(152 65% 60%); }
+  .dark .icon-tile-amber  { background: hsl(35 40% 18%);  color: hsl(35 90% 65%); }
+  .dark .icon-tile-sky    { background: hsl(199 40% 18%); color: hsl(199 85% 65%); }
+  .dark .icon-tile-indigo { background: hsl(230 40% 20%); color: hsl(230 85% 75%); }
+
+  /* Lift-on-hover for cards */
+  .card-hover {
+    @apply transition-all duration-300 ease-out;
+  }
+  .card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px -12px hsl(var(--foreground) / 0.18);
+    border-color: hsl(var(--primary) / 0.35);
+  }
+
+  /* Subtle row hover for table-like lines */
+  .row-hover {
+    @apply transition-colors duration-200;
+  }
+  .row-hover:hover {
+    background: hsl(var(--muted) / 0.5);
+  }
 }

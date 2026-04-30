@@ -91,15 +91,17 @@ export function SmartInsights({ invoices, payments, expenses, clients, currency 
   if (insights.length === 0) return null;
 
   return (
-    <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
-      <CardContent className="py-3 px-4">
-        <div className="flex items-center gap-2 mb-2">
-          <Zap className="h-4 w-4 text-primary" />
-          <span className="text-xs font-semibold uppercase tracking-wider text-primary">Smart Insights</span>
+    <Card className="card-hover border-primary/20 bg-gradient-to-r from-sky-50 via-blue-50 to-indigo-50 dark:from-sky-950/30 dark:via-blue-950/30 dark:to-indigo-950/30">
+      <CardContent className="py-4 px-5">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="icon-tile icon-tile-blue" style={{ width: "1.75rem", height: "1.75rem" }}>
+            <Zap className="h-3.5 w-3.5" />
+          </div>
+          <span className="text-xs font-bold uppercase tracking-wider text-primary">Smart Insights</span>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {insights.map((insight, i) => (
-            <div key={i} className="flex items-start gap-2 text-sm">
+            <div key={i} className="flex items-start gap-2 text-sm row-hover rounded-md p-1.5 -m-1.5">
               <insight.icon className={`h-4 w-4 mt-0.5 shrink-0 ${insight.color}`} />
               <span className="text-foreground">{insight.text}</span>
             </div>

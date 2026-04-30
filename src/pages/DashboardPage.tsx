@@ -16,6 +16,14 @@ import {
   TrendingDown,
   Download,
   Loader2,
+  ShoppingCart,
+  Wallet,
+  Activity,
+  LineChart as LineChartIcon,
+  Receipt,
+  CreditCard,
+  CalendarClock,
+  AlertCircle,
 } from "lucide-react";
 import {
   Table,

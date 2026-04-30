@@ -800,7 +800,7 @@ export default function DashboardPage() {
       </Card>
 
       {/* Receivables Aging Bar Chart */}
-      <Card>
+      <Card className="card-hover">
         <CardHeader>
           <CardTitle className="text-base">Receivables Aging Breakdown</CardTitle>
         </CardHeader>
@@ -823,7 +823,7 @@ export default function DashboardPage() {
 
       {/* Sales & Collections + Sales/Receipts/Dues Table */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
+        <Card className="card-hover">
           <CardHeader>
             <CardTitle className="text-base">Sales and Collections</CardTitle>
           </CardHeader>
@@ -852,7 +852,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="card-hover">
           <CardHeader>
             <CardTitle className="text-base">Sales, Receipts, and Dues</CardTitle>
           </CardHeader>
@@ -882,7 +882,7 @@ export default function DashboardPage() {
       </div>
 
       {/* NEW: Cash Flow & Revenue Trends */}
-      <Card>
+      <Card className="card-hover">
         <CardHeader>
           <CardTitle className="text-base">Cash Flow — Revenue vs Expenses (Last 12 Months)</CardTitle>
         </CardHeader>
@@ -1023,7 +1023,7 @@ export default function DashboardPage() {
       </Card>
 
       {/* Monthly Invoice Count Trend */}
-      <Card>
+      <Card className="card-hover">
         <CardHeader>
           <CardTitle className="text-base">Monthly Invoice Volume (Last 12 Months)</CardTitle>
         </CardHeader>
@@ -1094,7 +1094,7 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="card-hover">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />

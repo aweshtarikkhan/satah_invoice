@@ -772,10 +772,10 @@ export default function DashboardPage() {
               const labelColor = isCurrent ? "text-emerald-600" : "text-rose-600";
               const pct = totalReceivable > 0 ? ((bucket.amount / totalReceivable) * 100).toFixed(1) : "0";
               return (
-                <div
+              <div
                   key={bucket.label}
                   className="card-hover rounded-lg border bg-card p-3 cursor-pointer"
-                  onClick={() => navigate("/aging-details")}
+                  onClick={() => navigate(`/aging-details?bucket=${encodeURIComponent(bucket.label)}`)}
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <div className={`icon-tile ${tileClass}`} style={{ width: "2rem", height: "2rem" }}>

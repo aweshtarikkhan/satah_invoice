@@ -1,16 +1,16 @@
 import { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
-import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, MessageCircle, X } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
+import { toast } from "@/hooks/use-toast";
 
 interface AgingInvoice {
   id: string;
@@ -21,6 +21,7 @@ interface AgingInvoice {
   total: number;
   balance_due: number;
   client_name: string;
+  client_phone: string | null;
   age_days: number;
   bucket: string;
 }
@@ -33,14 +34,27 @@ const BUCKET_CONFIGS = [
   { label: "Above 90 Days", min: 91, max: Infinity },
 ];
 
+// Map dashboard bucket labels -> aging-details bucket labels
+const DASHBOARD_TO_DETAILS_BUCKET: Record<string, string[]> = {
+  "Current": ["Current"],
+  "1-15 Days": ["1 - 15 Days"],
+  "16-30 Days": ["16 - 30 Days"],
+  "31-45 Days": ["31 - 60 Days"], // closest match
+  "Above 45 Days": ["31 - 60 Days", "61 - 90 Days", "Above 90 Days"],
+};
+
 export default function AgingDetailsPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const org = useAppStore((s) => s.organization);
   const [invoices, setInvoices] = useState<AgingInvoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [agingBy, setAgingBy] = useState("due_date");
   const [sortField, setSortField] = useState<"issue_date" | "due_date" | "age_days" | "total" | "balance_due">("due_date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+
+  const bucketFilter = searchParams.get("bucket");
+  const allowedBuckets = bucketFilter ? (DASHBOARD_TO_DETAILS_BUCKET[bucketFilter] || [bucketFilter]) : null;
 
   const currency = org?.currency_code || "USD";
   const fmt = (n: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency }).format(n);
@@ -51,7 +65,7 @@ export default function AgingDetailsPage() {
       setLoading(true);
       const { data } = await supabase
         .from("invoices")
-        .select("id, invoice_number, issue_date, due_date, status, total, balance_due, client_id, clients(display_name)")
+        .select("id, invoice_number, issue_date, due_date, status, total, balance_due, client_id, clients(display_name, phone, mobile)")
         .eq("org_id", org.id)
         .not("status", "in", '("paid","void","draft")');
 
@@ -66,6 +80,7 @@ export default function AgingDetailsPage() {
             if (ageDays >= b.min && ageDays <= b.max) { bucket = b.label; break; }
           }
           if (ageDays <= 0) bucket = "Current";
+          const c = (inv.clients as any) || {};
           return {
             id: inv.id,
             invoice_number: inv.invoice_number,
@@ -74,7 +89,8 @@ export default function AgingDetailsPage() {
             status: inv.status,
             total: Number(inv.total),
             balance_due: Number(inv.balance_due),
-            client_name: (inv.clients as any)?.display_name || "Unknown",
+            client_name: c.display_name || "Unknown",
+            client_phone: c.mobile || c.phone || null,
             age_days: ageDays,
             bucket,
           };
@@ -85,15 +101,19 @@ export default function AgingDetailsPage() {
     fetch();
   }, [org?.id, agingBy]);
 
+  const filteredInvoices = useMemo(() => {
+    if (!allowedBuckets) return invoices;
+    return invoices.filter((inv) => allowedBuckets.includes(inv.bucket));
+  }, [invoices, allowedBuckets]);
+
   const grouped = useMemo(() => {
     const bucketOrder = ["Current", ...BUCKET_CONFIGS.map((b) => b.label)];
     const groups: Record<string, AgingInvoice[]> = {};
     bucketOrder.forEach((b) => { groups[b] = []; });
-    invoices.forEach((inv) => {
+    filteredInvoices.forEach((inv) => {
       if (!groups[inv.bucket]) groups[inv.bucket] = [];
       groups[inv.bucket].push(inv);
     });
-    // Sort within each group
     Object.values(groups).forEach((arr) => {
       arr.sort((a, b) => {
         const av = a[sortField] as any;
@@ -103,19 +123,51 @@ export default function AgingDetailsPage() {
       });
     });
     return Object.entries(groups).filter(([, arr]) => arr.length > 0);
-  }, [invoices, sortField, sortDir]);
+  }, [filteredInvoices, sortField, sortDir]);
 
-  const totalAmount = invoices.reduce((s, i) => s + i.total, 0);
-  const totalBalance = invoices.reduce((s, i) => s + i.balance_due, 0);
+  const totalAmount = filteredInvoices.reduce((s, i) => s + i.total, 0);
+  const totalBalance = filteredInvoices.reduce((s, i) => s + i.balance_due, 0);
 
   const handleSort = (field: typeof sortField) => {
     if (sortField === field) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     else { setSortField(field); setSortDir("asc"); }
   };
 
+  const clearBucketFilter = () => {
+    searchParams.delete("bucket");
+    setSearchParams(searchParams);
+  };
+
+  const sendWhatsAppReminder = (inv: AgingInvoice, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const orgName = org?.name || "Our Company";
+    const message =
+      `Hi ${inv.client_name},\n\n` +
+      `This is a friendly payment reminder from ${orgName}.\n\n` +
+      `Invoice: ${inv.invoice_number}\n` +
+      `Due Date: ${format(new Date(inv.due_date), "dd/MM/yyyy")}\n` +
+      `Amount Due: ${fmt(inv.balance_due)}\n` +
+      `Overdue by: ${inv.age_days} days\n\n` +
+      `Kindly arrange the payment at your earliest convenience.\n\n` +
+      `Thank you!`;
+
+    // Build wa.me link. If phone exists use it, else use generic share link.
+    const phone = (inv.client_phone || "").replace(/[^\d]/g, "");
+    const url = phone
+      ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+      : `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+    if (!phone) {
+      toast({
+        title: "No phone number",
+        description: `${inv.client_name} has no phone saved. Pick a contact in WhatsApp.`,
+      });
+    }
+  };
+
   const downloadCSV = () => {
     const headers = ["Aging Bucket", "Date", "Due Date", "Invoice#", "Status", "Customer Name", "Age (Days)", "Amount", "Balance Due"];
-    const rows = invoices.map((inv) => [
+    const rows = filteredInvoices.map((inv) => [
       inv.bucket, inv.issue_date, inv.due_date, inv.invoice_number, inv.status,
       inv.client_name, inv.age_days, inv.total, inv.balance_due,
     ]);
@@ -179,13 +231,20 @@ export default function AgingDetailsPage() {
             </SelectContent>
           </Select>
         </div>
+        {bucketFilter && (
+          <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
+            Filtered: {bucketFilter}
+            <button onClick={clearBucketFilter} className="ml-1 hover:bg-primary/20 rounded-full p-0.5">
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        )}
         <div className="ml-auto flex items-center gap-4 text-sm">
-          <span className="text-muted-foreground">Total Invoices: <strong className="text-foreground">{invoices.length}</strong></span>
+          <span className="text-muted-foreground">Total Invoices: <strong className="text-foreground">{filteredInvoices.length}</strong></span>
           <span className="text-muted-foreground">Total Outstanding: <strong className="text-destructive">{fmt(totalBalance)}</strong></span>
         </div>
       </div>
 
-      {/* Header row */}
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -226,6 +285,7 @@ export default function AgingDetailsPage() {
                   >
                     BALANCE DUE{sortIcon("balance_due")}
                   </TableHead>
+                  <TableHead className="w-[140px] text-center">REMINDER</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -234,7 +294,6 @@ export default function AgingDetailsPage() {
                   const bucketBalance = items.reduce((s, i) => s + i.balance_due, 0);
                   return (
                     <>
-                      {/* Bucket header */}
                       <TableRow key={`bucket-${bucket}`} className="bg-muted/30 hover:bg-muted/40">
                         <TableCell colSpan={7} className="font-bold text-sm py-2">
                           {bucket}
@@ -245,8 +304,8 @@ export default function AgingDetailsPage() {
                         <TableCell className="text-right font-bold text-sm py-2">
                           {fmt(bucketBalance)}
                         </TableCell>
+                        <TableCell />
                       </TableRow>
-                      {/* Invoice rows */}
                       {items.map((inv) => (
                         <TableRow
                           key={inv.id}
@@ -278,16 +337,28 @@ export default function AgingDetailsPage() {
                           <TableCell className="text-sm text-right font-medium text-destructive">
                             {fmt(inv.balance_due)}
                           </TableCell>
+                          <TableCell className="text-center">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 gap-1 border-emerald-500/40 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950"
+                              onClick={(e) => sendWhatsAppReminder(inv, e)}
+                              title={inv.client_phone ? `Send to ${inv.client_phone}` : "No phone — pick contact"}
+                            >
+                              <MessageCircle className="h-3.5 w-3.5" />
+                              WhatsApp
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </>
                   );
                 })}
-                {/* Grand total */}
                 <TableRow className="bg-muted/50 font-bold">
                   <TableCell colSpan={7} className="text-sm py-3">Grand Total</TableCell>
                   <TableCell className="text-right text-sm py-3">{fmt(totalAmount)}</TableCell>
                   <TableCell className="text-right text-sm py-3 text-destructive">{fmt(totalBalance)}</TableCell>
+                  <TableCell />
                 </TableRow>
               </TableBody>
             </Table>
@@ -295,9 +366,9 @@ export default function AgingDetailsPage() {
         </CardContent>
       </Card>
 
-      {invoices.length === 0 && (
+      {filteredInvoices.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">
-          No outstanding invoices found.
+          No outstanding invoices found{bucketFilter ? ` in "${bucketFilter}"` : ""}.
         </div>
       )}
     </div>

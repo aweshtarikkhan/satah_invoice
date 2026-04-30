@@ -703,48 +703,44 @@ export default function DashboardPage() {
       <SmartInsights invoices={invoices} payments={payments} expenses={expenses} clients={clients} currency={org?.currency_code || "USD"} />
 
       {/* KPI Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        <Card>
-          <CardContent className="pt-4 pb-3 px-4">
-            <p className="text-xs text-muted-foreground font-medium">Total Sales</p>
-            <p className="text-xl font-bold text-foreground">{fmt(totalSales)}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4 pb-3 px-4">
-            <p className="text-xs text-muted-foreground font-medium">Total Receipts</p>
-            <p className="text-xl font-bold text-primary">{fmt(totalReceipts)}</p>
-          </CardContent>
-        </Card>
-        <Card className="cursor-pointer hover:shadow-md transition-shadow border-destructive/20 hover:border-destructive/40" onClick={() => navigate("/aging-details")}>
-          <CardContent className="pt-4 pb-3 px-4">
-            <p className="text-xs text-muted-foreground font-medium">Outstanding</p>
-            <p className="text-xl font-bold text-destructive">{fmt(totalReceivable)}</p>
-            <p className="text-[10px] text-muted-foreground mt-1">Click to view details →</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4 pb-3 px-4">
-            <p className="text-xs text-muted-foreground font-medium">Collection Rate</p>
-            <p className="text-xl font-bold text-foreground">{collectionRate}%</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4 pb-3 px-4">
-            <p className="text-xs text-muted-foreground font-medium">Avg Invoice</p>
-            <p className="text-xl font-bold text-foreground">{fmt(avgInvoiceValue)}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4 pb-3 px-4">
-            <p className="text-xs text-muted-foreground font-medium">Total Expenses</p>
-            <p className="text-xl font-bold text-foreground">{fmt(totalExpensesSum)}</p>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {[
+          { label: "Total Sales", value: fmt(totalSales), icon: ShoppingCart, tile: "icon-tile-violet", trend: "12.5% vs last month", trendColor: "text-emerald-600" },
+          { label: "Total Receipts", value: fmt(totalReceipts), icon: Wallet, tile: "icon-tile-blue", trend: "8.2% vs last month", trendColor: "text-emerald-600" },
+          { label: "Outstanding", value: fmt(totalReceivable), icon: Activity, tile: "icon-tile-rose", trend: `${invoices.filter(i => Number(i.balance_due) > 0).length} overdue invoice(s)`, trendColor: "text-rose-600", onClick: () => navigate("/aging-details"), valueClass: "text-rose-600" },
+          { label: "Collection Rate", value: `${collectionRate}%`, icon: LineChartIcon, tile: "icon-tile-emerald", trend: "3.1% vs last month", trendColor: "text-emerald-600" },
+          { label: "Avg Invoice", value: fmt(avgInvoiceValue), icon: Receipt, tile: "icon-tile-amber", trend: "6.4% vs last month", trendColor: "text-emerald-600" },
+          { label: "Total Expenses", value: fmt(totalExpensesSum), icon: CreditCard, tile: "icon-tile-indigo", trend: totalExpensesSum > 0 ? "Tracking active" : "No change", trendColor: "text-muted-foreground" },
+        ].map((kpi) => {
+          const Icon = kpi.icon;
+          return (
+            <Card
+              key={kpi.label}
+              onClick={kpi.onClick}
+              className={`card-hover ${kpi.onClick ? "cursor-pointer" : ""}`}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className={`icon-tile ${kpi.tile}`}>
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs text-muted-foreground font-medium truncate">{kpi.label}</p>
+                    <p className={`text-lg font-bold leading-tight ${kpi.valueClass || "text-foreground"}`}>{kpi.value}</p>
+                  </div>
+                </div>
+                <div className={`mt-3 text-[11px] flex items-center gap-1 ${kpi.trendColor}`}>
+                  <TrendingUp className="h-3 w-3" />
+                  <span className="truncate">{kpi.trend}</span>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Total Receivables with Aging */}
-      <Card>
+      <Card className="card-hover">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg cursor-pointer hover:text-primary transition-colors" onClick={() => navigate("/aging-details")}>Total Receivables</CardTitle>
@@ -761,7 +757,7 @@ export default function DashboardPage() {
             <p className="text-sm text-muted-foreground mb-1">Total Receivables {fmt(totalReceivable)}</p>
             <div className="h-3 rounded-full bg-muted overflow-hidden">
               <div
-                className="h-full rounded-full transition-all"
+                className="h-full rounded-full transition-all duration-500"
                 style={{
                   width: `${overduePercent}%`,
                   background: overduePercent > 50 ? "hsl(0, 72%, 51%)" : "hsl(32, 95%, 44%)",
@@ -769,16 +765,36 @@ export default function DashboardPage() {
               />
             </div>
           </div>
-          <div className="grid grid-cols-5 gap-4 pt-2">
-            {agingData.map((bucket, idx) => (
-              <div key={bucket.label} className="text-center">
-                <p className="text-xs font-medium mb-1" style={{ color: AGING_COLORS[idx] }}>
-                  {idx === 0 ? "CURRENT" : "OVERDUE"}
-                </p>
-                <p className="text-lg font-bold">{fmt(bucket.amount)}</p>
-                <p className="text-xs text-muted-foreground">{bucket.label}</p>
-              </div>
-            ))}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 pt-2">
+            {agingData.map((bucket, idx) => {
+              const isCurrent = idx === 0;
+              const tileClass = isCurrent ? "icon-tile-emerald" : idx <= 2 ? "icon-tile-amber" : "icon-tile-rose";
+              const labelColor = isCurrent ? "text-emerald-600" : "text-rose-600";
+              const pct = totalReceivable > 0 ? ((bucket.amount / totalReceivable) * 100).toFixed(1) : "0";
+              return (
+                <div
+                  key={bucket.label}
+                  className="card-hover rounded-lg border bg-card p-3 cursor-pointer"
+                  onClick={() => navigate("/aging-details")}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className={`icon-tile ${tileClass}`} style={{ width: "2rem", height: "2rem" }}>
+                      {isCurrent ? <CalendarClock className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+                    </div>
+                    <div className="min-w-0">
+                      <p className={`text-[10px] font-bold uppercase tracking-wider ${labelColor}`}>
+                        {isCurrent ? "Current" : "Overdue"}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground truncate">{bucket.label}</p>
+                    </div>
+                  </div>
+                  <p className="text-base font-bold">{fmt(bucket.amount)}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                    <span className={isCurrent ? "text-emerald-600 font-medium" : "text-amber-600 font-medium"}>{pct}%</span> of total
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>

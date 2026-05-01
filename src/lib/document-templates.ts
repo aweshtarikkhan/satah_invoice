@@ -62,6 +62,13 @@ export const DOCUMENT_TEMPLATES = [
     preview: "bg-background border-primary/30",
     features: ["Centered header", "Numbered items", "Balance due highlight"],
   },
+  {
+    id: "pos",
+    name: "POS Receipt (80mm)",
+    description: "Thermal printer / cash register style receipt for 80mm roll paper",
+    preview: "bg-background border-foreground/40",
+    features: ["80mm thermal", "Monospace font", "Compact rows", "Tear-off receipt"],
+  },
 ] as const;
 
 export const PAPER_SIZES = [
@@ -70,6 +77,7 @@ export const PAPER_SIZES = [
   { id: "legal", name: "Legal", dimensions: "8.5 × 14 in" },
   { id: "a5", name: "A5", dimensions: "148 × 210 mm" },
   { id: "a6", name: "A6", dimensions: "105 × 148 mm" },
+  { id: "pos80", name: "POS 80mm", dimensions: "80 × auto mm" },
 ] as const;
 
 export function getDocumentPreviewClass(templateStyle?: string, paperSize?: string) {
@@ -83,6 +91,7 @@ export function getDocumentPreviewClass(templateStyle?: string, paperSize?: stri
     quisquam: "rounded-md border border-warning/30 bg-card text-card-foreground shadow-sm",
     nobis: "rounded-xl border-l-4 border-secondary bg-card text-card-foreground shadow-md",
     compact: "rounded-lg border border-foreground/20 bg-background text-foreground shadow-sm",
+    pos: "border border-foreground/30 bg-background text-foreground shadow-sm",
   }[templateStyle || "classic"];
 
   const sizeClass = {
@@ -91,10 +100,11 @@ export function getDocumentPreviewClass(templateStyle?: string, paperSize?: stri
     legal: "max-w-[8.5in] min-h-[14in]",
     a5: "max-w-[148mm]",
     a6: "max-w-[105mm]",
+    pos80: "max-w-[80mm]",
   }[paperSize || "a4"];
 
-  const isCompact = templateStyle === "compact";
-  return `invoice-printable ${isCompact ? "" : "mx-auto"} w-full ${styleClass || "rounded-xl border border-border bg-card text-card-foreground shadow-sm"} ${isCompact ? "" : (sizeClass || "max-w-[210mm]")} print:max-w-none print:shadow-none print:border-0 print:rounded-none`;
+  const isCompactish = templateStyle === "compact" || templateStyle === "pos";
+  return `invoice-printable ${isCompactish ? "" : "mx-auto"} w-full ${styleClass || "rounded-xl border border-border bg-card text-card-foreground shadow-sm"} ${isCompactish ? "" : (sizeClass || "max-w-[210mm]")} print:max-w-none print:shadow-none print:border-0 print:rounded-none`;
 }
 
 export function getPaperSizeLabel(paperSize?: string) {
@@ -109,36 +119,40 @@ export function getPrintPageCSS(paperSize?: string): string {
     legal: "8.5in 14in",
     a5: "148mm 210mm",
     a6: "105mm 148mm",
+    pos80: "80mm auto",
   };
   const size = sizes[paperSize || "a4"] || sizes.a4;
 
-  // Font scaling for smaller papers
   const fontScale: Record<string, string> = {
     a4: "11px",
     letter: "11px",
     legal: "11px",
     a5: "9px",
     a6: "7px",
+    pos80: "11px",
   };
   const baseFontSize = fontScale[paperSize || "a4"] || "11px";
+  const pageMargin = paperSize === "pos80" ? "2mm" : "8mm";
+  const pagePadding = paperSize === "pos80" ? "0" : "12px";
 
   return `
 @media print {
-  @page { size: ${size}; margin: 8mm; }
-  html, body { margin: 0 !important; padding: 0 !important; }
+  @page { size: ${size}; margin: ${pageMargin}; }
+  html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
   body * { visibility: hidden; }
   .invoice-printable, .invoice-printable * { visibility: visible; }
   .invoice-printable {
     position: absolute; left: 0; top: 0;
     width: 100% !important; max-width: none !important;
-    margin: 0 !important; padding: 12px !important;
+    margin: 0 !important; padding: ${pagePadding} !important;
     font-size: ${baseFontSize} !important;
     box-shadow: none !important; border: none !important; border-radius: 0 !important;
-    page-break-inside: avoid;
-    overflow: hidden;
+    color: #000 !important; background: #fff !important;
   }
-  .invoice-printable table { font-size: inherit !important; }
+  .invoice-printable table { font-size: inherit !important; border-collapse: collapse; width: 100%; }
   .invoice-printable th, .invoice-printable td { padding: 3px 6px !important; font-size: inherit !important; }
+  .invoice-printable thead { display: table-header-group; }
+  .invoice-printable tr, .invoice-printable td, .invoice-printable th { page-break-inside: avoid !important; break-inside: avoid !important; }
   .invoice-printable h1, .invoice-printable h2, .invoice-printable h3 { font-size: 1.1em !important; }
   .no-print, header, nav, aside, [data-sidebar], .sidebar-trigger { display: none !important; }
 }`;

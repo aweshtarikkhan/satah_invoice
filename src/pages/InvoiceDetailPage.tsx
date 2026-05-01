@@ -27,6 +27,7 @@ import { QRCodeSVG } from "qrcode.react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import { CompactBillTemplate } from "@/components/invoice/CompactBillTemplate";
+import { PosBillTemplate } from "@/components/invoice/PosBillTemplate";
 
 export default function InvoiceDetailPage() {
   const { id } = useParams();
@@ -188,24 +189,73 @@ export default function InvoiceDetailPage() {
   const handleDownloadPDF = useCallback(async () => {
     if (!invoiceRef.current) return;
     const paperSizes: Record<string, [number, number]> = {
-      a4: [210, 297], letter: [215.9, 279.4], legal: [215.9, 355.6], a5: [148, 210], a6: [105, 148],
+      a4: [210, 297], letter: [215.9, 279.4], legal: [215.9, 355.6], a5: [148, 210], a6: [105, 148], pos80: [80, 297],
     };
-    const [pW, pH] = paperSizes[org?.template_paper_size || "a4"] || paperSizes.a4;
-    const canvas = await html2canvas(invoiceRef.current, { scale: 3, useCORS: true, logging: false });
-    const imgData = canvas.toDataURL("image/png");
-    const imgWidth = pW;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    const paperKey = org?.template_paper_size || "a4";
+    const [pW, pH] = paperSizes[paperKey] || paperSizes.a4;
+    const MARGIN = paperKey === "pos80" ? 2 : 8; // mm
+    const contentWidth = pW - MARGIN * 2;
+    const contentHeight = pH - MARGIN * 2;
+
+    // Capture each "section" individually so rows are never cut mid-way.
+    // Sections are <table>, top-level <div> children, and any [data-pdf-section].
+    const root = invoiceRef.current;
+    const explicit = Array.from(root.querySelectorAll<HTMLElement>("[data-pdf-section]"));
+    const sections: HTMLElement[] = explicit.length
+      ? explicit
+      : (Array.from(root.children) as HTMLElement[]).flatMap((child) => {
+          // For Card-based templates, dive one level into CardContent rows.
+          const inner = child.querySelectorAll<HTMLElement>(":scope > *");
+          return inner.length > 1 ? Array.from(inner) : [child];
+        });
+
     const pdf = new jsPDF("p", "mm", [pW, pH]);
-    let heightLeft = imgHeight;
-    let position = 0;
-    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-    heightLeft -= pH;
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
-      pdf.addPage([pW, pH]);
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pH;
+    let cursorY = MARGIN;
+    const SECTION_GAP = 1.5; // mm
+
+    for (const section of sections) {
+      const canvas = await html2canvas(section, { scale: 2, useCORS: true, logging: false, backgroundColor: "#ffffff" });
+      const imgW = contentWidth;
+      const imgH = (canvas.height * imgW) / canvas.width;
+      const imgData = canvas.toDataURL("image/png");
+
+      if (imgH > contentHeight) {
+        // Section bigger than a page: slice it across pages.
+        let remaining = imgH;
+        let srcY = 0;
+        while (remaining > 0) {
+          const spaceLeft = pH - MARGIN - cursorY;
+          if (spaceLeft < 10) {
+            pdf.addPage([pW, pH]);
+            cursorY = MARGIN;
+          }
+          const sliceMM = Math.min(remaining, pH - MARGIN - cursorY);
+          const sliceRatio = sliceMM / imgH;
+          const sliceCanvas = document.createElement("canvas");
+          sliceCanvas.width = canvas.width;
+          sliceCanvas.height = canvas.height * sliceRatio;
+          const ctx = sliceCanvas.getContext("2d")!;
+          ctx.drawImage(canvas, 0, -srcY * (canvas.height / imgH));
+          pdf.addImage(sliceCanvas.toDataURL("image/png"), "PNG", MARGIN, cursorY, imgW, sliceMM);
+          cursorY += sliceMM;
+          srcY += sliceMM;
+          remaining -= sliceMM;
+          if (remaining > 0) {
+            pdf.addPage([pW, pH]);
+            cursorY = MARGIN;
+          }
+        }
+      } else {
+        // Move to a new page if it doesn't fit.
+        if (cursorY + imgH > pH - MARGIN && cursorY > MARGIN) {
+          pdf.addPage([pW, pH]);
+          cursorY = MARGIN;
+        }
+        pdf.addImage(imgData, "PNG", MARGIN, cursorY, imgW, imgH);
+        cursorY += imgH + SECTION_GAP;
+      }
     }
+
     pdf.save(`${invoice?.invoice_number || "invoice"}.pdf`);
   }, [invoice, org]);
 
@@ -277,6 +327,10 @@ export default function InvoiceDetailPage() {
       {org?.template_style === "compact" ? (
         <div className={getDocumentPreviewClass("compact", org?.template_paper_size)}>
           <CompactBillTemplate org={org} invoice={invoice} lines={lines} fmt={fmt} type="invoice" />
+        </div>
+      ) : org?.template_style === "pos" ? (
+        <div className={getDocumentPreviewClass("pos", org?.template_paper_size || "pos80")}>
+          <PosBillTemplate org={org} invoice={invoice} lines={lines} fmt={fmt} type="invoice" />
         </div>
       ) : (
       <Card className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>

@@ -328,6 +328,10 @@ export default function InvoiceDetailPage() {
         <div className={getDocumentPreviewClass("compact", org?.template_paper_size)}>
           <CompactBillTemplate org={org} invoice={invoice} lines={lines} fmt={fmt} type="invoice" />
         </div>
+      ) : org?.template_style === "pos" ? (
+        <div className={getDocumentPreviewClass("pos", org?.template_paper_size || "pos80")}>
+          <PosBillTemplate org={org} invoice={invoice} lines={lines} fmt={fmt} type="invoice" />
+        </div>
       ) : (
       <Card className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
         <CardHeader>

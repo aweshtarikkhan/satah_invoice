@@ -27,6 +27,7 @@ import { QRCodeSVG } from "qrcode.react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import { CompactBillTemplate } from "@/components/invoice/CompactBillTemplate";
+import { PosBillTemplate } from "@/components/invoice/PosBillTemplate";
 
 export default function InvoiceDetailPage() {
   const { id } = useParams();

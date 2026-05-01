@@ -62,6 +62,13 @@ export const DOCUMENT_TEMPLATES = [
     preview: "bg-background border-primary/30",
     features: ["Centered header", "Numbered items", "Balance due highlight"],
   },
+  {
+    id: "pos",
+    name: "POS Receipt (80mm)",
+    description: "Thermal printer / cash register style receipt for 80mm roll paper",
+    preview: "bg-background border-foreground/40",
+    features: ["80mm thermal", "Monospace font", "Compact rows", "Tear-off receipt"],
+  },
 ] as const;
 
 export const PAPER_SIZES = [
@@ -70,6 +77,7 @@ export const PAPER_SIZES = [
   { id: "legal", name: "Legal", dimensions: "8.5 × 14 in" },
   { id: "a5", name: "A5", dimensions: "148 × 210 mm" },
   { id: "a6", name: "A6", dimensions: "105 × 148 mm" },
+  { id: "pos80", name: "POS 80mm", dimensions: "80 × auto mm" },
 ] as const;
 
 export function getDocumentPreviewClass(templateStyle?: string, paperSize?: string) {

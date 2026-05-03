@@ -28,6 +28,7 @@ import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import { CompactBillTemplate } from "@/components/invoice/CompactBillTemplate";
 import { PosBillTemplate } from "@/components/invoice/PosBillTemplate";
+import { StyledInvoiceTemplate } from "@/components/invoice/StyledInvoiceTemplate";
 
 export default function InvoiceDetailPage() {
   const { id } = useParams();

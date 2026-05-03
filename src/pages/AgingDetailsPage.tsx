@@ -151,12 +151,27 @@ export default function AgingDetailsPage() {
       `Kindly arrange the payment at your earliest convenience.\n\n` +
       `Thank you!`;
 
-    // Build wa.me link. If phone exists use it, else use generic share link.
-    const phone = (inv.client_phone || "").replace(/[^\d]/g, "");
-    const url = phone
-      ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
-      : `https://wa.me/?text=${encodeURIComponent(message)}`;
+    // Normalize phone: digits only, prepend default country code (91/India) if missing
+    let phone = (inv.client_phone || "").replace(/[^\d]/g, "");
+    if (phone && phone.length === 10) phone = "91" + phone; // assume India if 10-digit local
+    if (phone && phone.startsWith("0")) phone = "91" + phone.replace(/^0+/, "");
+
+    const encoded = encodeURIComponent(message);
+    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
+    // Desktop: use web.whatsapp.com (works in browser without redirect blocks)
+    // Mobile: use wa.me (opens native WhatsApp app)
+    let url: string;
+    if (!phone) {
+      url = isMobile ? `https://wa.me/?text=${encoded}` : `https://web.whatsapp.com/send?text=${encoded}`;
+    } else {
+      url = isMobile
+        ? `https://wa.me/${phone}?text=${encoded}`
+        : `https://web.whatsapp.com/send?phone=${phone}&text=${encoded}`;
+    }
+
     window.open(url, "_blank", "noopener,noreferrer");
+
     if (!phone) {
       toast({
         title: "No phone number",

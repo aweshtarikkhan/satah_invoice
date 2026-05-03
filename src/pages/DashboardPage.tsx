@@ -703,7 +703,7 @@ export default function DashboardPage() {
       <SmartInsights invoices={invoices} payments={payments} expenses={expenses} clients={clients} currency={org?.currency_code || "USD"} />
 
       {/* KPI Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
         {[
           { label: "Total Sales", value: fmt(totalSales), icon: ShoppingCart, tile: "icon-tile-violet", trend: "12.5% vs last month", trendColor: "text-emerald-600" },
           { label: "Total Receipts", value: fmt(totalReceipts), icon: Wallet, tile: "icon-tile-blue", trend: "8.2% vs last month", trendColor: "text-emerald-600" },
@@ -719,18 +719,21 @@ export default function DashboardPage() {
               onClick={kpi.onClick}
               className={`card-hover ${kpi.onClick ? "cursor-pointer" : ""}`}
             >
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className={`icon-tile ${kpi.tile}`}>
-                    <Icon className="h-5 w-5" />
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={`icon-tile ${kpi.tile} shrink-0 !h-8 !w-8 sm:!h-9 sm:!w-9`}>
+                    <Icon className="h-4 w-4" />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs text-muted-foreground font-medium truncate">{kpi.label}</p>
-                    <p className={`text-lg font-bold leading-tight ${kpi.valueClass || "text-foreground"}`}>{kpi.value}</p>
-                  </div>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground font-medium truncate flex-1">{kpi.label}</p>
                 </div>
-                <div className={`mt-3 text-[11px] flex items-center gap-1 ${kpi.trendColor}`}>
-                  <TrendingUp className="h-3 w-3" />
+                <p
+                  className={`text-base sm:text-lg lg:text-xl font-bold leading-tight break-words ${kpi.valueClass || "text-foreground"}`}
+                  title={kpi.value}
+                >
+                  {kpi.value}
+                </p>
+                <div className={`mt-2 text-[10px] sm:text-[11px] flex items-center gap-1 ${kpi.trendColor}`}>
+                  <TrendingUp className="h-3 w-3 shrink-0" />
                   <span className="truncate">{kpi.trend}</span>
                 </div>
               </CardContent>
@@ -788,7 +791,7 @@ export default function DashboardPage() {
                       <p className="text-[10px] text-muted-foreground truncate">{bucket.label}</p>
                     </div>
                   </div>
-                  <p className="text-base font-bold">{fmt(bucket.amount)}</p>
+                  <p className="text-sm sm:text-base font-bold break-words" title={fmt(bucket.amount)}>{fmt(bucket.amount)}</p>
                   <p className="text-[10px] text-muted-foreground mt-0.5">
                     <span className={isCurrent ? "text-emerald-600 font-medium" : "text-amber-600 font-medium"}>{pct}%</span> of total
                   </p>

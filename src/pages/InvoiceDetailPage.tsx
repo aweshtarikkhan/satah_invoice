@@ -28,6 +28,7 @@ import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import { CompactBillTemplate } from "@/components/invoice/CompactBillTemplate";
 import { PosBillTemplate } from "@/components/invoice/PosBillTemplate";
+import { StyledInvoiceTemplate } from "@/components/invoice/StyledInvoiceTemplate";
 
 export default function InvoiceDetailPage() {
   const { id } = useParams();
@@ -333,104 +334,9 @@ export default function InvoiceDetailPage() {
           <PosBillTemplate org={org} invoice={invoice} lines={lines} fmt={fmt} type="invoice" />
         </div>
       ) : (
-      <Card className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle className="text-lg">{org?.name}</CardTitle>
-              {org?.phone && <p className="text-sm text-muted-foreground">{org.phone}</p>}
-              <p className="text-sm text-muted-foreground">{org?.email}</p>
-              {org?.gst_enabled && org?.gst_number && (
-                <p className="text-sm text-muted-foreground">GST: {org.gst_number}</p>
-              )}
-            </div>
-            <div className="text-right">
-              <p className="text-sm font-medium mb-1">Bill To:</p>
-              <p className="font-medium">{(invoice.clients as any)?.display_name}</p>
-              <p className="text-2xl font-bold mt-2">{fmt(Number(invoice.total))}</p>
-              <p className="text-sm text-muted-foreground">Balance: {fmt(Number(invoice.balance_due))}</p>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Item</TableHead>
-                <TableHead>Unit</TableHead>
-                <TableHead className="text-right">Qty</TableHead>
-                <TableHead className="text-right">Rate</TableHead>
-                <TableHead className="text-right">Tax</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {lines.map((line) => (
-                <TableRow key={line.id}>
-                  <TableCell>
-                    <div className="font-medium">{line.name}</div>
-                    {line.description && <div className="text-xs text-muted-foreground">{line.description}</div>}
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{line.unit || "pcs"}</TableCell>
-                  <TableCell className="text-right">{line.quantity}</TableCell>
-                  <TableCell className="text-right">{fmt(Number(line.rate))}</TableCell>
-                  <TableCell className="text-right">{fmt(Number(line.tax_amount))}</TableCell>
-                  <TableCell className="text-right">{fmt(Number(line.amount))}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-
-          <div className="mt-4 ml-auto max-w-xs space-y-1 text-sm">
-            <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{fmt(Number(invoice.subtotal))}</span></div>
-            {Number(invoice.total_discount) > 0 && (
-              <div className="flex justify-between"><span className="text-muted-foreground">Discount</span><span className="text-destructive">-{fmt(Number(invoice.total_discount))}</span></div>
-            )}
-            {Number(invoice.total_tax) > 0 && (
-              <div className="flex justify-between"><span className="text-muted-foreground">Tax</span><span>+{fmt(Number(invoice.total_tax))}</span></div>
-            )}
-            {Number(invoice.shipping_charge) > 0 && (
-              <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>+{fmt(Number(invoice.shipping_charge))}</span></div>
-            )}
-            <div className="flex justify-between border-t pt-1 font-bold text-base">
-              <span>Total</span><span>{fmt(Number(invoice.total))}</span>
-            </div>
-            <div className="flex justify-between text-muted-foreground">
-              <span>Amount Paid</span><span>{fmt(Number(invoice.amount_paid))}</span>
-            </div>
-            <div className="flex justify-between font-bold text-primary">
-              <span>Balance Due</span><span>{fmt(Number(invoice.balance_due))}</span>
-            </div>
-
-            {/* UPI Payment QR Code */}
-            {org?.qr_code_enabled && (
-              <div className="mt-6 pt-4 border-t">
-                <p className="text-xs font-medium mb-2">Pay via UPI</p>
-                <div className="flex items-center gap-3">
-                  <QRCodeSVG
-                    value={
-                      (org as any)?.upi_id
-                        ? `upi://pay?pa=${(org as any).upi_id}&pn=${encodeURIComponent(org.name || "")}&am=${Number(invoice.balance_due).toFixed(2)}&cu=${invoice.currency_code || "INR"}&tn=${encodeURIComponent(`Payment for ${invoice.invoice_number}`)}`
-                        : `${window.location.origin}/portal/invoice/${invoice.id}`
-                    }
-                    size={100}
-                    level="M"
-                  />
-                  <div className="text-xs text-muted-foreground space-y-1">
-                    {(org as any)?.upi_id && (
-                      <>
-                        <p>UPI: <span className="font-medium text-foreground">{(org as any).upi_id}</span></p>
-                        <p>Amount: <span className="font-bold text-foreground">{fmt(Number(invoice.balance_due))}</span></p>
-                      </>
-                    )}
-                    <p>Scan to pay instantly</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      <div className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
+        <StyledInvoiceTemplate org={org} invoice={invoice} lines={lines} fmt={fmt} type="invoice" />
+      </div>
       )}
       </div>
 

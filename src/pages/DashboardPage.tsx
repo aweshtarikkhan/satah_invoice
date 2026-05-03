@@ -791,7 +791,7 @@ export default function DashboardPage() {
                       <p className="text-[10px] text-muted-foreground truncate">{bucket.label}</p>
                     </div>
                   </div>
-                  <p className="text-base font-bold">{fmt(bucket.amount)}</p>
+                  <p className="text-sm sm:text-base font-bold break-words" title={fmt(bucket.amount)}>{fmt(bucket.amount)}</p>
                   <p className="text-[10px] text-muted-foreground mt-0.5">
                     <span className={isCurrent ? "text-emerald-600 font-medium" : "text-amber-600 font-medium"}>{pct}%</span> of total
                   </p>

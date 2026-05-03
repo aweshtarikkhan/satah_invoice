@@ -11,6 +11,7 @@ import {
 import { ArrowLeft, Download, MessageCircle, X } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { toast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface AgingInvoice {
   id: string;
@@ -47,6 +48,7 @@ export default function AgingDetailsPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const org = useAppStore((s) => s.organization);
+  const isMobile = useIsMobile();
   const [invoices, setInvoices] = useState<AgingInvoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [agingBy, setAgingBy] = useState("due_date");
@@ -138,6 +140,24 @@ export default function AgingDetailsPage() {
     setSearchParams(searchParams);
   };
 
+  const openExternalLink = (url: string) => {
+    const newWindow = window.open(url, "_blank", "noopener,noreferrer");
+
+    if (newWindow) {
+      newWindow.opener = null;
+      return true;
+    }
+
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.target = "_blank";
+    anchor.rel = "noopener noreferrer";
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    return !document.hidden;
+  };
+
   const sendWhatsAppReminder = (inv: AgingInvoice, e: React.MouseEvent) => {
     e.stopPropagation();
     const orgName = org?.name || "Our Company";
@@ -157,25 +177,24 @@ export default function AgingDetailsPage() {
     if (phone && phone.startsWith("0")) phone = "91" + phone.replace(/^0+/, "");
 
     const encoded = encodeURIComponent(message);
-    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+    const url = !phone
+      ? `https://wa.me/?text=${encoded}`
+      : `https://wa.me/${phone}?text=${encoded}`;
 
-    // Desktop: use web.whatsapp.com (works in browser without redirect blocks)
-    // Mobile: use wa.me (opens native WhatsApp app)
-    let url: string;
-    if (!phone) {
-      url = isMobile ? `https://wa.me/?text=${encoded}` : `https://web.whatsapp.com/send?text=${encoded}`;
-    } else {
-      url = isMobile
-        ? `https://wa.me/${phone}?text=${encoded}`
-        : `https://web.whatsapp.com/send?phone=${phone}&text=${encoded}`;
-    }
-
-    window.open(url, "_blank", "noopener,noreferrer");
+    const opened = openExternalLink(url);
 
     if (!phone) {
       toast({
         title: "No phone number",
         description: `${inv.client_name} has no phone saved. Pick a contact in WhatsApp.`,
+      });
+      return;
+    }
+
+    if (!opened && !isMobile) {
+      toast({
+        title: "WhatsApp blocked by browser",
+        description: "Allow pop-ups for this site, then tap WhatsApp again.",
       });
     }
   };

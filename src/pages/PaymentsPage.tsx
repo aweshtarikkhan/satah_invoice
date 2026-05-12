@@ -236,68 +236,44 @@ export default function PaymentsPage() {
   return (
     <div className="p-6 space-y-4">
       {/* Top Bar */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-bold">All Received Payments</h1>
-        <div className="flex items-center gap-2">
-          {selected.size > 0 && (
-            <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
-              <Trash2 className="mr-1 h-4 w-4" /> Delete ({selected.size})
-            </Button>
-          )}
-          <Button variant="outline" size="sm" onClick={() => {
-            downloadCSV(payments.map(p => ({
-              payment_number: p.payment_number,
-              customer: (p.clients as any)?.display_name,
-              amount: p.amount,
-              payment_date: p.payment_date,
-              payment_mode: p.payment_mode,
-              reference_number: p.reference_number || "",
-              invoice: (p.invoices as any)?.invoice_number || "",
-              notes: p.notes || "",
-            })), "payments");
-          }}>
-            <Download className="mr-1 h-4 w-4" /> Export
+      <PageActionBar title="Payments Received">
+        {selected.size > 0 && (
+          <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
+            <Trash2 className="mr-1 h-4 w-4" /> Delete ({selected.size})
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
-            <Upload className="mr-1 h-4 w-4" /> Import
-          </Button>
-          <Button size="sm" onClick={() => navigate("/payments/new")}>
-            <Plus className="mr-1 h-4 w-4" /> + New
-          </Button>
-        </div>
-      </div>
+        )}
+        <Button variant="outline" size="sm" onClick={() => {
+          downloadCSV(payments.map(p => ({
+            payment_number: p.payment_number,
+            customer: (p.clients as any)?.display_name,
+            amount: p.amount,
+            payment_date: p.payment_date,
+            payment_mode: p.payment_mode,
+            reference_number: p.reference_number || "",
+            invoice: (p.invoices as any)?.invoice_number || "",
+            notes: p.notes || "",
+          })), "payments");
+        }}>
+          <Download className="mr-1 h-4 w-4" /> Export
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+          <Upload className="mr-1 h-4 w-4" /> Import
+        </Button>
+        <Button size="sm" onClick={() => navigate("/payments/new")}>
+          <Plus className="mr-1 h-4 w-4" /> New Payment
+        </Button>
+      </PageActionBar>
 
-      {/* Summary Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-l-4 border-l-blue-500">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Billed</CardTitle>
-            <DollarSign className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent><div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{fmt(globalTotalBilled)}</div></CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-emerald-500">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Received</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-          </CardHeader>
-          <CardContent><div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{fmt(globalTotalPaid)}</div></CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-orange-500">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Pending</CardTitle>
-            <Clock className="h-4 w-4 text-orange-500" />
-          </CardHeader>
-          <CardContent><div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{fmt(globalPending)}</div></CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-red-500">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Overdue Clients</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent><div className="text-2xl font-bold text-red-600 dark:text-red-400">{overdueCount}</div></CardContent>
-        </Card>
-      </div>
+      {/* Payment Summary */}
+      <SummaryRibbon
+        label="Payment Summary"
+        items={[
+          { label: "Total Billed", value: fmt(globalTotalBilled), accent: "info" },
+          { label: "Total Received", value: fmt(globalTotalPaid), accent: "success" },
+          { label: "Total Pending", value: fmt(globalPending), accent: "warning" },
+          { label: "Overdue Clients", value: overdueCount, accent: "danger" },
+        ]}
+      />
 
       {/* Client Receivables */}
       <Card>

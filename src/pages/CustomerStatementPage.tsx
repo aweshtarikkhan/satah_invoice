@@ -241,137 +241,131 @@ export default function CustomerStatementPage() {
       )}
 
       {selectedClientId && !loading && client && (
-        <div ref={statementRef}>
-          <Card className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-lg">{org?.name}</CardTitle>
-                  {org?.email && <p className="text-sm text-muted-foreground">{org.email}</p>}
-                  {org?.phone && <p className="text-sm text-muted-foreground">{org.phone}</p>}
-                  {org?.gst_enabled && org?.gst_number && (
-                    <p className="text-sm text-muted-foreground">GST: {org.gst_number}</p>
-                  )}
-                </div>
-                <div className="text-right">
-                  <p className="text-xl font-bold mb-1">STATEMENT</p>
-                  <p className="text-sm text-muted-foreground">
-                    {format(new Date(dateFrom), "dd MMM yyyy")} — {format(new Date(dateTo), "dd MMM yyyy")}
-                  </p>
-                </div>
-              </div>
+        <div ref={statementRef} className="bg-card rounded-2xl border border-border/60 shadow-sm p-6 sm:p-8 space-y-6">
+          {/* Statement header: 3 columns */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+            <div className="min-w-0">
+              <p className="text-base font-bold text-foreground">{org?.name}</p>
+              {org?.email && <p className="text-sm text-muted-foreground mt-1">{org.email}</p>}
+              {org?.phone && <p className="text-sm text-muted-foreground">{org.phone}</p>}
+              {org?.gst_enabled && org?.gst_number && (
+                <p className="text-sm text-muted-foreground">GST: {org.gst_number}</p>
+              )}
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold tracking-wide">STATEMENT</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                {format(new Date(dateFrom), "dd MMM yyyy")} — {format(new Date(dateTo), "dd MMM yyyy")}
+              </p>
+            </div>
+            <div className="md:text-right min-w-0">
+              <p className="text-sm font-medium text-muted-foreground">To</p>
+              <p className="font-bold text-foreground mt-1">{client.display_name}</p>
+              {client.company_name && <p className="text-sm text-muted-foreground">{client.company_name}</p>}
+              {client.email && <p className="text-sm text-muted-foreground">{client.email}</p>}
+            </div>
+          </div>
 
-              <div className="mt-4 pt-4 border-t">
-                <p className="text-sm font-medium text-muted-foreground">To:</p>
-                <p className="font-semibold">{client.display_name}</p>
-                {client.company_name && <p className="text-sm text-muted-foreground">{client.company_name}</p>}
-                {client.email && <p className="text-sm text-muted-foreground">{client.email}</p>}
+          {/* KPI Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="rounded-xl border border-border/60 bg-card p-5 flex items-center gap-4">
+              <div className="h-11 w-11 rounded-full bg-blue-500 flex items-center justify-center text-white shrink-0">
+                <IndianRupee className="h-5 w-5" />
               </div>
-            </CardHeader>
-
-            <CardContent className="space-y-6">
-              {/* Summary Cards */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                <div className="rounded-xl border bg-card p-4 flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white shrink-0">
-                    <IndianRupee className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Opening Balance</p>
-                    <p className="text-lg font-bold truncate">{fmt(transactions.openingBalance)}</p>
-                  </div>
-                </div>
-                <div className="rounded-xl border bg-card p-4 flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
-                    <FileText className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Invoiced</p>
-                    <p className="text-lg font-bold text-blue-600 dark:text-blue-400 truncate">{fmt(totalInvoiced)}</p>
-                  </div>
-                </div>
-                <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 p-4 flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-emerald-500 flex items-center justify-center text-white shrink-0">
-                    <CheckCircle2 className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Paid</p>
-                    <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 truncate">{fmt(totalPayments + totalCredits)}</p>
-                  </div>
-                </div>
-                <div className="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/30 p-4 flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-rose-500 flex items-center justify-center text-white shrink-0">
-                    <AlertCircle className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Balance Due</p>
-                    <p className="text-lg font-bold text-rose-600 dark:text-rose-400 truncate">{fmt(transactions.closingBalance)}</p>
-                  </div>
-                </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Opening Balance</p>
+                <p className="text-lg font-bold truncate mt-0.5">{fmt(transactions.openingBalance)}</p>
               </div>
+            </div>
+            <div className="rounded-xl border border-border/60 bg-card p-5 flex items-center gap-4">
+              <div className="h-11 w-11 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                <FileText className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Invoiced</p>
+                <p className="text-lg font-bold text-blue-600 dark:text-blue-400 truncate mt-0.5">{fmt(totalInvoiced)}</p>
+              </div>
+            </div>
+            <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 p-5 flex items-center gap-4">
+              <div className="h-11 w-11 rounded-full bg-emerald-500 flex items-center justify-center text-white shrink-0">
+                <CheckCircle2 className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Paid</p>
+                <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 truncate mt-0.5">{fmt(totalPayments + totalCredits)}</p>
+              </div>
+            </div>
+            <div className="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/30 p-5 flex items-center gap-4">
+              <div className="h-11 w-11 rounded-full bg-rose-500 flex items-center justify-center text-white shrink-0">
+                <AlertCircle className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Balance Due</p>
+                <p className="text-lg font-bold text-rose-600 dark:text-rose-400 truncate mt-0.5">{fmt(transactions.closingBalance)}</p>
+              </div>
+            </div>
+          </div>
 
-              {/* Transactions Table */}
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Transaction</TableHead>
-                    <TableHead>Details</TableHead>
-                    <TableHead className="text-right">Invoiced</TableHead>
-                    <TableHead className="text-right">Paid</TableHead>
-                    <TableHead className="text-right">Balance</TableHead>
+          {/* Transactions Table */}
+          <div className="rounded-xl border border-border/60 overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/40">
+                  <TableHead className="text-[11px] uppercase tracking-wider">Date</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider">Transaction</TableHead>
+                  <TableHead className="text-[11px] uppercase tracking-wider">Details</TableHead>
+                  <TableHead className="text-right text-[11px] uppercase tracking-wider">Invoiced</TableHead>
+                  <TableHead className="text-right text-[11px] uppercase tracking-wider">Paid</TableHead>
+                  <TableHead className="text-right text-[11px] uppercase tracking-wider">Balance</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="text-sm">{format(new Date(dateFrom), "dd MMM yyyy")}</TableCell>
+                  <TableCell className="text-sm font-medium">Opening Balance</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">Opening balance</TableCell>
+                  <TableCell className="text-right text-sm">{fmt(0)}</TableCell>
+                  <TableCell className="text-right text-sm">{fmt(0)}</TableCell>
+                  <TableCell className="text-right font-medium text-sm">{fmt(transactions.openingBalance)}</TableCell>
+                </TableRow>
+                {transactions.lines.map((txn, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="text-sm">{format(new Date(txn.date), "dd MMM yyyy")}</TableCell>
+                    <TableCell className={`text-sm font-medium ${
+                      txn.type === "Invoice" ? "text-blue-600 dark:text-blue-400" :
+                      txn.type === "Payment" ? "text-emerald-600 dark:text-emerald-400" :
+                      "text-amber-600 dark:text-amber-400"
+                    }`}>
+                      {txn.type === "Invoice" ? `Invoice ${txn.number}` :
+                       txn.type === "Payment" ? `Payment ${txn.number}` :
+                       `Credit Note ${txn.number}`}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {txn.type === "Invoice" ? "Invoice issued" : txn.type === "Payment" ? "Payment received" : "Credit issued"}
+                    </TableCell>
+                    <TableCell className="text-right text-sm">{fmt(txn.amount)}</TableCell>
+                    <TableCell className={`text-right text-sm ${txn.payment > 0 ? "text-emerald-600 dark:text-emerald-400 font-medium" : ""}`}>
+                      {fmt(txn.payment)}
+                    </TableCell>
+                    <TableCell className="text-right font-medium text-sm">{fmt(txn.balance)}</TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {transactions.openingBalance !== 0 && (
-                    <TableRow>
-                      <TableCell className="text-sm">{format(new Date(dateFrom), "dd MMM yyyy")}</TableCell>
-                      <TableCell><span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Opening</span></TableCell>
-                      <TableCell className="text-sm text-muted-foreground">Opening Balance</TableCell>
-                      <TableCell className="text-right">—</TableCell>
-                      <TableCell className="text-right">—</TableCell>
-                      <TableCell className="text-right font-medium">{fmt(transactions.openingBalance)}</TableCell>
-                    </TableRow>
-                  )}
-                  {transactions.lines.map((txn, i) => (
-                    <TableRow key={i}>
-                      <TableCell className="text-sm">{format(new Date(txn.date), "dd MMM yyyy")}</TableCell>
-                      <TableCell>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${
-                          txn.type === "Invoice" ? "bg-primary/10 text-primary" :
-                          txn.type === "Payment" ? "bg-success/10 text-success" :
-                          "bg-amber-500/10 text-amber-600"
-                        }`}>
-                          {txn.type}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-sm">{txn.number}</TableCell>
-                      <TableCell className="text-right text-sm">
-                        {txn.amount > 0 ? fmt(txn.amount) : "—"}
-                      </TableCell>
-                      <TableCell className="text-right text-sm text-success">
-                        {txn.payment > 0 ? fmt(txn.payment) : "—"}
-                      </TableCell>
-                      <TableCell className="text-right font-medium text-sm">{fmt(txn.balance)}</TableCell>
-                    </TableRow>
-                  ))}
-                  {/* Closing Balance Row */}
-                  <TableRow className="border-t-2 font-bold">
-                    <TableCell colSpan={3} className="text-right">Closing Balance</TableCell>
-                    <TableCell className="text-right">{fmt(totalInvoiced)}</TableCell>
-                    <TableCell className="text-right text-success">{fmt(totalPayments + totalCredits)}</TableCell>
-                    <TableCell className="text-right text-destructive text-base">{fmt(transactions.closingBalance)}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
+                ))}
+                <TableRow className="border-t-2 bg-muted/30 font-bold">
+                  <TableCell className="text-sm">TOTAL</TableCell>
+                  <TableCell colSpan={2}></TableCell>
+                  <TableCell className="text-right text-blue-600 dark:text-blue-400">{fmt(totalInvoiced)}</TableCell>
+                  <TableCell className="text-right text-emerald-600 dark:text-emerald-400">{fmt(totalPayments + totalCredits)}</TableCell>
+                  <TableCell className="text-right text-rose-600 dark:text-rose-400">{fmt(transactions.closingBalance)}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
 
-              {/* Footer Note */}
-              <div className="text-xs text-muted-foreground border-t pt-3 mt-4">
-                <p>This statement was generated on {format(new Date(), "dd MMM yyyy")} by {org?.name}.</p>
-                <p>If you have any questions regarding this statement, please contact us at {org?.email || "—"}.</p>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Footer */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm pt-2">
+            <p className="text-muted-foreground">Thank you for your business!</p>
+            <p className="text-muted-foreground text-xs">This is a computer generated statement and does not require a signature.</p>
+          </div>
         </div>
       )}
     </div>

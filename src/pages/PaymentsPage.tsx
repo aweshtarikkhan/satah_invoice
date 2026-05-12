@@ -225,6 +225,19 @@ export default function PaymentsPage() {
     payments.reduce<Record<string, number>>((acc, p) => { const name = (p.clients as any)?.display_name || "Unknown"; acc[name] = (acc[name] || 0) + Number(p.amount); return acc; }, {})
   ).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 5);
 
+  // Aging buckets
+  const agingBuckets = (() => {
+    const buckets: Record<string, number> = { "0-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
+    clientSummaries.forEach((c) => {
+      if (c.pending <= 0) return;
+      if (c.oldestDueDays <= 30) buckets["0-30"] += c.pending;
+      else if (c.oldestDueDays <= 60) buckets["31-60"] += c.pending;
+      else if (c.oldestDueDays <= 90) buckets["61-90"] += c.pending;
+      else buckets["90+"] += c.pending;
+    });
+    return Object.entries(buckets).map(([range, amount]) => ({ range, amount }));
+  })();
+
   const parseDate = (d: string) => {
     if (!d) return null;
     const m = d.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);

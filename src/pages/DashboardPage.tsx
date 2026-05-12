@@ -93,9 +93,24 @@ export default function DashboardPage() {
       setClients(clientRes.data || []);
       setInvoiceLines(linesRes.data || []);
       setExpenses(expRes.data || []);
+
+      // Low stock items (only if inventory enabled)
+      if ((org as any)?.inventory_enabled) {
+        const threshold = Number((org as any)?.low_stock_threshold ?? 5);
+        const { data: lowItems } = await supabase
+          .from("items")
+          .select("id, name, sku, stock_quantity, unit")
+          .eq("org_id", org.id)
+          .eq("type", "product")
+          .lte("stock_quantity", threshold)
+          .order("stock_quantity", { ascending: true });
+        setLowStockItems(lowItems || []);
+      } else {
+        setLowStockItems([]);
+      }
     };
     fetchData();
-  }, [org?.id]);
+  }, [org?.id, (org as any)?.inventory_enabled, (org as any)?.low_stock_threshold]);
 
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);

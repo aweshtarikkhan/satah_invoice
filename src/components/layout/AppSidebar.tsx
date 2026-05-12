@@ -83,14 +83,9 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border px-4 py-3">
-        <div className="flex items-center gap-2">
-          <img src={logoImg} alt="Satah Invoices" className="h-9 w-9 rounded-md object-contain" />
-          {!collapsed && (
-            <span className="text-base font-semibold text-sidebar-foreground">
-              Satah Invoices
-            </span>
-          )}
+      <SidebarHeader className="border-b border-sidebar-border px-2 py-3">
+        <div className="flex items-center justify-center">
+          <img src={logoImg} alt="Satah Invoice" className={collapsed ? "h-9 w-9 object-contain" : "h-12 w-auto object-contain"} />
         </div>
       </SidebarHeader>
 

@@ -312,6 +312,12 @@ export default function InventoryPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AddItemDialog
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        onItemAdded={() => fetchItems()}
+      />
     </div>
   );
 }

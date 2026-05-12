@@ -242,39 +242,17 @@ export default function InvoicesPage() {
         </div>
       </div>
 
-      {/* Payment Summary Card */}
-      <Card className="bg-muted/30">
-        <CardContent className="py-4 px-5">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-3">Payment Summary</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <div className="h-8 w-8 rounded-full bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center">
-                  <TrendingDown className="h-4 w-4 text-orange-500" />
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground">Total Outstanding Receivables</p>
-              <p className="text-xl font-bold">{fmt(summary.outstanding)}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">Due Today</p>
-              <p className="text-xl font-bold text-orange-500">{fmt(summary.dueToday)}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">Due Within 30 Days</p>
-              <p className="text-xl font-bold">{fmt(summary.dueIn30)}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">Overdue Invoice</p>
-              <p className="text-xl font-bold text-destructive">{fmt(summary.overdue)}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">Average No. of Days for Getting Paid</p>
-              <p className="text-xl font-bold">{summary.avgDays} Days</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Payment Summary */}
+      <SummaryRibbon
+        label="Payment Summary"
+        items={[
+          { label: "Total Outstanding", value: fmt(summary.outstanding), accent: "warning" },
+          { label: "Due Today", value: fmt(summary.dueToday), accent: "warning" },
+          { label: "Due Within 30 Days", value: fmt(summary.dueIn30), accent: "default" },
+          { label: "Overdue", value: fmt(summary.overdue), accent: "danger" },
+          { label: "Avg. Days to Get Paid", value: `${summary.avgDays} Days`, accent: "info" },
+        ]}
+      />
 
       {/* Filters Row */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">

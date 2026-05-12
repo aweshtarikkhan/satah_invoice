@@ -957,9 +957,11 @@ export type Database = {
           gst_enabled: boolean
           gst_number: string | null
           id: string
+          inventory_enabled: boolean
           invoice_next_number: number
           invoice_prefix: string
           logo_url: string | null
+          low_stock_threshold: number
           name: string
           payment_prefix: string
           payment_terms: number
@@ -994,9 +996,11 @@ export type Database = {
           gst_enabled?: boolean
           gst_number?: string | null
           id?: string
+          inventory_enabled?: boolean
           invoice_next_number?: number
           invoice_prefix?: string
           logo_url?: string | null
+          low_stock_threshold?: number
           name: string
           payment_prefix?: string
           payment_terms?: number
@@ -1031,9 +1035,11 @@ export type Database = {
           gst_enabled?: boolean
           gst_number?: string | null
           id?: string
+          inventory_enabled?: boolean
           invoice_next_number?: number
           invoice_prefix?: string
           logo_url?: string | null
+          low_stock_threshold?: number
           name?: string
           payment_prefix?: string
           payment_terms?: number
@@ -1352,9 +1358,11 @@ export type Database = {
           gst_enabled: boolean
           gst_number: string | null
           id: string
+          inventory_enabled: boolean
           invoice_next_number: number
           invoice_prefix: string
           logo_url: string | null
+          low_stock_threshold: number
           name: string
           payment_prefix: string
           payment_terms: number

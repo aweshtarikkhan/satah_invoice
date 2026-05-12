@@ -271,22 +271,42 @@ export default function CustomerStatementPage() {
 
             <CardContent className="space-y-6">
               {/* Summary Cards */}
-              <div className="grid grid-cols-4 gap-3">
-                <div className="rounded-lg border p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Opening Balance</p>
-                  <p className="text-sm font-bold">{fmt(transactions.openingBalance)}</p>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="rounded-xl border bg-card p-4 flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white shrink-0">
+                    <IndianRupee className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Opening Balance</p>
+                    <p className="text-lg font-bold truncate">{fmt(transactions.openingBalance)}</p>
+                  </div>
                 </div>
-                <div className="rounded-lg border p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Invoiced</p>
-                  <p className="text-sm font-bold text-primary">{fmt(totalInvoiced)}</p>
+                <div className="rounded-xl border bg-card p-4 flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Invoiced</p>
+                    <p className="text-lg font-bold text-blue-600 dark:text-blue-400 truncate">{fmt(totalInvoiced)}</p>
+                  </div>
                 </div>
-                <div className="rounded-lg border p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Paid</p>
-                  <p className="text-sm font-bold text-success">{fmt(totalPayments + totalCredits)}</p>
+                <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 p-4 flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-emerald-500 flex items-center justify-center text-white shrink-0">
+                    <CheckCircle2 className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Paid</p>
+                    <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 truncate">{fmt(totalPayments + totalCredits)}</p>
+                  </div>
                 </div>
-                <div className="rounded-lg border p-3 text-center bg-destructive/5">
-                  <p className="text-xs text-muted-foreground">Balance Due</p>
-                  <p className="text-sm font-bold text-destructive">{fmt(transactions.closingBalance)}</p>
+                <div className="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/30 p-4 flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-rose-500 flex items-center justify-center text-white shrink-0">
+                    <AlertCircle className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Balance Due</p>
+                    <p className="text-lg font-bold text-rose-600 dark:text-rose-400 truncate">{fmt(transactions.closingBalance)}</p>
+                  </div>
                 </div>
               </div>
 

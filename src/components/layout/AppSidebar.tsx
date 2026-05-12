@@ -18,7 +18,9 @@ import {
   Plus,
   RefreshCw,
   PieChart,
+  Boxes,
 } from "lucide-react";
+import { useAppStore } from "@/store/app-store";
 import logoImg from "@/assets/logo.png";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";

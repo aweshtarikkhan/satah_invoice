@@ -705,39 +705,35 @@ export default function DashboardPage() {
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
         {[
-          { label: "Total Sales", value: fmt(totalSales), icon: ShoppingCart, tile: "icon-tile-violet", trend: "12.5% vs last month", trendColor: "text-emerald-600" },
-          { label: "Total Receipts", value: fmt(totalReceipts), icon: Wallet, tile: "icon-tile-blue", trend: "8.2% vs last month", trendColor: "text-emerald-600" },
-          { label: "Outstanding", value: fmt(totalReceivable), icon: Activity, tile: "icon-tile-rose", trend: `${invoices.filter(i => Number(i.balance_due) > 0).length} overdue invoice(s)`, trendColor: "text-rose-600", onClick: () => navigate("/aging-details"), valueClass: "text-rose-600" },
-          { label: "Collection Rate", value: `${collectionRate}%`, icon: LineChartIcon, tile: "icon-tile-emerald", trend: "3.1% vs last month", trendColor: "text-emerald-600" },
-          { label: "Avg Invoice", value: fmt(avgInvoiceValue), icon: Receipt, tile: "icon-tile-amber", trend: "6.4% vs last month", trendColor: "text-emerald-600" },
-          { label: "Total Expenses", value: fmt(totalExpensesSum), icon: CreditCard, tile: "icon-tile-indigo", trend: totalExpensesSum > 0 ? "Tracking active" : "No change", trendColor: "text-muted-foreground" },
+          { label: "Total Sales", value: fmt(totalSales), icon: ShoppingCart, pill: "kpi-pill-green", trend: "12.5% vs last month", trendColor: "text-emerald-600" },
+          { label: "Total Receipts", value: fmt(totalReceipts), icon: Wallet, pill: "kpi-pill-blue", trend: "8.2% vs last month", trendColor: "text-emerald-600" },
+          { label: "Outstanding", value: fmt(totalReceivable), icon: Activity, pill: "kpi-pill-orange", trend: `${invoices.filter(i => Number(i.balance_due) > 0).length} overdue invoice(s)`, trendColor: "text-rose-600", onClick: () => navigate("/aging-details"), valueClass: "text-rose-600" },
+          { label: "Collection Rate", value: `${collectionRate}%`, icon: LineChartIcon, pill: "kpi-pill-teal", trend: "3.1% vs last month", trendColor: "text-emerald-600" },
+          { label: "Avg Invoice", value: fmt(avgInvoiceValue), icon: Receipt, pill: "kpi-pill-amber", trend: "6.4% vs last month", trendColor: "text-emerald-600" },
+          { label: "Total Expenses", value: fmt(totalExpensesSum), icon: CreditCard, pill: "kpi-pill-slate", trend: totalExpensesSum > 0 ? "Tracking active" : "No change", trendColor: "text-muted-foreground" },
         ].map((kpi) => {
           const Icon = kpi.icon;
           return (
-            <Card
+            <div
               key={kpi.label}
               onClick={kpi.onClick}
-              className={`card-hover ${kpi.onClick ? "cursor-pointer" : ""}`}
+              className={`kpi-card p-3 sm:p-4 ${kpi.onClick ? "cursor-pointer" : ""}`}
             >
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className={`icon-tile ${kpi.tile} shrink-0 !h-8 !w-8 sm:!h-9 sm:!w-9`}>
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <p className="text-[11px] sm:text-xs text-muted-foreground font-medium truncate flex-1">{kpi.label}</p>
-                </div>
-                <p
-                  className={`text-base sm:text-lg lg:text-xl font-bold leading-tight break-words ${kpi.valueClass || "text-foreground"}`}
-                  title={kpi.value}
-                >
-                  {kpi.value}
-                </p>
-                <div className={`mt-2 text-[10px] sm:text-[11px] flex items-center gap-1 ${kpi.trendColor}`}>
-                  <TrendingUp className="h-3 w-3 shrink-0" />
-                  <span className="truncate">{kpi.trend}</span>
-                </div>
-              </CardContent>
-            </Card>
+              <div className={`kpi-pill ${kpi.pill} mb-3 w-full`}>
+                <Icon className="h-4 w-4" />
+                <span className="truncate">{kpi.label}</span>
+              </div>
+              <p
+                className={`text-lg sm:text-xl lg:text-2xl font-extrabold leading-tight break-words tracking-tight ${kpi.valueClass || "text-foreground"}`}
+                title={kpi.value}
+              >
+                {kpi.value}
+              </p>
+              <div className={`mt-2 text-[10px] sm:text-[11px] flex items-center gap-1 ${kpi.trendColor}`}>
+                <TrendingUp className="h-3 w-3 shrink-0" />
+                <span className="truncate">{kpi.trend}</span>
+              </div>
+            </div>
           );
         })}
       </div>

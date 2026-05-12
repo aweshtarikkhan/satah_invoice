@@ -109,30 +109,58 @@ export default function InvoiceTemplatePage() {
               <p className="text-sm text-muted-foreground">{tpl.description}</p>
             </CardHeader>
             <CardContent>
-              {/* Template preview mock */}
-              <div className={`rounded-lg border p-4 ${tpl.preview} space-y-3`}>
+              {/* Realistic mini invoice preview */}
+              <div
+                className={`rounded-lg border overflow-hidden bg-white text-[7px] leading-[1.3] text-slate-800 aspect-[1/1.2] p-3 flex flex-col gap-2 shadow-inner`}
+                style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+              >
                 {/* Header */}
-                <div className="flex justify-between items-start">
+                <div
+                  className={`flex justify-between items-start ${
+                    tpl.id === "modern" ? "bg-blue-600 text-white -mx-3 -mt-3 px-3 py-2" :
+                    tpl.id === "professional" ? "border-b-2 border-slate-700 pb-1" :
+                    tpl.id === "minimal" ? "" :
+                    "border-b border-slate-300 pb-1"
+                  }`}
+                >
                   <div>
-                    <div className={`h-3 w-24 rounded ${tpl.id === "modern" ? "bg-primary/30" : "bg-muted-foreground/20"}`} />
-                    <div className="h-2 w-16 rounded bg-muted-foreground/10 mt-1" />
+                    <div className="font-bold text-[9px]">ACME Corp.</div>
+                    <div className="opacity-70">123 Business St.</div>
                   </div>
                   <div className="text-right">
-                    <div className={`h-4 w-20 rounded ml-auto ${tpl.id === "modern" ? "bg-primary/20" : "bg-muted-foreground/15"}`} />
-                    <div className="h-2 w-12 rounded bg-muted-foreground/10 mt-1 ml-auto" />
+                    <div className="font-bold text-[10px] tracking-wide">INVOICE</div>
+                    <div className="opacity-70">#INV-001</div>
                   </div>
                 </div>
-                {/* Lines */}
-                <div className="space-y-1">
-                  <div className="h-2 w-full rounded bg-muted-foreground/10" />
-                  <div className="h-2 w-3/4 rounded bg-muted-foreground/10" />
-                  <div className="h-2 w-5/6 rounded bg-muted-foreground/10" />
+                {/* Bill to */}
+                <div className="flex justify-between gap-2">
+                  <div>
+                    <div className="opacity-60 uppercase text-[6px]">Bill To</div>
+                    <div className="font-semibold">John Doe</div>
+                    <div className="opacity-70">Doe Industries</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="opacity-60 uppercase text-[6px]">Date</div>
+                    <div>12 May 2026</div>
+                  </div>
                 </div>
-                {/* Totals */}
+                {/* Items table */}
+                <div className="flex-1">
+                  <div className={`flex justify-between font-semibold py-1 px-1 ${tpl.id === "modern" ? "bg-blue-100" : "bg-slate-100"}`}>
+                    <span>Item</span><span>Qty</span><span>Amt</span>
+                  </div>
+                  <div className="flex justify-between py-1 px-1 border-b border-slate-100">
+                    <span>Web Design</span><span>1</span><span>₹500</span>
+                  </div>
+                  <div className="flex justify-between py-1 px-1 border-b border-slate-100">
+                    <span>Hosting</span><span>2</span><span>₹200</span>
+                  </div>
+                </div>
+                {/* Total */}
                 <div className="flex justify-end">
-                  <div className="space-y-1">
-                    <div className="h-2 w-20 rounded bg-muted-foreground/10" />
-                    <div className={`h-3 w-24 rounded ${tpl.id === "modern" ? "bg-primary/25" : "bg-muted-foreground/20"}`} />
+                  <div className={`px-2 py-1 ${tpl.id === "modern" ? "bg-blue-600 text-white rounded" : tpl.id === "professional" ? "border-t-2 border-slate-700" : "border-t border-slate-300"}`}>
+                    <span className="opacity-80 mr-1">Total:</span>
+                    <span className="font-bold">₹700.00</span>
                   </div>
                 </div>
               </div>

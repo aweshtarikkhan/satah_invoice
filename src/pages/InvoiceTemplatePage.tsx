@@ -184,8 +184,13 @@ export default function InvoiceTemplatePage() {
                 </div>
               </div>
 
-              <div className="mt-3 flex items-center justify-between gap-3">
-                <Badge variant="outline">{PAPER_SIZES.find((size) => size.id === paperSize)?.name}</Badge>
+              <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <Badge variant="outline" className="text-[10px]">
+                    {PAPER_SIZES.find((s) => s.id === ((tpl as any).recommendedPaperSize || "a4"))?.name}
+                  </Badge>
+                  <span className="text-[10px] text-muted-foreground">recommended</span>
+                </div>
                 {selected === tpl.id && saving && <span className="text-xs text-muted-foreground">Saving...</span>}
               </div>
               <div className="mt-3 flex flex-wrap gap-1">

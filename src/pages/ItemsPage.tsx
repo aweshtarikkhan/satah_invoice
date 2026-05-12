@@ -357,7 +357,7 @@ export default function ItemsPage() {
                 <Label>Category</Label>
                 <Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="e.g. Electronics, Services" />
               </div>
-              {form.type === "product" && (
+              {form.type === "product" && org?.inventory_enabled && (
                 <div className="space-y-2">
                   <Label>Stock Quantity</Label>
                   <Input type="number" value={form.stock_quantity} onChange={(e) => setForm({ ...form, stock_quantity: parseFloat(e.target.value) || 0 })} />

@@ -18,19 +18,20 @@ interface AddItemDialogProps {
   onOpenChange: (open: boolean) => void;
   onItemAdded: (item: { id: string; name: string; unit_price: number; description: string | null; tax_id: string | null }) => void;
   taxRates?: any[];
+  defaultType?: "service" | "product";
 }
 
-export function AddItemDialog({ open, onOpenChange, onItemAdded, taxRates = [] }: AddItemDialogProps) {
+export function AddItemDialog({ open, onOpenChange, onItemAdded, taxRates = [], defaultType = "service" }: AddItemDialogProps) {
   const org = useAppStore((s) => s.organization);
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    name: "", description: "", sku: "", type: "service" as "service" | "product",
+    name: "", description: "", sku: "", type: defaultType as "service" | "product",
     unit_price: 0, unit: "", tax_id: null as string | null,
   });
 
   const reset = () => {
-    setForm({ name: "", description: "", sku: "", type: "service", unit_price: 0, unit: "", tax_id: null });
+    setForm({ name: "", description: "", sku: "", type: defaultType, unit_price: 0, unit: "", tax_id: null });
   };
 
   const handleSave = async () => {

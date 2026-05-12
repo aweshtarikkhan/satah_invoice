@@ -155,6 +155,9 @@ export default function InventoryPage() {
         <Button variant="outline" size="sm" onClick={() => navigate("/items")}>
           <Package className="mr-1.5 h-4 w-4" /> Manage Items
         </Button>
+        <Button size="sm" onClick={() => setAddOpen(true)}>
+          <PackagePlus className="mr-1.5 h-4 w-4" /> Add Product
+        </Button>
       </PageHeader>
 
       {/* Stats */}

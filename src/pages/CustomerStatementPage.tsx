@@ -178,45 +178,53 @@ export default function CustomerStatementPage() {
   const printCSS = getPrintPageCSS(org?.template_paper_size);
 
   return (
-    <div className="p-6 space-y-6 max-w-4xl mx-auto">
+    <div className="p-6 space-y-5 max-w-6xl mx-auto">
       <style dangerouslySetInnerHTML={{ __html: printCSS }} />
 
-      <PageHeader title="Customer Statement" description="View complete transaction history for a customer">
-        <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
-          <ArrowLeft className="mr-1 h-4 w-4" /> Back
-        </Button>
-        {selectedClientId && (
-          <>
-            <Button variant="outline" size="sm" onClick={handlePrint}>
-              <Printer className="mr-1 h-4 w-4" /> Print
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
-              <Download className="mr-1 h-4 w-4" /> Download PDF
-            </Button>
-          </>
-        )}
-      </PageHeader>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 no-print">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight uppercase">Customer Statement</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">View complete transaction history for a customer</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="h-10 rounded-lg px-4" onClick={() => navigate(-1)}>
+            <ArrowLeft className="mr-1.5 h-4 w-4" /> Back
+          </Button>
+          {selectedClientId && (
+            <>
+              <Button variant="outline" size="sm" className="h-10 rounded-lg px-4" onClick={handlePrint}>
+                <Printer className="mr-1.5 h-4 w-4" /> Print
+              </Button>
+              <Button size="sm" className="h-10 rounded-lg px-4" onClick={handleDownloadPDF}>
+                <Download className="mr-1.5 h-4 w-4" /> Download PDF
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
 
       {/* Filters */}
-      <Card className="no-print">
-        <CardContent className="pt-4">
+      <Card className="no-print rounded-2xl border-border/60 shadow-sm">
+        <CardContent className="p-5">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-3">Customer & Date Range</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label>Customer</Label>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Customer</Label>
               <Select value={selectedClientId} onValueChange={setSelectedClientId}>
-                <SelectTrigger><SelectValue placeholder="Select customer" /></SelectTrigger>
+                <SelectTrigger className="h-10 rounded-lg"><SelectValue placeholder="Select customer" /></SelectTrigger>
                 <SelectContent>
                   {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.display_name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label>From</Label>
-              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">From</Label>
+              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-10 rounded-lg" />
             </div>
-            <div className="space-y-2">
-              <Label>To</Label>
-              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">To</Label>
+              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-10 rounded-lg" />
             </div>
           </div>
         </CardContent>

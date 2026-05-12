@@ -37,6 +37,7 @@ export default function SettingsPage() {
     address: { street: "", city: "", state: "", zip: "", country: "" },
     gst_enabled: false, gst_number: "", show_client_gst: false, qr_code_enabled: false,
     upi_id: "",
+    inventory_enabled: false, low_stock_threshold: 5,
   });
 
   // Tax rates

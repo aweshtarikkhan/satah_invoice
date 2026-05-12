@@ -18,9 +18,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Package, Search, Plus, Minus, AlertTriangle, PackageX } from "lucide-react";
+import { Package, Search, Plus, Minus, AlertTriangle, PackageX, PackagePlus } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
+import { AddItemDialog } from "@/components/shared/AddItemDialog";
 
 export default function InventoryPage() {
   const org = useAppStore((s) => s.organization);
@@ -36,6 +37,7 @@ export default function InventoryPage() {
   const [adjustMode, setAdjustMode] = useState<"add" | "remove" | "set">("add");
   const [adjustQty, setAdjustQty] = useState(0);
   const [adjustNote, setAdjustNote] = useState("");
+  const [addOpen, setAddOpen] = useState(false);
 
   const threshold = Number((org as any)?.low_stock_threshold ?? 5);
 
@@ -153,6 +155,9 @@ export default function InventoryPage() {
         <Button variant="outline" size="sm" onClick={() => navigate("/items")}>
           <Package className="mr-1.5 h-4 w-4" /> Manage Items
         </Button>
+        <Button size="sm" onClick={() => setAddOpen(true)}>
+          <PackagePlus className="mr-1.5 h-4 w-4" /> Add Product
+        </Button>
       </PageHeader>
 
       {/* Stats */}
@@ -204,8 +209,8 @@ export default function InventoryPage() {
               icon={Package}
               title="No products found"
               description={items.length === 0 ? "Add product items to start tracking stock." : "No products match your filter."}
-              actionLabel={items.length === 0 ? "Add Item" : undefined}
-              onAction={items.length === 0 ? () => navigate("/items?add=1") : undefined}
+              actionLabel={items.length === 0 ? "Add Product" : undefined}
+              onAction={items.length === 0 ? () => setAddOpen(true) : undefined}
             />
           ) : (
             <Table>
@@ -307,6 +312,13 @@ export default function InventoryPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AddItemDialog
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        onItemAdded={() => fetchItems()}
+        defaultType="product"
+      />
     </div>
   );
 }

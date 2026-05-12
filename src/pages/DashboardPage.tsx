@@ -755,7 +755,47 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* KPI Summary Cards */}
+      {/* Inventory Stock Chart */}
+      {(org as any)?.inventory_enabled && stockItems.length > 0 && (
+        <Card className="rounded-2xl border-border/60 shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2"><Package className="h-4 w-4" /> Inventory Stock Value</CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">Top products by current stock value</p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => navigate("/inventory")}>View All</Button>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart
+                data={stockItems
+                  .map((p) => ({
+                    name: p.name.length > 14 ? p.name.slice(0, 14) + "…" : p.name,
+                    qty: Number(p.stock_quantity || 0),
+                    value: Number(p.stock_quantity || 0) * Number(p.unit_price || 0),
+                    unit: p.unit || "",
+                  }))
+                  .sort((a, b) => b.value - a.value)
+                  .slice(0, 10)}
+                margin={{ top: 8, right: 8, left: 0, bottom: 8 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-15} textAnchor="end" height={60} />
+                <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => fmt(Number(v))} width={80} />
+                <Tooltip
+                  formatter={(val: any, key: any, item: any) =>
+                    key === "value"
+                      ? [fmt(Number(val)), "Stock Value"]
+                      : [`${val} ${item.payload.unit}`, "Quantity"]
+                  }
+                />
+                <Legend />
+                <Bar dataKey="value" fill="hsl(201, 96%, 32%)" name="Stock Value" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
         {[
           { label: "Total Sales", value: fmt(totalSales), icon: ShoppingCart, pill: "kpi-pill-green", trend: "12.5% vs last month", trendColor: "text-emerald-600" },

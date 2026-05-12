@@ -72,6 +72,7 @@ export default function DashboardPage() {
   const [recentInvoices, setRecentInvoices] = useState<any[]>([]);
   const [invoiceLines, setInvoiceLines] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
+  const [lowStockItems, setLowStockItems] = useState<any[]>([]);
   const [exporting, setExporting] = useState(false);
   const dashboardRef = useRef<HTMLDivElement>(null);
 

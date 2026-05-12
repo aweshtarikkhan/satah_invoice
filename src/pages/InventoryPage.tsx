@@ -317,6 +317,7 @@ export default function InventoryPage() {
         open={addOpen}
         onOpenChange={setAddOpen}
         onItemAdded={() => fetchItems()}
+        defaultType="product"
       />
     </div>
   );

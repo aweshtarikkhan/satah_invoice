@@ -99,7 +99,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Main</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems.map((item) => (
+              {visibleMainItems.map((item) => (
                 <SidebarMenuItem key={item.title} className="group/item">
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <NavLink

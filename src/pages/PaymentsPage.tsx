@@ -353,51 +353,67 @@ export default function PaymentsPage() {
         </CardContent>
       </Card>
 
-      {/* Charts */}
+      {/* Financial Dashboard Analysis */}
       {payments.length > 0 && (
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
-            <CardHeader><CardTitle className="text-base">Monthly Collections</CardTitle></CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={260}>
-                <LineChart data={monthlyTrend}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis dataKey="month" tick={{ fontSize: 12 }} className="fill-muted-foreground" />
-                  <YAxis tick={{ fontSize: 12 }} className="fill-muted-foreground" tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`} />
-                  <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(v: number) => fmt(v)} />
-                  <Line type="monotone" dataKey="amount" name="Collected" stroke="hsl(142, 71%, 45%)" strokeWidth={2} dot={{ r: 4 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader><CardTitle className="text-base">Payment Mode Breakdown</CardTitle></CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={260}>
-                <PieChart>
-                  <Pie data={modeData} cx="50%" cy="50%" innerRadius={55} outerRadius={95} paddingAngle={3} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
-                    {modeData.map((_, idx) => <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />)}
-                  </Pie>
-                  <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(v: number) => fmt(v)} />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-          <Card className="lg:col-span-2">
-            <CardHeader><CardTitle className="text-base">Top Paying Clients</CardTitle></CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={topClients} layout="vertical" barSize={22}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis type="number" tick={{ fontSize: 12 }} className="fill-muted-foreground" tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 12 }} className="fill-muted-foreground" width={120} />
-                  <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(v: number) => fmt(v)} />
-                  <Bar dataKey="value" name="Total Paid" fill="hsl(201, 96%, 32%)" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
+        <AnalyticsGrid
+          cards={[
+            {
+              title: "Monthly Collections",
+              body: (
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={monthlyTrend} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis dataKey="month" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+                    <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`} />
+                    <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }} formatter={(v: number) => fmt(v)} />
+                    <Line type="monotone" dataKey="amount" name="Collected" stroke="hsl(142, 71%, 45%)" strokeWidth={2} dot={{ r: 3 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              ),
+            },
+            {
+              title: "Payment Mode Split",
+              body: (
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie data={modeData} cx="50%" cy="50%" innerRadius={42} outerRadius={75} paddingAngle={3} dataKey="value">
+                      {modeData.map((_, idx) => <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }} formatter={(v: number) => fmt(v)} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ),
+            },
+            {
+              title: "Top Paying Clients",
+              body: (
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={topClients} layout="vertical" barSize={14} margin={{ top: 5, right: 8, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis type="number" tick={{ fontSize: 10 }} className="fill-muted-foreground" tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`} />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} className="fill-muted-foreground" width={70} />
+                    <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }} formatter={(v: number) => fmt(v)} />
+                    <Bar dataKey="value" fill="hsl(201, 96%, 42%)" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ),
+            },
+            {
+              title: "Outstanding Aging",
+              body: (
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={agingBuckets} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis dataKey="range" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+                    <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`} />
+                    <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }} formatter={(v: number) => fmt(v)} />
+                    <Bar dataKey="amount" fill="hsl(32, 95%, 50%)" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ),
+            },
+          ]}
+        />
       )}
 
       {/* All Received Payments Table */}

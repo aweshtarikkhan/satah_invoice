@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
-import { PageHeader } from "@/components/shared/PageHeader";
+import { PageActionBar } from "@/components/shared/PageActionBar";
+import { SummaryRibbon } from "@/components/shared/SummaryRibbon";
+import { AnalyticsGrid } from "@/components/shared/AnalyticsGrid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -18,12 +19,12 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Pencil, TrendingUp, TrendingDown, Wallet, IndianRupee, Download } from "lucide-react";
+import { Plus, Trash2, Pencil, Download } from "lucide-react";
 import { downloadCSV } from "@/lib/export-csv";
 import { formatCurrency } from "@/lib/currency";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
+  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
 } from "recharts";
 
 const CATEGORIES = [

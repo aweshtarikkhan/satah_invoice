@@ -31,6 +31,8 @@ interface Organization {
   show_client_gst: boolean;
   qr_code_enabled: boolean;
   upi_id: string | null;
+  inventory_enabled: boolean;
+  low_stock_threshold: number;
 }
 
 interface AppState {

@@ -19,8 +19,11 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { CreditCard, Search, Upload, DollarSign, TrendingUp, Plus, AlertTriangle, Clock, CheckCircle2, Filter, Trash2, Download } from "lucide-react";
+import { CreditCard, Search, Upload, Plus, Filter, Trash2, Download } from "lucide-react";
 import { downloadCSV } from "@/lib/export-csv";
+import { SummaryRibbon } from "@/components/shared/SummaryRibbon";
+import { AnalyticsGrid } from "@/components/shared/AnalyticsGrid";
+import { PageActionBar } from "@/components/shared/PageActionBar";
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,

@@ -57,6 +57,8 @@ export default function SettingsPage() {
       gst_enabled: org.gst_enabled || false, gst_number: org.gst_number || "",
       show_client_gst: org.show_client_gst || false, qr_code_enabled: org.qr_code_enabled || false,
       upi_id: (org as any).upi_id || "",
+      inventory_enabled: (org as any).inventory_enabled || false,
+      low_stock_threshold: Number((org as any).low_stock_threshold ?? 5),
     });
     fetchTaxRates();
   }, [org]);

@@ -68,6 +68,15 @@ export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, profile } = useAuth();
+  const org = useAppStore((s) => s.organization);
+  const inventoryEnabled = (org as any)?.inventory_enabled;
+
+  const visibleMainItems = mainItems.flatMap((it) => {
+    if (it.url === "/items" && inventoryEnabled) {
+      return [it, { title: "Inventory", url: "/inventory", icon: Boxes, addUrl: null }];
+    }
+    return [it];
+  });
 
   const isActive = (path: string) =>
     location.pathname === path || location.pathname.startsWith(path + "/");

@@ -45,25 +45,33 @@ export default function InvoiceTemplatePage() {
 
   const handlePaperSizeChange = async (sizeId: string) => {
     if (!org) return;
-    // Lock paper size for templates that require a specific size.
-    if (selected === "pos" && sizeId !== "pos80") {
-      toast({ title: "POS Receipt locked to 80mm", description: "Switch templates to use a different paper size.", variant: "destructive" });
-      return;
+    // Auto-switch template if paper size requires it for best output.
+    let newTemplate = selected;
+    if (sizeId === "pos80") newTemplate = "pos";
+    else if (sizeId === "a6") newTemplate = "compact";
+    else if ((selected === "pos" || selected === "compact")) {
+      // Switching away from a locked-size template -> fall back to classic.
+      newTemplate = "classic";
     }
-    if (selected === "compact" && sizeId !== "a6" && sizeId !== "a5") {
-      toast({ title: "Compact Bill works best on A6/A5", description: "Try A6 for thermal-style printing.", variant: "destructive" });
-      return;
-    }
+
+    const updates: any = { template_paper_size: sizeId };
+    if (newTemplate !== selected) updates.template_style = newTemplate;
+
     setSaving(true);
-    const { error } = await supabase.from("organizations").update({ template_paper_size: sizeId }).eq("id", org.id);
+    const { error } = await supabase.from("organizations").update(updates).eq("id", org.id);
     setSaving(false);
     if (error) {
       toast({ title: "Could not save paper size", description: error.message, variant: "destructive" });
       return;
     }
     setPaperSize(sizeId);
-    setOrganization({ ...org, template_paper_size: sizeId } as any);
-    toast({ title: `Paper size set to ${PAPER_SIZES.find((size) => size.id === sizeId)?.name}` });
+    if (newTemplate !== selected) setSelected(newTemplate);
+    setOrganization({ ...org, ...updates } as any);
+    const sizeName = PAPER_SIZES.find((size) => size.id === sizeId)?.name;
+    toast({
+      title: `Paper size set to ${sizeName}`,
+      description: newTemplate !== selected ? `Template switched to "${DOCUMENT_TEMPLATES.find(t => t.id === newTemplate)?.name}" for best fit.` : undefined,
+    });
   };
 
   return (

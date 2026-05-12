@@ -275,8 +275,8 @@ export default function ItemsPage() {
                     <TableCell>{item.category ? <Badge variant="outline">{item.category}</Badge> : "—"}</TableCell>
                     <TableCell>{item.unit || "—"}</TableCell>
                     <TableCell className="text-right">{fmt(Number(item.unit_price))}</TableCell>
-                    <TableCell className={`text-right ${Number(item.stock_quantity) <= 0 ? "text-destructive font-medium" : ""}`}>
-                      {item.type === "product" ? Number(item.stock_quantity) : "—"}
+                    <TableCell className={`text-right ${org?.inventory_enabled && item.type === "product" && Number(item.stock_quantity) <= Number(org?.low_stock_threshold ?? 5) ? "text-destructive font-medium" : ""}`}>
+                      {org?.inventory_enabled && item.type === "product" ? Number(item.stock_quantity) : "—"}
                     </TableCell>
                     <TableCell>{item.tax_rates ? `${item.tax_rates.name} (${item.tax_rates.rate}%)` : "—"}</TableCell>
                   </TableRow>
@@ -357,7 +357,7 @@ export default function ItemsPage() {
                 <Label>Category</Label>
                 <Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="e.g. Electronics, Services" />
               </div>
-              {form.type === "product" && (
+              {form.type === "product" && org?.inventory_enabled && (
                 <div className="space-y-2">
                   <Label>Stock Quantity</Label>
                   <Input type="number" value={form.stock_quantity} onChange={(e) => setForm({ ...form, stock_quantity: parseFloat(e.target.value) || 0 })} />

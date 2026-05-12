@@ -24,6 +24,7 @@ import {
   CreditCard,
   CalendarClock,
   AlertCircle,
+  Package,
 } from "lucide-react";
 import {
   Table,
@@ -72,6 +73,7 @@ export default function DashboardPage() {
   const [recentInvoices, setRecentInvoices] = useState<any[]>([]);
   const [invoiceLines, setInvoiceLines] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
+  const [lowStockItems, setLowStockItems] = useState<any[]>([]);
   const [exporting, setExporting] = useState(false);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
@@ -92,9 +94,24 @@ export default function DashboardPage() {
       setClients(clientRes.data || []);
       setInvoiceLines(linesRes.data || []);
       setExpenses(expRes.data || []);
+
+      // Low stock items (only if inventory enabled)
+      if ((org as any)?.inventory_enabled) {
+        const threshold = Number((org as any)?.low_stock_threshold ?? 5);
+        const { data: lowItems } = await supabase
+          .from("items")
+          .select("id, name, sku, stock_quantity, unit")
+          .eq("org_id", org.id)
+          .eq("type", "product")
+          .lte("stock_quantity", threshold)
+          .order("stock_quantity", { ascending: true });
+        setLowStockItems(lowItems || []);
+      } else {
+        setLowStockItems([]);
+      }
     };
     fetchData();
-  }, [org?.id]);
+  }, [org?.id, (org as any)?.inventory_enabled, (org as any)?.low_stock_threshold]);
 
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);
@@ -701,6 +718,36 @@ export default function DashboardPage() {
 
       {/* Smart Insights */}
       <SmartInsights invoices={invoices} payments={payments} expenses={expenses} clients={clients} currency={org?.currency_code || "USD"} />
+
+      {/* Low Stock Alert */}
+      {(org as any)?.inventory_enabled && lowStockItems.length > 0 && (
+        <div className="rounded-xl border border-orange-200 dark:border-orange-900/50 bg-orange-50/60 dark:bg-orange-950/20 p-4">
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div className="flex items-center gap-2">
+              <Package className="h-5 w-5 text-orange-600" />
+              <div>
+                <h3 className="font-semibold text-sm">Low Stock Alert</h3>
+                <p className="text-xs text-muted-foreground">{lowStockItems.length} item{lowStockItems.length === 1 ? "" : "s"} at or below threshold ({(org as any)?.low_stock_threshold ?? 5})</p>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => navigate("/items")}>Manage</Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {lowStockItems.slice(0, 8).map((it) => (
+              <div key={it.id} className="flex items-center gap-2 rounded-lg bg-background border border-border/60 px-3 py-1.5 text-xs">
+                <span className="font-medium">{it.name}</span>
+                {it.sku && <span className="text-muted-foreground">({it.sku})</span>}
+                <span className={`font-semibold ${Number(it.stock_quantity) <= 0 ? "text-destructive" : "text-orange-600"}`}>
+                  {Number(it.stock_quantity)} {it.unit || ""}
+                </span>
+              </div>
+            ))}
+            {lowStockItems.length > 8 && (
+              <div className="flex items-center text-xs text-muted-foreground px-2">+{lowStockItems.length - 8} more</div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">

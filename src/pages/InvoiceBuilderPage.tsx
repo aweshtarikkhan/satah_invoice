@@ -468,7 +468,11 @@ export default function InvoiceBuilderPage() {
 
     try {
       let invoiceId = id;
+      // Capture previous lines for stock restoration on edit
+      let prevLines: any[] = [];
       if (id) {
+        const { data: existing } = await supabase.from("invoice_lines").select("item_id, quantity").eq("invoice_id", id);
+        prevLines = existing || [];
         const { error } = await supabase.from("invoices").update(invoicePayload).eq("id", id);
         if (error) throw error;
         // Delete old lines and re-insert
@@ -506,6 +510,27 @@ export default function InvoiceBuilderPage() {
 
       const { error: lineError } = await supabase.from("invoice_lines").insert(linePayloads);
       if (lineError) throw lineError;
+
+      // Inventory: adjust stock for product items (only if enabled)
+      if ((org as any)?.inventory_enabled) {
+        // Net delta per item: + restored from prevLines, - new quantities
+        const delta: Record<string, number> = {};
+        for (const pl of prevLines) {
+          if (pl.item_id) delta[pl.item_id] = (delta[pl.item_id] || 0) + Number(pl.quantity || 0);
+        }
+        for (const ln of linePayloads) {
+          if (ln.item_id) delta[ln.item_id] = (delta[ln.item_id] || 0) - Number(ln.quantity || 0);
+        }
+        const itemIds = Object.keys(delta).filter((k) => delta[k] !== 0);
+        if (itemIds.length) {
+          const { data: itemsForStock } = await supabase.from("items").select("id, type, stock_quantity").in("id", itemIds);
+          for (const it of itemsForStock || []) {
+            if (it.type !== "product") continue;
+            const newQty = Math.max(0, Number(it.stock_quantity || 0) + delta[it.id]);
+            await supabase.from("items").update({ stock_quantity: newQty }).eq("id", it.id);
+          }
+        }
+      }
 
       // Save custom fields
       if (invoiceId && Object.keys(customFieldValues).length > 0) {

@@ -37,6 +37,7 @@ export default function SettingsPage() {
     address: { street: "", city: "", state: "", zip: "", country: "" },
     gst_enabled: false, gst_number: "", show_client_gst: false, qr_code_enabled: false,
     upi_id: "",
+    inventory_enabled: false, low_stock_threshold: 5,
   });
 
   // Tax rates
@@ -56,6 +57,8 @@ export default function SettingsPage() {
       gst_enabled: org.gst_enabled || false, gst_number: org.gst_number || "",
       show_client_gst: org.show_client_gst || false, qr_code_enabled: org.qr_code_enabled || false,
       upi_id: (org as any).upi_id || "",
+      inventory_enabled: (org as any).inventory_enabled || false,
+      low_stock_threshold: Number((org as any).low_stock_threshold ?? 5),
     });
     fetchTaxRates();
   }, [org]);
@@ -273,6 +276,26 @@ export default function SettingsPage() {
                       <Label>UPI ID</Label>
                       <Input value={orgForm.upi_id} onChange={(e) => setOrgForm({ ...orgForm, upi_id: e.target.value })} placeholder="e.g. yourname@upi or 9999999999@paytm" />
                       <p className="text-xs text-muted-foreground">Enter your UPI ID to generate payment QR codes on invoices with the exact balance amount</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader><CardTitle className="text-base">Inventory Management</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Enable Inventory Tracking</Label>
+                      <p className="text-xs text-muted-foreground">Turn on if you sell physical products. Stock auto-deducts on each invoice. Service businesses can leave this off.</p>
+                    </div>
+                    <Switch checked={orgForm.inventory_enabled} onCheckedChange={(v) => setOrgForm({ ...orgForm, inventory_enabled: v })} />
+                  </div>
+                  {orgForm.inventory_enabled && (
+                    <div className="space-y-2">
+                      <Label>Low Stock Alert Threshold</Label>
+                      <Input type="number" min={0} value={orgForm.low_stock_threshold} onChange={(e) => setOrgForm({ ...orgForm, low_stock_threshold: parseFloat(e.target.value) || 0 })} />
+                      <p className="text-xs text-muted-foreground">Items at or below this stock level appear in the dashboard low-stock alert.</p>
                     </div>
                   )}
                 </CardContent>

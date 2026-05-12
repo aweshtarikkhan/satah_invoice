@@ -175,41 +175,56 @@ export default function ItemsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <PageHeader title="Items" description="Products and services catalog">
-        {selected.size > 0 && (
-          <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
-            <Trash2 className="mr-1 h-4 w-4" /> Delete ({selected.size})
+    <div className="p-6 space-y-5">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Items</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Products and services catalog</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {selected.size > 0 && (
+            <Button variant="destructive" size="sm" className="h-10 rounded-lg" onClick={() => setDeleteOpen(true)}>
+              <Trash2 className="mr-1.5 h-4 w-4" /> Delete ({selected.size})
+            </Button>
+          )}
+          <Button variant="outline" size="sm" className="h-10 rounded-lg px-4" onClick={() => {
+            downloadCSV(items.map(i => ({
+              name: i.name,
+              description: i.description || "",
+              sku: i.sku || "",
+              type: i.type,
+              rate: i.unit_price,
+              unit: i.unit || "",
+              tax: (i as any).tax_rates?.name || "",
+            })), "items");
+          }}>
+            <Download className="mr-1.5 h-4 w-4" /> Export
           </Button>
-        )}
-        <Button variant="outline" size="sm" onClick={() => {
-          downloadCSV(items.map(i => ({
-            name: i.name,
-            description: i.description || "",
-            sku: i.sku || "",
-            type: i.type,
-            rate: i.unit_price,
-            unit: i.unit || "",
-            tax: (i as any).tax_rates?.name || "",
-          })), "items");
-        }}>
-          <Download className="mr-1 h-4 w-4" /> Export
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
-          <Upload className="mr-1 h-4 w-4" /> Import
-        </Button>
-        <Button onClick={openCreate} size="sm">
-          <Plus className="mr-1 h-4 w-4" /> Add Item
-        </Button>
-      </PageHeader>
+          <Button variant="outline" size="sm" className="h-10 rounded-lg px-4" onClick={() => setImportOpen(true)}>
+            <Upload className="mr-1.5 h-4 w-4" /> Import
+          </Button>
+          <Button onClick={openCreate} size="sm" className="h-10 rounded-lg px-4">
+            <Plus className="mr-1.5 h-4 w-4" /> Add Item
+          </Button>
+        </div>
+      </div>
 
-      <div className="flex items-center gap-3">
-        <div className="relative max-w-sm flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search items..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+      {/* Filters */}
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_220px] gap-3">
+        <div className="relative">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search items..."
+            className="pl-10 h-11 rounded-xl bg-card border-border/60 shadow-sm"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-40"><SelectValue placeholder="Category" /></SelectTrigger>
+          <SelectTrigger className="h-11 rounded-xl bg-card border-border/60 shadow-sm">
+            <SelectValue placeholder="All Categories" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Categories</SelectItem>
             {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
@@ -217,7 +232,7 @@ export default function ItemsPage() {
         </Select>
       </div>
 
-      <Card>
+      <Card className="rounded-2xl border-border/60 shadow-sm overflow-hidden">
         <CardContent className="p-0">
           {loading ? (
             <div className="p-8 text-center text-muted-foreground">Loading...</div>

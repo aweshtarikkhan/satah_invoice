@@ -13,7 +13,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Printer, Download, ArrowLeft } from "lucide-react";
+import { Printer, Download, ArrowLeft, IndianRupee, FileText, CheckCircle2, AlertCircle } from "lucide-react";
 import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { getDocumentPreviewClass, getPrintPageCSS } from "@/lib/document-templates";
 import html2canvas from "html2canvas";
@@ -178,45 +178,53 @@ export default function CustomerStatementPage() {
   const printCSS = getPrintPageCSS(org?.template_paper_size);
 
   return (
-    <div className="p-6 space-y-6 max-w-4xl mx-auto">
+    <div className="p-6 space-y-5 max-w-6xl mx-auto">
       <style dangerouslySetInnerHTML={{ __html: printCSS }} />
 
-      <PageHeader title="Customer Statement" description="View complete transaction history for a customer">
-        <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
-          <ArrowLeft className="mr-1 h-4 w-4" /> Back
-        </Button>
-        {selectedClientId && (
-          <>
-            <Button variant="outline" size="sm" onClick={handlePrint}>
-              <Printer className="mr-1 h-4 w-4" /> Print
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
-              <Download className="mr-1 h-4 w-4" /> Download PDF
-            </Button>
-          </>
-        )}
-      </PageHeader>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 no-print">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight uppercase">Customer Statement</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">View complete transaction history for a customer</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="h-10 rounded-lg px-4" onClick={() => navigate(-1)}>
+            <ArrowLeft className="mr-1.5 h-4 w-4" /> Back
+          </Button>
+          {selectedClientId && (
+            <>
+              <Button variant="outline" size="sm" className="h-10 rounded-lg px-4" onClick={handlePrint}>
+                <Printer className="mr-1.5 h-4 w-4" /> Print
+              </Button>
+              <Button size="sm" className="h-10 rounded-lg px-4" onClick={handleDownloadPDF}>
+                <Download className="mr-1.5 h-4 w-4" /> Download PDF
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
 
       {/* Filters */}
-      <Card className="no-print">
-        <CardContent className="pt-4">
+      <Card className="no-print rounded-2xl border-border/60 shadow-sm">
+        <CardContent className="p-5">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-3">Customer & Date Range</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label>Customer</Label>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Customer</Label>
               <Select value={selectedClientId} onValueChange={setSelectedClientId}>
-                <SelectTrigger><SelectValue placeholder="Select customer" /></SelectTrigger>
+                <SelectTrigger className="h-10 rounded-lg"><SelectValue placeholder="Select customer" /></SelectTrigger>
                 <SelectContent>
                   {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.display_name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label>From</Label>
-              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">From</Label>
+              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-10 rounded-lg" />
             </div>
-            <div className="space-y-2">
-              <Label>To</Label>
-              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">To</Label>
+              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-10 rounded-lg" />
             </div>
           </div>
         </CardContent>
@@ -263,22 +271,42 @@ export default function CustomerStatementPage() {
 
             <CardContent className="space-y-6">
               {/* Summary Cards */}
-              <div className="grid grid-cols-4 gap-3">
-                <div className="rounded-lg border p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Opening Balance</p>
-                  <p className="text-sm font-bold">{fmt(transactions.openingBalance)}</p>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="rounded-xl border bg-card p-4 flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white shrink-0">
+                    <IndianRupee className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Opening Balance</p>
+                    <p className="text-lg font-bold truncate">{fmt(transactions.openingBalance)}</p>
+                  </div>
                 </div>
-                <div className="rounded-lg border p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Invoiced</p>
-                  <p className="text-sm font-bold text-primary">{fmt(totalInvoiced)}</p>
+                <div className="rounded-xl border bg-card p-4 flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Invoiced</p>
+                    <p className="text-lg font-bold text-blue-600 dark:text-blue-400 truncate">{fmt(totalInvoiced)}</p>
+                  </div>
                 </div>
-                <div className="rounded-lg border p-3 text-center">
-                  <p className="text-xs text-muted-foreground">Paid</p>
-                  <p className="text-sm font-bold text-success">{fmt(totalPayments + totalCredits)}</p>
+                <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 p-4 flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-emerald-500 flex items-center justify-center text-white shrink-0">
+                    <CheckCircle2 className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Paid</p>
+                    <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 truncate">{fmt(totalPayments + totalCredits)}</p>
+                  </div>
                 </div>
-                <div className="rounded-lg border p-3 text-center bg-destructive/5">
-                  <p className="text-xs text-muted-foreground">Balance Due</p>
-                  <p className="text-sm font-bold text-destructive">{fmt(transactions.closingBalance)}</p>
+                <div className="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/30 p-4 flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-rose-500 flex items-center justify-center text-white shrink-0">
+                    <AlertCircle className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Balance Due</p>
+                    <p className="text-lg font-bold text-rose-600 dark:text-rose-400 truncate">{fmt(transactions.closingBalance)}</p>
+                  </div>
                 </div>
               </div>
 

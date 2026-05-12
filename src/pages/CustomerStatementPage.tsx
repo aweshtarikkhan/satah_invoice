@@ -13,7 +13,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Printer, Download, ArrowLeft } from "lucide-react";
+import { Printer, Download, ArrowLeft, IndianRupee, FileText, CheckCircle2, AlertCircle } from "lucide-react";
 import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { getDocumentPreviewClass, getPrintPageCSS } from "@/lib/document-templates";
 import html2canvas from "html2canvas";

@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
-import { PageHeader } from "@/components/shared/PageHeader";
+import { PageActionBar } from "@/components/shared/PageActionBar";
+import { SummaryRibbon } from "@/components/shared/SummaryRibbon";
+import { AnalyticsGrid } from "@/components/shared/AnalyticsGrid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -18,12 +19,12 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Pencil, TrendingUp, TrendingDown, Wallet, IndianRupee, Download } from "lucide-react";
+import { Plus, Trash2, Pencil, Download } from "lucide-react";
 import { downloadCSV } from "@/lib/export-csv";
 import { formatCurrency } from "@/lib/currency";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
+  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
 } from "recharts";
 
 const CATEGORIES = [
@@ -158,101 +159,111 @@ export default function BusinessExpensesPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <PageHeader title="Business Expenses" description="Track your fixed business costs — salary, rent, bills, etc.">
-        <div className="flex items-center gap-2">
-          <Select value={period} onValueChange={setPeriod}>
-            <SelectTrigger className="w-[150px] h-9"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="current">This Month</SelectItem>
-              <SelectItem value="last">Last Month</SelectItem>
-              <SelectItem value="3months">3 Months</SelectItem>
-              <SelectItem value="6months">6 Months</SelectItem>
-              <SelectItem value="year">12 Months</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline" size="sm" onClick={() => {
-            downloadCSV(expenses.map(e => ({
-              category: e.category,
-              description: e.description || "",
-              amount: e.amount,
-              date: e.expense_date,
-              recurring: e.is_recurring ? "Yes" : "No",
-              frequency: e.recurring_frequency || "",
-            })), "expenses");
-          }}>
-            <Download className="mr-1 h-4 w-4" /> Export
-          </Button>
-          <Button onClick={() => { setEditId(null); setForm(emptyForm); setDialogOpen(true); }}>
-            <Plus className="mr-1 h-4 w-4" /> Add Expense
-          </Button>
-        </div>
-      </PageHeader>
+      <PageActionBar title="Business Expenses">
+        <Select value={period} onValueChange={setPeriod}>
+          <SelectTrigger className="w-[150px] h-9"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="current">This Month</SelectItem>
+            <SelectItem value="last">Last Month</SelectItem>
+            <SelectItem value="3months">3 Months</SelectItem>
+            <SelectItem value="6months">6 Months</SelectItem>
+            <SelectItem value="year">12 Months</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button variant="outline" size="sm" onClick={() => {
+          downloadCSV(expenses.map(e => ({
+            category: e.category,
+            description: e.description || "",
+            amount: e.amount,
+            date: e.expense_date,
+            recurring: e.is_recurring ? "Yes" : "No",
+            frequency: e.recurring_frequency || "",
+          })), "expenses");
+        }}>
+          <Download className="mr-1 h-4 w-4" /> Export
+        </Button>
+        <Button size="sm" onClick={() => { setEditId(null); setForm(emptyForm); setDialogOpen(true); }}>
+          <Plus className="mr-1 h-4 w-4" /> Add Expense
+        </Button>
+      </PageActionBar>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="pt-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-destructive/10"><Wallet className="h-5 w-5 text-destructive" /></div>
-            <div>
-              <p className="text-xs text-muted-foreground">Total Expenses</p>
-              <p className="text-xl font-bold">{fmt(totalExpenses)}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-amber-500/10"><TrendingUp className="h-5 w-5 text-amber-500" /></div>
-            <div>
-              <p className="text-xs text-muted-foreground">Recurring Costs</p>
-              <p className="text-xl font-bold">{fmt(recurringTotal)}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10"><TrendingDown className="h-5 w-5 text-primary" /></div>
-            <div>
-              <p className="text-xs text-muted-foreground">Categories</p>
-              <p className="text-xl font-bold">{categoryData.length}</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <SummaryRibbon
+        label="Expense Summary"
+        items={[
+          { label: "Total Expenses", value: fmt(totalExpenses), accent: "danger" },
+          { label: "Recurring Costs", value: fmt(recurringTotal), accent: "warning" },
+          { label: "Categories", value: categoryData.length, accent: "info" },
+          { label: "Avg / Entry", value: fmt(expenses.length ? totalExpenses / expenses.length : 0), accent: "default" },
+        ]}
+      />
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm">Expenses by Category</CardTitle></CardHeader>
-          <CardContent>
-            {categoryData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
-                    {categoryData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
-                  </Pie>
-                  <Tooltip formatter={(v: number) => fmt(v)} />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : <p className="text-sm text-muted-foreground text-center py-12">No data</p>}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm">Monthly Trend</CardTitle></CardHeader>
-          <CardContent>
-            {monthlyData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" fontSize={11} />
-                  <YAxis fontSize={11} />
-                  <Tooltip formatter={(v: number) => fmt(v)} />
-                  <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : <p className="text-sm text-muted-foreground text-center py-12">No data</p>}
-          </CardContent>
-        </Card>
-      </div>
+      {expenses.length > 0 && (
+        <AnalyticsGrid
+          cards={[
+            {
+              title: "Expenses by Category",
+              body: (
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={42} outerRadius={75} paddingAngle={3}>
+                      {categoryData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }} formatter={(v: number) => fmt(v)} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ),
+            },
+            {
+              title: "Monthly Trend",
+              body: (
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={monthlyData} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis dataKey="month" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+                    <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`} />
+                    <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }} formatter={(v: number) => fmt(v)} />
+                    <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ),
+            },
+            {
+              title: "Top 5 Categories",
+              body: (
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={categoryData.slice(0, 5)} layout="vertical" barSize={14} margin={{ top: 5, right: 8, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis type="number" tick={{ fontSize: 10 }} className="fill-muted-foreground" tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`} />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} className="fill-muted-foreground" width={90} />
+                    <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }} formatter={(v: number) => fmt(v)} />
+                    <Bar dataKey="value" fill="hsl(0, 72%, 55%)" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ),
+            },
+            {
+              title: "Recurring vs One-Time",
+              body: (
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: "Recurring", value: recurringTotal },
+                        { name: "One-Time", value: Math.max(0, totalExpenses - recurringTotal) },
+                      ]}
+                      dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={42} outerRadius={75} paddingAngle={3}
+                    >
+                      <Cell fill="hsl(32, 95%, 50%)" />
+                      <Cell fill="hsl(201, 96%, 42%)" />
+                    </Pie>
+                    <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }} formatter={(v: number) => fmt(v)} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ),
+            },
+          ]}
+        />
+      )}
 
       {/* Table */}
       <Card>

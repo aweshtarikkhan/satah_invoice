@@ -19,8 +19,11 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { CreditCard, Search, Upload, DollarSign, TrendingUp, Plus, AlertTriangle, Clock, CheckCircle2, Filter, Trash2, Download } from "lucide-react";
+import { CreditCard, Search, Upload, Plus, Filter, Trash2, Download } from "lucide-react";
 import { downloadCSV } from "@/lib/export-csv";
+import { SummaryRibbon } from "@/components/shared/SummaryRibbon";
+import { AnalyticsGrid } from "@/components/shared/AnalyticsGrid";
+import { PageActionBar } from "@/components/shared/PageActionBar";
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -222,6 +225,19 @@ export default function PaymentsPage() {
     payments.reduce<Record<string, number>>((acc, p) => { const name = (p.clients as any)?.display_name || "Unknown"; acc[name] = (acc[name] || 0) + Number(p.amount); return acc; }, {})
   ).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 5);
 
+  // Aging buckets
+  const agingBuckets = (() => {
+    const buckets: Record<string, number> = { "0-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
+    clientSummaries.forEach((c) => {
+      if (c.pending <= 0) return;
+      if (c.oldestDueDays <= 30) buckets["0-30"] += c.pending;
+      else if (c.oldestDueDays <= 60) buckets["31-60"] += c.pending;
+      else if (c.oldestDueDays <= 90) buckets["61-90"] += c.pending;
+      else buckets["90+"] += c.pending;
+    });
+    return Object.entries(buckets).map(([range, amount]) => ({ range, amount }));
+  })();
+
   const parseDate = (d: string) => {
     if (!d) return null;
     const m = d.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
@@ -233,68 +249,44 @@ export default function PaymentsPage() {
   return (
     <div className="p-6 space-y-4">
       {/* Top Bar */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-bold">All Received Payments</h1>
-        <div className="flex items-center gap-2">
-          {selected.size > 0 && (
-            <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
-              <Trash2 className="mr-1 h-4 w-4" /> Delete ({selected.size})
-            </Button>
-          )}
-          <Button variant="outline" size="sm" onClick={() => {
-            downloadCSV(payments.map(p => ({
-              payment_number: p.payment_number,
-              customer: (p.clients as any)?.display_name,
-              amount: p.amount,
-              payment_date: p.payment_date,
-              payment_mode: p.payment_mode,
-              reference_number: p.reference_number || "",
-              invoice: (p.invoices as any)?.invoice_number || "",
-              notes: p.notes || "",
-            })), "payments");
-          }}>
-            <Download className="mr-1 h-4 w-4" /> Export
+      <PageActionBar title="Payments Received">
+        {selected.size > 0 && (
+          <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
+            <Trash2 className="mr-1 h-4 w-4" /> Delete ({selected.size})
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
-            <Upload className="mr-1 h-4 w-4" /> Import
-          </Button>
-          <Button size="sm" onClick={() => navigate("/payments/new")}>
-            <Plus className="mr-1 h-4 w-4" /> + New
-          </Button>
-        </div>
-      </div>
+        )}
+        <Button variant="outline" size="sm" onClick={() => {
+          downloadCSV(payments.map(p => ({
+            payment_number: p.payment_number,
+            customer: (p.clients as any)?.display_name,
+            amount: p.amount,
+            payment_date: p.payment_date,
+            payment_mode: p.payment_mode,
+            reference_number: p.reference_number || "",
+            invoice: (p.invoices as any)?.invoice_number || "",
+            notes: p.notes || "",
+          })), "payments");
+        }}>
+          <Download className="mr-1 h-4 w-4" /> Export
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+          <Upload className="mr-1 h-4 w-4" /> Import
+        </Button>
+        <Button size="sm" onClick={() => navigate("/payments/new")}>
+          <Plus className="mr-1 h-4 w-4" /> New Payment
+        </Button>
+      </PageActionBar>
 
-      {/* Summary Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-l-4 border-l-blue-500">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Billed</CardTitle>
-            <DollarSign className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent><div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{fmt(globalTotalBilled)}</div></CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-emerald-500">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Received</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-          </CardHeader>
-          <CardContent><div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{fmt(globalTotalPaid)}</div></CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-orange-500">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Pending</CardTitle>
-            <Clock className="h-4 w-4 text-orange-500" />
-          </CardHeader>
-          <CardContent><div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{fmt(globalPending)}</div></CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-red-500">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Overdue Clients</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent><div className="text-2xl font-bold text-red-600 dark:text-red-400">{overdueCount}</div></CardContent>
-        </Card>
-      </div>
+      {/* Payment Summary */}
+      <SummaryRibbon
+        label="Payment Summary"
+        items={[
+          { label: "Total Billed", value: fmt(globalTotalBilled), accent: "info" },
+          { label: "Total Received", value: fmt(globalTotalPaid), accent: "success" },
+          { label: "Total Pending", value: fmt(globalPending), accent: "warning" },
+          { label: "Overdue Clients", value: overdueCount, accent: "danger" },
+        ]}
+      />
 
       {/* Client Receivables */}
       <Card>
@@ -361,51 +353,67 @@ export default function PaymentsPage() {
         </CardContent>
       </Card>
 
-      {/* Charts */}
+      {/* Financial Dashboard Analysis */}
       {payments.length > 0 && (
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
-            <CardHeader><CardTitle className="text-base">Monthly Collections</CardTitle></CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={260}>
-                <LineChart data={monthlyTrend}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis dataKey="month" tick={{ fontSize: 12 }} className="fill-muted-foreground" />
-                  <YAxis tick={{ fontSize: 12 }} className="fill-muted-foreground" tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`} />
-                  <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(v: number) => fmt(v)} />
-                  <Line type="monotone" dataKey="amount" name="Collected" stroke="hsl(142, 71%, 45%)" strokeWidth={2} dot={{ r: 4 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader><CardTitle className="text-base">Payment Mode Breakdown</CardTitle></CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={260}>
-                <PieChart>
-                  <Pie data={modeData} cx="50%" cy="50%" innerRadius={55} outerRadius={95} paddingAngle={3} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
-                    {modeData.map((_, idx) => <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />)}
-                  </Pie>
-                  <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(v: number) => fmt(v)} />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-          <Card className="lg:col-span-2">
-            <CardHeader><CardTitle className="text-base">Top Paying Clients</CardTitle></CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={topClients} layout="vertical" barSize={22}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis type="number" tick={{ fontSize: 12 }} className="fill-muted-foreground" tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`} />
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 12 }} className="fill-muted-foreground" width={120} />
-                  <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(v: number) => fmt(v)} />
-                  <Bar dataKey="value" name="Total Paid" fill="hsl(201, 96%, 32%)" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
+        <AnalyticsGrid
+          cards={[
+            {
+              title: "Monthly Collections",
+              body: (
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={monthlyTrend} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis dataKey="month" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+                    <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`} />
+                    <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }} formatter={(v: number) => fmt(v)} />
+                    <Line type="monotone" dataKey="amount" name="Collected" stroke="hsl(142, 71%, 45%)" strokeWidth={2} dot={{ r: 3 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              ),
+            },
+            {
+              title: "Payment Mode Split",
+              body: (
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie data={modeData} cx="50%" cy="50%" innerRadius={42} outerRadius={75} paddingAngle={3} dataKey="value">
+                      {modeData.map((_, idx) => <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }} formatter={(v: number) => fmt(v)} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ),
+            },
+            {
+              title: "Top Paying Clients",
+              body: (
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={topClients} layout="vertical" barSize={14} margin={{ top: 5, right: 8, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis type="number" tick={{ fontSize: 10 }} className="fill-muted-foreground" tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`} />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} className="fill-muted-foreground" width={70} />
+                    <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }} formatter={(v: number) => fmt(v)} />
+                    <Bar dataKey="value" fill="hsl(201, 96%, 42%)" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ),
+            },
+            {
+              title: "Outstanding Aging",
+              body: (
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={agingBuckets} margin={{ top: 5, right: 8, left: -10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                    <XAxis dataKey="range" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+                    <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`} />
+                    <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }} formatter={(v: number) => fmt(v)} />
+                    <Bar dataKey="amount" fill="hsl(32, 95%, 50%)" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ),
+            },
+          ]}
+        />
       )}
 
       {/* All Received Payments Table */}

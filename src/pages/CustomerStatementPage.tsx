@@ -268,40 +268,40 @@ export default function CustomerStatementPage() {
 
           {/* KPI Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="rounded-xl border border-border/60 bg-card p-5 flex items-center gap-4">
-              <div className="h-11 w-11 rounded-full bg-blue-500 flex items-center justify-center text-white shrink-0">
-                <IndianRupee className="h-5 w-5" />
+            <div className="rounded-xl border border-border/60 bg-card p-4 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white shrink-0">
+                <IndianRupee className="h-4 w-4" />
               </div>
-              <div className="min-w-0">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Opening Balance</p>
-                <p className="text-lg font-bold truncate mt-0.5">{fmt(transactions.openingBalance)}</p>
-              </div>
-            </div>
-            <div className="rounded-xl border border-border/60 bg-card p-5 flex items-center gap-4">
-              <div className="h-11 w-11 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
-                <FileText className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Invoiced</p>
-                <p className="text-lg font-bold text-blue-600 dark:text-blue-400 truncate mt-0.5">{fmt(totalInvoiced)}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Opening Balance</p>
+                <p className="text-base font-bold mt-0.5 break-all">{fmt(transactions.openingBalance)}</p>
               </div>
             </div>
-            <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 p-5 flex items-center gap-4">
-              <div className="h-11 w-11 rounded-full bg-emerald-500 flex items-center justify-center text-white shrink-0">
-                <CheckCircle2 className="h-5 w-5" />
+            <div className="rounded-xl border border-border/60 bg-card p-4 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                <FileText className="h-4 w-4" />
               </div>
-              <div className="min-w-0">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Paid</p>
-                <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 truncate mt-0.5">{fmt(totalPayments + totalCredits)}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Invoiced</p>
+                <p className="text-base font-bold text-blue-600 dark:text-blue-400 mt-0.5 break-all">{fmt(totalInvoiced)}</p>
               </div>
             </div>
-            <div className="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/30 p-5 flex items-center gap-4">
-              <div className="h-11 w-11 rounded-full bg-rose-500 flex items-center justify-center text-white shrink-0">
-                <AlertCircle className="h-5 w-5" />
+            <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 p-4 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-emerald-500 flex items-center justify-center text-white shrink-0">
+                <CheckCircle2 className="h-4 w-4" />
               </div>
-              <div className="min-w-0">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Balance Due</p>
-                <p className="text-lg font-bold text-rose-600 dark:text-rose-400 truncate mt-0.5">{fmt(transactions.closingBalance)}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Paid</p>
+                <p className="text-base font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 break-all">{fmt(totalPayments + totalCredits)}</p>
+              </div>
+            </div>
+            <div className="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/30 p-4 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-rose-500 flex items-center justify-center text-white shrink-0">
+                <AlertCircle className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Balance Due</p>
+                <p className="text-base font-bold text-rose-600 dark:text-rose-400 mt-0.5 break-all">{fmt(transactions.closingBalance)}</p>
               </div>
             </div>
           </div>

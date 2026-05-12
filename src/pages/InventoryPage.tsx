@@ -209,8 +209,8 @@ export default function InventoryPage() {
               icon={Package}
               title="No products found"
               description={items.length === 0 ? "Add product items to start tracking stock." : "No products match your filter."}
-              actionLabel={items.length === 0 ? "Add Item" : undefined}
-              onAction={items.length === 0 ? () => navigate("/items?add=1") : undefined}
+              actionLabel={items.length === 0 ? "Add Product" : undefined}
+              onAction={items.length === 0 ? () => setAddOpen(true) : undefined}
             />
           ) : (
             <Table>

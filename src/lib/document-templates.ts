@@ -5,6 +5,7 @@ export const DOCUMENT_TEMPLATES = [
     description: "Traditional business invoice with clean layout",
     preview: "bg-background border-border",
     features: ["Company logo", "Line items table", "Notes section"],
+    recommendedPaperSize: "a4",
   },
   {
     id: "modern",
@@ -12,6 +13,7 @@ export const DOCUMENT_TEMPLATES = [
     description: "Contemporary design with accent colors and bold typography",
     preview: "bg-primary/5 border-primary/20",
     features: ["Colored header", "Rounded elements", "Status badges"],
+    recommendedPaperSize: "a4",
   },
   {
     id: "minimal",
@@ -19,6 +21,7 @@ export const DOCUMENT_TEMPLATES = [
     description: "Clean and simple with maximum whitespace",
     preview: "bg-muted/30 border-border",
     features: ["Minimalist layout", "Subtle borders", "Compact totals"],
+    recommendedPaperSize: "a4",
   },
   {
     id: "professional",
@@ -26,6 +29,7 @@ export const DOCUMENT_TEMPLATES = [
     description: "Corporate-grade template with detailed sections",
     preview: "bg-accent/10 border-accent/30",
     features: ["Dual address blocks", "Payment details", "Tax breakdown"],
+    recommendedPaperSize: "a4",
   },
   {
     id: "asperiores",
@@ -33,6 +37,7 @@ export const DOCUMENT_TEMPLATES = [
     description: "Bold executive layout with striking contrasts",
     preview: "bg-destructive/5 border-destructive/20",
     features: ["Bold headers", "Contrast sections", "Executive summary"],
+    recommendedPaperSize: "letter",
   },
   {
     id: "magnam",
@@ -40,6 +45,7 @@ export const DOCUMENT_TEMPLATES = [
     description: "Elegant template with refined spacing and serif touches",
     preview: "bg-success/5 border-success/20",
     features: ["Serif accents", "Elegant borders", "Refined totals"],
+    recommendedPaperSize: "a4",
   },
   {
     id: "quisquam",
@@ -47,6 +53,7 @@ export const DOCUMENT_TEMPLATES = [
     description: "Compact data-dense layout for detailed invoices",
     preview: "bg-warning/5 border-warning/20",
     features: ["Dense tables", "Compact layout", "Multi-column footer"],
+    recommendedPaperSize: "a5",
   },
   {
     id: "nobis",
@@ -54,6 +61,7 @@ export const DOCUMENT_TEMPLATES = [
     description: "Creative modern template with asymmetric design",
     preview: "bg-secondary/50 border-secondary",
     features: ["Asymmetric layout", "Creative header", "Accent sidebar"],
+    recommendedPaperSize: "a4",
   },
   {
     id: "compact",
@@ -61,6 +69,7 @@ export const DOCUMENT_TEMPLATES = [
     description: "Traditional compact bill format with centered header and numbered items",
     preview: "bg-background border-primary/30",
     features: ["Centered header", "Numbered items", "Balance due highlight"],
+    recommendedPaperSize: "a6",
   },
   {
     id: "pos",
@@ -68,6 +77,7 @@ export const DOCUMENT_TEMPLATES = [
     description: "Thermal printer / cash register style receipt for 80mm roll paper",
     preview: "bg-background border-foreground/40",
     features: ["80mm thermal", "Monospace font", "Compact rows", "Tear-off receipt"],
+    recommendedPaperSize: "pos80",
   },
 ] as const;
 

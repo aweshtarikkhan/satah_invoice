@@ -22,19 +22,38 @@ export default function InvoiceTemplatePage() {
   const handleSelect = async (templateId: string) => {
     if (!org) return;
     setSaving(true);
-    const { error } = await supabase.from("organizations").update({ template_style: templateId }).eq("id", org.id);
+    const tpl = DOCUMENT_TEMPLATES.find((t) => t.id === templateId);
+    const recommended = (tpl as any)?.recommendedPaperSize || "a4";
+    // POS & Compact are size-locked; others adopt the recommended paper size.
+    const enforcedSize =
+      templateId === "pos" ? "pos80" :
+      templateId === "compact" ? "a6" :
+      recommended;
+    const updates: any = { template_style: templateId, template_paper_size: enforcedSize };
+    const { error } = await supabase.from("organizations").update(updates).eq("id", org.id);
     setSaving(false);
     if (error) {
       toast({ title: "Could not save template", description: error.message, variant: "destructive" });
       return;
     }
     setSelected(templateId);
-    setOrganization({ ...org, template_style: templateId } as any);
-    toast({ title: `Template set to "${DOCUMENT_TEMPLATES.find((t) => t.id === templateId)?.name}"` });
+    setPaperSize(enforcedSize);
+    setOrganization({ ...org, ...updates } as any);
+    const sizeName = PAPER_SIZES.find((s) => s.id === enforcedSize)?.name;
+    toast({ title: `Template set to "${tpl?.name}"`, description: `Paper size: ${sizeName}` });
   };
 
   const handlePaperSizeChange = async (sizeId: string) => {
     if (!org) return;
+    // Lock paper size for templates that require a specific size.
+    if (selected === "pos" && sizeId !== "pos80") {
+      toast({ title: "POS Receipt locked to 80mm", description: "Switch templates to use a different paper size.", variant: "destructive" });
+      return;
+    }
+    if (selected === "compact" && sizeId !== "a6" && sizeId !== "a5") {
+      toast({ title: "Compact Bill works best on A6/A5", description: "Try A6 for thermal-style printing.", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     const { error } = await supabase.from("organizations").update({ template_paper_size: sizeId }).eq("id", org.id);
     setSaving(false);

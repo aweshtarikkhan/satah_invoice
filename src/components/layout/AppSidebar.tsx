@@ -18,7 +18,9 @@ import {
   Plus,
   RefreshCw,
   PieChart,
+  Boxes,
 } from "lucide-react";
+import { useAppStore } from "@/store/app-store";
 import logoImg from "@/assets/logo.png";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -66,6 +68,15 @@ export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, profile } = useAuth();
+  const org = useAppStore((s) => s.organization);
+  const inventoryEnabled = (org as any)?.inventory_enabled;
+
+  const visibleMainItems = mainItems.flatMap((it) => {
+    if (it.url === "/items" && inventoryEnabled) {
+      return [it, { title: "Inventory", url: "/inventory", icon: Boxes, addUrl: null }];
+    }
+    return [it];
+  });
 
   const isActive = (path: string) =>
     location.pathname === path || location.pathname.startsWith(path + "/");
@@ -88,7 +99,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Main</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems.map((item) => (
+              {visibleMainItems.map((item) => (
                 <SidebarMenuItem key={item.title} className="group/item">
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <NavLink

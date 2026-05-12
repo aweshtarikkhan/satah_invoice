@@ -14,6 +14,7 @@ import DashboardPage from "./pages/DashboardPage";
 import ClientsPage from "./pages/ClientsPage";
 import ClientDetailPage from "./pages/ClientDetailPage";
 import ItemsPage from "./pages/ItemsPage";
+import InventoryPage from "./pages/InventoryPage";
 import InvoicesPage from "./pages/InvoicesPage";
 import InvoiceBuilderPage from "./pages/InvoiceBuilderPage";
 import InvoiceDetailPage from "./pages/InvoiceDetailPage";

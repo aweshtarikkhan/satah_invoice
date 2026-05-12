@@ -145,7 +145,11 @@ export default function InventoryPage() {
 
   return (
     <div className="p-6 space-y-5">
-      <PageHeader title="Inventory" description="Manage stock levels of your products">
+      <PageHeader title="Inventory" description="Track stock across any unit (kg, ltr, pcs, box, etc.)">
+        <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-muted/30 px-3 py-1.5">
+          <Label htmlFor="inv-toggle" className="text-xs font-medium cursor-pointer">Tracking</Label>
+          <Switch id="inv-toggle" checked={true} onCheckedChange={(v) => toggleInventory(v)} />
+        </div>
         <Button variant="outline" size="sm" onClick={() => navigate("/items")}>
           <Package className="mr-1.5 h-4 w-4" /> Manage Items
         </Button>

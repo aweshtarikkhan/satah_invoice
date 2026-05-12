@@ -24,6 +24,7 @@ import {
   CreditCard,
   CalendarClock,
   AlertCircle,
+  Package,
 } from "lucide-react";
 import {
   Table,

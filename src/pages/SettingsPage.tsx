@@ -281,6 +281,26 @@ export default function SettingsPage() {
                 </CardContent>
               </Card>
 
+              <Card>
+                <CardHeader><CardTitle className="text-base">Inventory Management</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Enable Inventory Tracking</Label>
+                      <p className="text-xs text-muted-foreground">Turn on if you sell physical products. Stock auto-deducts on each invoice. Service businesses can leave this off.</p>
+                    </div>
+                    <Switch checked={orgForm.inventory_enabled} onCheckedChange={(v) => setOrgForm({ ...orgForm, inventory_enabled: v })} />
+                  </div>
+                  {orgForm.inventory_enabled && (
+                    <div className="space-y-2">
+                      <Label>Low Stock Alert Threshold</Label>
+                      <Input type="number" min={0} value={orgForm.low_stock_threshold} onChange={(e) => setOrgForm({ ...orgForm, low_stock_threshold: parseFloat(e.target.value) || 0 })} />
+                      <p className="text-xs text-muted-foreground">Items at or below this stock level appear in the dashboard low-stock alert.</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               <Button onClick={saveOrg}>Save</Button>
             </TabsContent>
 

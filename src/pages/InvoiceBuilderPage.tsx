@@ -468,7 +468,11 @@ export default function InvoiceBuilderPage() {
 
     try {
       let invoiceId = id;
+      // Capture previous lines for stock restoration on edit
+      let prevLines: any[] = [];
       if (id) {
+        const { data: existing } = await supabase.from("invoice_lines").select("item_id, quantity").eq("invoice_id", id);
+        prevLines = existing || [];
         const { error } = await supabase.from("invoices").update(invoicePayload).eq("id", id);
         if (error) throw error;
         // Delete old lines and re-insert

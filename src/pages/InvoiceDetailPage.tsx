@@ -193,67 +193,61 @@ export default function InvoiceDetailPage() {
       a4: [210, 297], letter: [215.9, 279.4], legal: [215.9, 355.6], a5: [148, 210], a6: [105, 148], pos80: [80, 297],
     };
     const paperKey = org?.template_paper_size || "a4";
-    const [pW, pH] = paperSizes[paperKey] || paperSizes.a4;
+    const [pW, pHFixed] = paperSizes[paperKey] || paperSizes.a4;
     const MARGIN = paperKey === "pos80" ? 2 : 8; // mm
     const contentWidth = pW - MARGIN * 2;
+
+    // Capture the actual styled template wrapper (.invoice-printable) so the
+    // template's borders, header background, and full layout are preserved.
+    const target = (invoiceRef.current.querySelector(".invoice-printable") as HTMLElement) || invoiceRef.current;
+    const canvas = await html2canvas(target, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: "#ffffff",
+      windowWidth: target.scrollWidth,
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+    const imgWmm = contentWidth;
+    const imgHmm = (canvas.height * imgWmm) / canvas.width;
+
+    if (paperKey === "pos80") {
+      // POS receipt: single continuous page sized to content height
+      const pageH = imgHmm + MARGIN * 2;
+      const pdf = new jsPDF("p", "mm", [pW, pageH]);
+      pdf.addImage(imgData, "PNG", MARGIN, MARGIN, imgWmm, imgHmm);
+      pdf.save(`${invoice?.invoice_number || "invoice"}.pdf`);
+      return;
+    }
+
+    const pH = pHFixed;
     const contentHeight = pH - MARGIN * 2;
-
-    // Capture each "section" individually so rows are never cut mid-way.
-    // Sections are <table>, top-level <div> children, and any [data-pdf-section].
-    const root = invoiceRef.current;
-    const explicit = Array.from(root.querySelectorAll<HTMLElement>("[data-pdf-section]"));
-    const sections: HTMLElement[] = explicit.length
-      ? explicit
-      : (Array.from(root.children) as HTMLElement[]).flatMap((child) => {
-          // For Card-based templates, dive one level into CardContent rows.
-          const inner = child.querySelectorAll<HTMLElement>(":scope > *");
-          return inner.length > 1 ? Array.from(inner) : [child];
-        });
-
     const pdf = new jsPDF("p", "mm", [pW, pH]);
-    let cursorY = MARGIN;
-    const SECTION_GAP = 1.5; // mm
 
-    for (const section of sections) {
-      const canvas = await html2canvas(section, { scale: 2, useCORS: true, logging: false, backgroundColor: "#ffffff" });
-      const imgW = contentWidth;
-      const imgH = (canvas.height * imgW) / canvas.width;
-      const imgData = canvas.toDataURL("image/png");
-
-      if (imgH > contentHeight) {
-        // Section bigger than a page: slice it across pages.
-        let remaining = imgH;
-        let srcY = 0;
-        while (remaining > 0) {
-          const spaceLeft = pH - MARGIN - cursorY;
-          if (spaceLeft < 10) {
-            pdf.addPage([pW, pH]);
-            cursorY = MARGIN;
-          }
-          const sliceMM = Math.min(remaining, pH - MARGIN - cursorY);
-          const sliceRatio = sliceMM / imgH;
-          const sliceCanvas = document.createElement("canvas");
-          sliceCanvas.width = canvas.width;
-          sliceCanvas.height = canvas.height * sliceRatio;
-          const ctx = sliceCanvas.getContext("2d")!;
-          ctx.drawImage(canvas, 0, -srcY * (canvas.height / imgH));
-          pdf.addImage(sliceCanvas.toDataURL("image/png"), "PNG", MARGIN, cursorY, imgW, sliceMM);
-          cursorY += sliceMM;
-          srcY += sliceMM;
-          remaining -= sliceMM;
-          if (remaining > 0) {
-            pdf.addPage([pW, pH]);
-            cursorY = MARGIN;
-          }
-        }
-      } else {
-        // Move to a new page if it doesn't fit.
-        if (cursorY + imgH > pH - MARGIN && cursorY > MARGIN) {
-          pdf.addPage([pW, pH]);
-          cursorY = MARGIN;
-        }
-        pdf.addImage(imgData, "PNG", MARGIN, cursorY, imgW, imgH);
-        cursorY += imgH + SECTION_GAP;
+    if (imgHmm <= contentHeight) {
+      pdf.addImage(imgData, "PNG", MARGIN, MARGIN, imgWmm, imgHmm);
+    } else {
+      // Slice the canvas into page-sized chunks
+      const pxPerMM = canvas.height / imgHmm;
+      const sliceHeightPx = contentHeight * pxPerMM;
+      let renderedPx = 0;
+      let pageIdx = 0;
+      while (renderedPx < canvas.height) {
+        const remainingPx = canvas.height - renderedPx;
+        const thisSlicePx = Math.min(sliceHeightPx, remainingPx);
+        const slice = document.createElement("canvas");
+        slice.width = canvas.width;
+        slice.height = thisSlicePx;
+        const ctx = slice.getContext("2d")!;
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, slice.width, slice.height);
+        ctx.drawImage(canvas, 0, -renderedPx);
+        const sliceMM = thisSlicePx / pxPerMM;
+        if (pageIdx > 0) pdf.addPage([pW, pH]);
+        pdf.addImage(slice.toDataURL("image/png"), "PNG", MARGIN, MARGIN, imgWmm, sliceMM);
+        renderedPx += thisSlicePx;
+        pageIdx += 1;
       }
     }
 

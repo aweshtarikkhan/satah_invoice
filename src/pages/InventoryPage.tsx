@@ -19,10 +19,12 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Package, Search, Plus, Minus, AlertTriangle, PackageX } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 
 export default function InventoryPage() {
   const org = useAppStore((s) => s.organization);
+  const setOrganization = useAppStore((s) => s.setOrganization);
   const { toast } = useToast();
   const navigate = useNavigate();
   const [items, setItems] = useState<any[]>([]);
@@ -104,9 +106,22 @@ export default function InventoryPage() {
     fetchItems();
   };
 
-  if (!(org as any)?.inventory_enabled) {
+  const toggleInventory = async (enabled: boolean) => {
+    if (!org?.id) return;
+    const { error } = await supabase.from("organizations").update({ inventory_enabled: enabled }).eq("id", org.id);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
+    setOrganization({ ...(org as any), inventory_enabled: enabled });
+    toast({ title: enabled ? "Inventory tracking enabled" : "Inventory tracking disabled" });
+  };
+
+  const inventoryEnabled = !!(org as any)?.inventory_enabled;
+
+  if (!inventoryEnabled) {
     return (
-      <div className="p-6">
+      <div className="p-6 space-y-5">
         <PageHeader title="Inventory" description="Stock tracking is currently disabled" />
         <Card className="rounded-2xl border-border/60">
           <CardContent className="p-10 flex flex-col items-center text-center gap-4">
@@ -114,10 +129,14 @@ export default function InventoryPage() {
             <div>
               <h3 className="font-semibold text-lg">Inventory tracking is off</h3>
               <p className="text-sm text-muted-foreground mt-1 max-w-md">
-                Turn on inventory tracking in Settings if you sell physical products. Service businesses can keep this disabled.
+                Turn it on if you sell physical products (works with kg, ltr, pcs, box, or any unit). Service-only businesses can keep this disabled.
               </p>
             </div>
-            <Button onClick={() => navigate("/settings")}>Go to Settings</Button>
+            <div className="flex items-center gap-3 rounded-xl border border-border/60 bg-muted/30 px-4 py-3">
+              <Label htmlFor="inv-toggle" className="text-sm font-medium">Enable Inventory Tracking</Label>
+              <Switch id="inv-toggle" checked={false} onCheckedChange={(v) => toggleInventory(v)} />
+            </div>
+            <Button variant="outline" onClick={() => navigate("/settings")}>Open Settings</Button>
           </CardContent>
         </Card>
       </div>

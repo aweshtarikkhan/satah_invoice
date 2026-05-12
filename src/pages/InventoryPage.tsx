@@ -37,6 +37,7 @@ export default function InventoryPage() {
   const [adjustMode, setAdjustMode] = useState<"add" | "remove" | "set">("add");
   const [adjustQty, setAdjustQty] = useState(0);
   const [adjustNote, setAdjustNote] = useState("");
+  const [addOpen, setAddOpen] = useState(false);
 
   const threshold = Number((org as any)?.low_stock_threshold ?? 5);
 

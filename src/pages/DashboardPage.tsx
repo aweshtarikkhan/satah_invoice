@@ -74,6 +74,7 @@ export default function DashboardPage() {
   const [invoiceLines, setInvoiceLines] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
   const [lowStockItems, setLowStockItems] = useState<any[]>([]);
+  const [stockItems, setStockItems] = useState<any[]>([]);
   const [exporting, setExporting] = useState(false);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
@@ -95,19 +96,24 @@ export default function DashboardPage() {
       setInvoiceLines(linesRes.data || []);
       setExpenses(expRes.data || []);
 
-      // Low stock items (only if inventory enabled)
+      // Inventory items (only if inventory enabled)
       if ((org as any)?.inventory_enabled) {
         const threshold = Number((org as any)?.low_stock_threshold ?? 5);
-        const { data: lowItems } = await supabase
+        const { data: allProducts } = await supabase
           .from("items")
-          .select("id, name, sku, stock_quantity, unit")
+          .select("id, name, sku, stock_quantity, unit, unit_price")
           .eq("org_id", org.id)
-          .eq("type", "product")
-          .lte("stock_quantity", threshold)
-          .order("stock_quantity", { ascending: true });
-        setLowStockItems(lowItems || []);
+          .eq("type", "product");
+        const products = allProducts || [];
+        setStockItems(products);
+        setLowStockItems(
+          products
+            .filter((p) => Number(p.stock_quantity || 0) <= threshold)
+            .sort((a, b) => Number(a.stock_quantity) - Number(b.stock_quantity))
+        );
       } else {
         setLowStockItems([]);
+        setStockItems([]);
       }
     };
     fetchData();

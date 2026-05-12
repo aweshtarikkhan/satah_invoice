@@ -4,16 +4,16 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 215 25% 13%;
+    --background: 220 40% 98%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 13%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 13%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 201 96% 32%;
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96%;
@@ -40,14 +40,14 @@
 
     --radius: 0.375rem;
 
-    --sidebar-background: 220 20% 97%;
-    --sidebar-foreground: 215 25% 27%;
-    --sidebar-primary: 201 96% 32%;
+    --sidebar-background: 230 45% 14%;
+    --sidebar-foreground: 220 25% 88%;
+    --sidebar-primary: 221 90% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 40% 94%;
-    --sidebar-accent-foreground: 215 25% 13%;
-    --sidebar-border: 214 20% 90%;
-    --sidebar-ring: 201 96% 32%;
+    --sidebar-accent: 230 40% 22%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 230 40% 20%;
+    --sidebar-ring: 221 90% 65%;
   }
 
   .dark {
@@ -157,4 +157,39 @@
   .row-hover:hover {
     background: hsl(var(--muted) / 0.5);
   }
+
+  /* ===== Gradient KPI pill headers (reference UI) ===== */
+  .kpi-card {
+    @apply rounded-2xl bg-card border border-border/60 shadow-sm overflow-hidden transition-all duration-300;
+  }
+  .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 14px 32px -16px hsl(222 47% 11% / 0.18); }
+  .kpi-pill {
+    @apply flex items-center gap-2 px-3 py-2 rounded-xl text-white font-semibold text-sm shadow-md;
+  }
+  .kpi-pill-green   { background: linear-gradient(135deg,#10b981,#059669); }
+  .kpi-pill-blue    { background: linear-gradient(135deg,#3b82f6,#1d4ed8); }
+  .kpi-pill-orange  { background: linear-gradient(135deg,#fb923c,#ea580c); }
+  .kpi-pill-teal    { background: linear-gradient(135deg,#14b8a6,#0d9488); }
+  .kpi-pill-amber   { background: linear-gradient(135deg,#f59e0b,#d97706); }
+  .kpi-pill-slate   { background: linear-gradient(135deg,#64748b,#334155); }
+  .kpi-pill-rose    { background: linear-gradient(135deg,#f43f5e,#e11d48); }
+  .kpi-pill-violet  { background: linear-gradient(135deg,#8b5cf6,#6d28d9); }
+
+  /* Glassy insights banner */
+  .insights-banner {
+    background: linear-gradient(135deg, hsl(220 90% 97%), hsl(210 100% 96%) 60%, hsl(230 90% 96%));
+    border: 1px solid hsl(220 60% 88%);
+    border-radius: 1rem;
+  }
+  .dark .insights-banner {
+    background: linear-gradient(135deg, hsl(230 40% 16%), hsl(220 40% 14%));
+    border-color: hsl(230 40% 24%);
+  }
+
+  /* Primary gradient button */
+  .btn-grad-primary {
+    background: linear-gradient(135deg, hsl(221 83% 55%), hsl(230 80% 45%));
+    color: white;
+  }
+  .btn-grad-primary:hover { filter: brightness(1.05); }
 }

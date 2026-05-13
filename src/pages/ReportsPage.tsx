@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { SEO } from "@/components/shared/SEO";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -126,6 +127,7 @@ export default function ReportsPage() {
 
   return (
     <div className="p-6 space-y-6">
+      <SEO title="Reports" description="Financial insights and analytics: receivables aging, sales by client, tax summary and more." path="/reports" />
       <PageHeader title="Reports" description="Financial insights and analytics for your business" />
 
       <div className="flex items-center gap-3">

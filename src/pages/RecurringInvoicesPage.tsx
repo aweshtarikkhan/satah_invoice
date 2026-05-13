@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { SEO } from "@/components/shared/SEO";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -108,6 +109,7 @@ export default function RecurringInvoicesPage() {
 
   return (
     <div className="p-6 space-y-6">
+      <SEO title="Recurring Invoices" description="Automate billing with scheduled recurring invoices for subscriptions and retainers." path="/recurring-invoices" />
       <PageHeader title="Recurring Invoices" description="Automate invoice generation on a schedule">
         <Button onClick={() => { resetForm(); setDialogOpen(true); }} size="sm">
           <Plus className="mr-1 h-4 w-4" /> New Schedule

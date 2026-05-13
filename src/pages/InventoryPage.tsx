@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { SEO } from "@/components/shared/SEO";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -124,7 +125,8 @@ export default function InventoryPage() {
   if (!inventoryEnabled) {
     return (
       <div className="p-6 space-y-5">
-        <PageHeader title="Inventory" description="Stock tracking is currently disabled" />
+        <SEO title="Inventory" description="Track stock levels across any unit (kg, ltr, pcs, box) with low-stock alerts and movement history." path="/inventory" />
+      <PageHeader title="Inventory" description="Stock tracking is currently disabled" />
         <Card className="rounded-2xl border-border/60">
           <CardContent className="p-10 flex flex-col items-center text-center gap-4">
             <PackageX className="h-12 w-12 text-muted-foreground" />

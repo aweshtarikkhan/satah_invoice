@@ -836,19 +836,19 @@ export default function DashboardPage() {
             <div
               key={kpi.label}
               onClick={kpi.onClick}
-              className={`kpi-card p-3 sm:p-4 ${kpi.onClick ? "cursor-pointer" : ""}`}
+              className={`kpi-card p-4 sm:p-5 min-h-[150px] sm:min-h-[170px] flex flex-col justify-between ${kpi.onClick ? "cursor-pointer" : ""}`}
             >
               <div className={`kpi-pill ${kpi.pill} mb-3 w-full`}>
                 <Icon className="h-4 w-4" />
                 <span className="truncate">{kpi.label}</span>
               </div>
               <p
-                className={`text-lg sm:text-xl lg:text-2xl font-extrabold leading-tight break-words tracking-tight ${kpi.valueClass || "text-foreground"}`}
+                className={`text-xl sm:text-2xl lg:text-3xl font-extrabold leading-tight break-words tracking-tight ${kpi.valueClass || "text-foreground"}`}
                 title={kpi.value}
               >
                 {kpi.value}
               </p>
-              <div className={`mt-2 text-[10px] sm:text-[11px] flex items-center gap-1 ${kpi.trendColor}`}>
+              <div className={`mt-3 text-[11px] sm:text-xs flex items-center gap-1 ${kpi.trendColor}`}>
                 <TrendingUp className="h-3 w-3 shrink-0" />
                 <span className="truncate">{kpi.trend}</span>
               </div>

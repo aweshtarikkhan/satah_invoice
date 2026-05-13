@@ -12,3 +12,8 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /portal/
+Disallow: /reset-password
+Disallow: /audit-logs
+
+Sitemap: https://satahinvoice.com/sitemap.xml

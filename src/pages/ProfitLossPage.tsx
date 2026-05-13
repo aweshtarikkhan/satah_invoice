@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { SEO } from "@/components/shared/SEO";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -89,6 +90,7 @@ export default function ProfitLossPage() {
 
   return (
     <div className="p-6 space-y-6">
+      <SEO title="Profit & Loss" description="View monthly income vs expense breakdown with GST summary and net margin trends." path="/profit-loss" />
       <PageHeader title="Profit & Loss" description="Income vs expenses breakdown">
         <Button variant="outline" size="sm" onClick={() => downloadCSV(monthlyData, "profit-loss-report")}>
           <Download className="mr-1 h-4 w-4" /> Export CSV

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { SEO } from "@/components/shared/SEO";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -76,6 +77,7 @@ export default function InvoiceTemplatePage() {
 
   return (
     <div className="p-6 space-y-6">
+      <SEO title="Invoice Templates" description="Choose and customize invoice templates that match your brand identity." path="/templates" />
       <PageHeader
         title="Invoice Templates"
         description="Choose a template style for your invoices, estimates, and credit notes"

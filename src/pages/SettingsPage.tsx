@@ -3,6 +3,7 @@ import { CURRENCIES } from "@/lib/currency";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { SEO } from "@/components/shared/SEO";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -106,6 +107,7 @@ export default function SettingsPage() {
 
   return (
     <div className="p-6 space-y-6 max-w-3xl">
+      <SEO title="Settings" description="Configure organization details, currency, tax rates, branding and document preferences." path="/settings" />
       <PageHeader title="Settings" description="Manage your organization and preferences" />
 
       <Tabs defaultValue="organization">

@@ -83,12 +83,12 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border px-2 py-3">
-        <NavLink to="/dashboard" className="flex items-center justify-start hover:opacity-90 transition-opacity">
+      <SidebarHeader className="px-2 py-3">
+        <NavLink to="/dashboard" className="flex items-center justify-center hover:opacity-90 transition-opacity">
           <img
             src={logoImg}
             alt="Satah Invoice"
-            className={collapsed ? "h-10 w-10 object-contain" : "h-20 w-auto object-contain -ml-1"}
+            className={collapsed ? "h-10 w-10 object-contain" : "h-20 w-auto object-contain"}
           />
         </NavLink>
       </SidebarHeader>

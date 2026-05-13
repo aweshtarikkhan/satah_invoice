@@ -65,7 +65,8 @@ export default function RegisterPage() {
   };
 
   return (
-    <SEO title="Create Account" description="Create your free Satah Invoices account and start sending professional GST invoices in minutes." path="/register" />
+    <>
+      <SEO title="Create Account" description="Create your free Satah Invoices account and start sending professional GST invoices in minutes." path="/register" />
       <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">

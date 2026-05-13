@@ -55,7 +55,8 @@ export default function LoginPage() {
   };
 
   return (
-    <SEO title="Sign In" description="Sign in to Satah Invoices to manage your invoices, clients and payments." path="/login" />
+    <>
+      <SEO title="Sign In" description="Sign in to Satah Invoices to manage your invoices, clients and payments." path="/login" />
       <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">

@@ -710,6 +710,31 @@ export default function DashboardPage() {
 
   return (
     <div className="p-6 space-y-6" ref={dashboardRef}>
+      <SEO
+        title="Dashboard"
+        description="Manage invoices, estimates, clients, payments and inventory in one place. Track receivables, profit & loss, and grow your business with Satah Invoices."
+        path="/dashboard"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: "Satah Invoices",
+          description:
+            "Cloud invoicing and billing platform for small businesses. Create GST-compliant invoices, estimates, manage clients, payments, inventory and reports.",
+          applicationCategory: "BusinessApplication",
+          operatingSystem: "Web",
+          url: "https://satahinvoice.com",
+          offers: {
+            "@type": "Offer",
+            price: "0",
+            priceCurrency: "INR",
+          },
+          publisher: {
+            "@type": "Organization",
+            name: "Satah Invoices",
+            url: "https://satahinvoice.com",
+          },
+        }}
+      />
       <PageHeader title="Dashboard" description={`Welcome back${profile?.first_name ? `, ${profile.first_name}` : ""}`}>
         <Button onClick={handleExportPDF} variant="outline" size="sm" disabled={exporting}>
           {exporting ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Download className="mr-1 h-4 w-4" />}

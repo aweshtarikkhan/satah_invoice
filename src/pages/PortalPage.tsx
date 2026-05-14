@@ -7,6 +7,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Receipt } from "lucide-react";
+import { SEO } from "@/components/shared/SEO";
 
 export default function PortalPage() {
   const { token } = useParams();
@@ -108,7 +109,13 @@ export default function PortalPage() {
   const entityNumber = entity.invoice_number || entity.estimate_number || entity.credit_note_number;
 
   return (
-    <div className="min-h-screen bg-muted/30 py-8 px-4">
+    <>
+      <SEO
+        title={`${entityLabel} ${entityNumber} from ${org.name}`}
+        description={`View ${entityLabel.toLowerCase()} ${entityNumber} from ${org.name}. Total ${fmt(entity.total || 0)}.`}
+        noIndex
+      />
+      <div className="min-h-screen bg-muted/30 py-8 px-4">
       <div className="max-w-3xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center gap-3">
@@ -231,5 +238,6 @@ export default function PortalPage() {
         </p>
       </div>
     </div>
+    </>
   );
 }

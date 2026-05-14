@@ -1,0 +1,31 @@
+# Satah Invoices
+
+> Cloud invoicing software for small businesses in India: create GST-ready invoices, estimates, credit notes; manage clients, payments, expenses and inventory.
+
+Satah Invoices helps small businesses send professional invoices in seconds, track receivables, record payments, manage recurring billing, and generate GST-compliant documents (CGST/SGST/IGST) with QR codes and UPI links. Multi-currency, multi-template, and built for fast bulk entry.
+
+## Pages
+
+- [Home](/): Product overview and sign-in entry point.
+- [Sign In](/login): Log in to your account or try the demo.
+- [Sign Up](/register): Create a new Satah Invoices account.
+- [Forgot Password](/forgot-password): Email-based password reset.
+- [Dashboard](/dashboard): KPIs, receivables aging and smart insights.
+- [Invoices](/invoices): Create, send and track GST invoices.
+- [Estimates](/estimates): Quotes that convert to invoices.
+- [Credit Notes](/credit-notes): Issue refunds and credit adjustments.
+- [Payments](/payments): Record and reconcile customer payments.
+- [Clients](/clients): Customer directory with statements and ledgers.
+- [Items](/items): Product/service catalog with tax presets.
+- [Inventory](/inventory): Stock tracking with low-stock warnings.
+- [Expenses](/expenses): Recurring business expense tracking.
+- [Recurring Invoices](/recurring-invoices): Automated billing schedules.
+- [Reports](/reports): Receivables, sales and tax reports.
+- [Profit & Loss](/profit-loss): Monthly P&L and GST summary.
+- [Statements](/statements): Customer ledger statements.
+- [Templates](/templates): Customize invoice/estimate templates.
+- [Settings](/settings): Organization, branding and preferences.
+
+## Optional
+
+- [Aging Details](/aging-details): Detailed receivables aging buckets.

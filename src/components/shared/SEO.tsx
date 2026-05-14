@@ -1,4 +1,5 @@
 import { Helmet } from "react-helmet-async";
+import { useLocation } from "react-router-dom";
 
 interface SEOProps {
   title: string;
@@ -24,8 +25,19 @@ export function SEO({
   jsonLd,
   noIndex = false,
 }: SEOProps) {
+  // Always self-reference: prefer explicit `path`, otherwise use current route
+  let location: { pathname: string } = { pathname: "/" };
+  try {
+    // useLocation may throw if not under a Router (e.g. tests); fall back gracefully
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    location = useLocation();
+  } catch {
+    // ignore
+  }
+  const resolvedPath = path ?? location.pathname ?? "/";
+
   const fullTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
-  const url = path ? `${BASE_URL}${path}` : BASE_URL;
+  const url = `${BASE_URL}${resolvedPath}`;
   const desc = description.length > 158 ? description.slice(0, 155) + "..." : description;
 
   return (

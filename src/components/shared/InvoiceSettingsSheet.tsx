@@ -106,7 +106,15 @@ export function InvoiceSettingsSheet() {
             {/* Paper Size */}
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Paper Size</Label>
-              <Select value={settings.template_paper_size} onValueChange={(v) => setSettings({ ...settings, template_paper_size: v })}>
+              <Select value={settings.template_paper_size} onValueChange={(v) => {
+                const compatible = DOCUMENT_TEMPLATES.filter((t) => ((t as any).recommendedPaperSize || "a4") === v);
+                const stillOk = compatible.some((t) => t.id === settings.template_style);
+                setSettings({
+                  ...settings,
+                  template_paper_size: v,
+                  template_style: stillOk ? settings.template_style : (compatible[0]?.id || settings.template_style),
+                });
+              }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {PAPER_SIZES.map((s) => (

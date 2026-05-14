@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Upload, FileSpreadsheet, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Papa from "papaparse";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 
 export interface ImportField {
   key: string;

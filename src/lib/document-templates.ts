@@ -133,6 +133,10 @@ export function getDocumentPreviewClass(templateStyle?: string, paperSize?: stri
     quisquam: "rounded-md border border-warning/30 bg-card text-card-foreground shadow-sm",
     nobis: "rounded-xl border-l-4 border-secondary bg-card text-card-foreground shadow-md",
     compact: "rounded-lg border border-foreground/20 bg-background text-foreground shadow-sm",
+    alpha_blue: "rounded-lg border-2 border-primary bg-background text-foreground shadow-sm",
+    monochrome: "rounded-md border-2 border-foreground bg-background text-foreground shadow-sm",
+    amanda_cream: "rounded-lg border border-foreground/30 shadow-sm",
+    redblue_modern: "rounded-lg border border-destructive/30 bg-background text-foreground shadow-sm",
     pos: "border border-foreground/30 bg-background text-foreground shadow-sm",
   }[templateStyle || "classic"];
 

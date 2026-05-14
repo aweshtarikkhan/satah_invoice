@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/table";
 import { getDocumentPreviewClass, getPaperSizeLabel, getPrintPageCSS } from "@/lib/document-templates";
 import { CompactBillTemplate } from "@/components/invoice/CompactBillTemplate";
+import { StyledInvoiceTemplate } from "@/components/invoice/StyledInvoiceTemplate";
+import { A6Template } from "@/components/invoice/A6Templates";
 
 const statusVariants: Record<string, "default" | "info" | "success" | "warning" | "danger" | "muted"> = {
   draft: "muted", sent: "info", viewed: "default", accepted: "success",

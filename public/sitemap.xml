@@ -21,6 +21,11 @@
     <priority>0.3</priority>
   </url>
   <url>
+    <loc>https://satahinvoice.com/reset-password</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  <url>
     <loc>https://satahinvoice.com/dashboard</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>

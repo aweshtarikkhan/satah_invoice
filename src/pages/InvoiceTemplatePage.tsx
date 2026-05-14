@@ -120,8 +120,12 @@ export default function InvoiceTemplatePage() {
         </CardContent>
       </Card>
 
+      <div className="text-sm text-muted-foreground">
+        Showing templates for <b>{PAPER_SIZES.find(s => s.id === paperSize)?.name}</b>. Change paper size above to see other templates.
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {DOCUMENT_TEMPLATES.map((tpl) => (
+        {visibleTemplates.map((tpl) => (
           <Card
             key={tpl.id}
             className={`cursor-pointer transition-all hover:shadow-md ${

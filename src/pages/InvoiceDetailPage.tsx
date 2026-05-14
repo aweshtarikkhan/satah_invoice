@@ -328,6 +328,10 @@ export default function InvoiceDetailPage() {
         <div className={getDocumentPreviewClass("pos", org?.template_paper_size || "pos80")}>
           <PosBillTemplate org={org} invoice={invoice} lines={lines} fmt={fmt} type="invoice" />
         </div>
+      ) : ["alpha_blue", "monochrome", "amanda_cream", "redblue_modern"].includes(org?.template_style) ? (
+        <div className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
+          <A6Template org={org} invoice={invoice} lines={lines} fmt={fmt} type="invoice" variant={org.template_style as any} />
+        </div>
       ) : (
       <div className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
         <StyledInvoiceTemplate org={org} invoice={invoice} lines={lines} fmt={fmt} type="invoice" />

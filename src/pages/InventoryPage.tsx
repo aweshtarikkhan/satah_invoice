@@ -19,10 +19,12 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Package, Search, Plus, Minus, AlertTriangle, PackageX, PackagePlus } from "lucide-react";
+import { Package, Search, Plus, Minus, AlertTriangle, PackageX, PackagePlus, Sparkles, Database } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import { AddItemDialog } from "@/components/shared/AddItemDialog";
+import ReactMarkdown from "react-markdown";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function InventoryPage() {
   const org = useAppStore((s) => s.organization);

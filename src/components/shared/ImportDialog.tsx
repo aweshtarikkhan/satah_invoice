@@ -84,16 +84,39 @@ export function ImportDialog({ open, onOpenChange, fields, entityName, onImport 
       });
     } else if (ext === "xlsx" || ext === "xls") {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        const wb = XLSX.read(e.target?.result, { type: "array" });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json<Record<string, any>>(ws);
-        if (!rows.length) { toast({ title: "Empty spreadsheet", variant: "destructive" }); return; }
-        const keys = Object.keys(rows[0]);
-        setHeaders(keys);
-        setRawData(rows);
-        autoMap(keys);
-        setStep("map");
+      reader.onload = async (e) => {
+        try {
+          const wb = new ExcelJS.Workbook();
+          await wb.xlsx.load(e.target?.result as ArrayBuffer);
+          const ws = wb.worksheets[0];
+          if (!ws || ws.rowCount < 2) { toast({ title: "Empty spreadsheet", variant: "destructive" }); return; }
+          const headerRow = ws.getRow(1).values as any[];
+          const keys: string[] = [];
+          for (let i = 1; i < headerRow.length; i++) {
+            const v = headerRow[i];
+            keys.push(v == null ? `Column ${i}` : String(v));
+          }
+          const rows: Record<string, any>[] = [];
+          for (let r = 2; r <= ws.rowCount; r++) {
+            const rowVals = ws.getRow(r).values as any[];
+            const obj: Record<string, any> = {};
+            let hasValue = false;
+            keys.forEach((k, idx) => {
+              const cell = rowVals[idx + 1];
+              const val = cell && typeof cell === "object" && "text" in cell ? (cell as any).text : cell;
+              if (val !== undefined && val !== null && val !== "") hasValue = true;
+              obj[k] = val ?? "";
+            });
+            if (hasValue) rows.push(obj);
+          }
+          if (!rows.length) { toast({ title: "Empty spreadsheet", variant: "destructive" }); return; }
+          setHeaders(keys);
+          setRawData(rows);
+          autoMap(keys);
+          setStep("map");
+        } catch {
+          toast({ title: "Failed to parse spreadsheet", variant: "destructive" });
+        }
       };
       reader.readAsArrayBuffer(file);
     } else {

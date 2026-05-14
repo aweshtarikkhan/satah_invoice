@@ -396,6 +396,33 @@ export default function InventoryPage() {
         onItemAdded={() => fetchItems()}
         defaultType="product"
       />
+
+      <Dialog open={aiOpen} onOpenChange={setAiOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" /> AI Inventory Advisor
+            </DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="max-h-[60vh] pr-4">
+            {aiLoading ? (
+              <div className="py-10 text-center text-muted-foreground text-sm">
+                Analyzing your stock... ek minute ⏳
+              </div>
+            ) : (
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                <ReactMarkdown>{aiAdvice}</ReactMarkdown>
+              </div>
+            )}
+          </ScrollArea>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAiOpen(false)}>Close</Button>
+            <Button onClick={getAiAdvice} disabled={aiLoading}>
+              <Sparkles className="mr-1.5 h-4 w-4" /> Regenerate
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

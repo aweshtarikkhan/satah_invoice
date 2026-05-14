@@ -19,10 +19,12 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Package, Search, Plus, Minus, AlertTriangle, PackageX, PackagePlus } from "lucide-react";
+import { Package, Search, Plus, Minus, AlertTriangle, PackageX, PackagePlus, Sparkles, Database } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import { AddItemDialog } from "@/components/shared/AddItemDialog";
+import ReactMarkdown from "react-markdown";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function InventoryPage() {
   const org = useAppStore((s) => s.organization);
@@ -39,6 +41,10 @@ export default function InventoryPage() {
   const [adjustQty, setAdjustQty] = useState(0);
   const [adjustNote, setAdjustNote] = useState("");
   const [addOpen, setAddOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiAdvice, setAiAdvice] = useState<string>("");
+  const [seedingDemo, setSeedingDemo] = useState(false);
 
   const threshold = Number((org as any)?.low_stock_threshold ?? 5);
 
@@ -122,6 +128,67 @@ export default function InventoryPage() {
 
   const inventoryEnabled = !!(org as any)?.inventory_enabled;
 
+  const getAiAdvice = async () => {
+    if (!items.length) {
+      toast({ title: "No items", description: "Add some products first." });
+      return;
+    }
+    setAiOpen(true);
+    setAiLoading(true);
+    setAiAdvice("");
+    const { data, error } = await supabase.functions.invoke("inventory-advisor", {
+      body: {
+        items: items.map((i) => ({ name: i.name, stock_quantity: i.stock_quantity, unit: i.unit, unit_price: i.unit_price, category: i.category })),
+        currency: org?.currency_code || "INR",
+        threshold,
+      },
+    });
+    setAiLoading(false);
+    if (error || (data as any)?.error) {
+      toast({ title: "AI error", description: (data as any)?.error || error?.message, variant: "destructive" });
+      setAiAdvice("Could not generate advice. Please try again.");
+      return;
+    }
+    setAiAdvice((data as any)?.advice || "No advice generated.");
+  };
+
+  const seedDemoData = async () => {
+    if (!org?.id) return;
+    setSeedingDemo(true);
+    const demo = [
+      { name: "Basmati Rice (5kg)", sku: "RICE-5KG", category: "Grocery", unit: "bag", unit_price: 650, stock_quantity: 24 },
+      { name: "Refined Sunflower Oil (1L)", sku: "OIL-SUN-1L", category: "Grocery", unit: "ltr", unit_price: 145, stock_quantity: 3 },
+      { name: "Toor Dal (1kg)", sku: "DAL-TOOR-1KG", category: "Grocery", unit: "kg", unit_price: 180, stock_quantity: 12 },
+      { name: "Wheat Flour (10kg)", sku: "ATTA-10KG", category: "Grocery", unit: "bag", unit_price: 420, stock_quantity: 0 },
+      { name: "Sugar (1kg)", sku: "SUGAR-1KG", category: "Grocery", unit: "kg", unit_price: 48, stock_quantity: 35 },
+      { name: "Tea Powder (500g)", sku: "TEA-500G", category: "Beverage", unit: "pcs", unit_price: 240, stock_quantity: 8 },
+      { name: "Milk Packet (1L)", sku: "MILK-1L", category: "Dairy", unit: "ltr", unit_price: 60, stock_quantity: 2 },
+      { name: "Butter (500g)", sku: "BUTTER-500G", category: "Dairy", unit: "pcs", unit_price: 280, stock_quantity: 18 },
+      { name: "Soap Bar", sku: "SOAP-100G", category: "Personal Care", unit: "pcs", unit_price: 35, stock_quantity: 60 },
+      { name: "Shampoo (200ml)", sku: "SHAM-200", category: "Personal Care", unit: "pcs", unit_price: 120, stock_quantity: 4 },
+      { name: "Toothpaste (150g)", sku: "TP-150", category: "Personal Care", unit: "pcs", unit_price: 95, stock_quantity: 22 },
+      { name: "Detergent Powder (1kg)", sku: "DET-1KG", category: "Household", unit: "kg", unit_price: 110, stock_quantity: 1 },
+      { name: "Dish Wash Liquid (500ml)", sku: "DW-500", category: "Household", unit: "ml", unit_price: 99, stock_quantity: 14 },
+      { name: "Notebook A5", sku: "NB-A5", category: "Stationery", unit: "pcs", unit_price: 55, stock_quantity: 80 },
+      { name: "Ball Pen (Blue)", sku: "PEN-BL", category: "Stationery", unit: "pcs", unit_price: 10, stock_quantity: 150 },
+      { name: "LED Bulb 9W", sku: "LED-9W", category: "Electrical", unit: "pcs", unit_price: 90, stock_quantity: 6 },
+      { name: "Extension Cord 5m", sku: "EXT-5M", category: "Electrical", unit: "pcs", unit_price: 320, stock_quantity: 0 },
+      { name: "Cotton T-Shirt (M)", sku: "TS-M", category: "Apparel", unit: "pcs", unit_price: 299, stock_quantity: 45 },
+      { name: "Steel Water Bottle (1L)", sku: "BOT-1L", category: "Kitchen", unit: "pcs", unit_price: 250, stock_quantity: 9 },
+      { name: "Mixer Grinder", sku: "MIX-750W", category: "Appliance", unit: "pcs", unit_price: 2500, stock_quantity: 2 },
+    ];
+    const rows = demo.map((d) => ({ ...d, org_id: org.id, type: "product" as const, is_active: true }));
+    const { error } = await supabase.from("items").insert(rows);
+    setSeedingDemo(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Demo data added", description: `${rows.length} sample products inserted.` });
+    fetchItems();
+  };
+
+
   if (!inventoryEnabled) {
     return (
       <div className="p-6 space-y-5">
@@ -154,6 +221,14 @@ export default function InventoryPage() {
           <Label htmlFor="inv-toggle" className="text-xs font-medium cursor-pointer">Tracking</Label>
           <Switch id="inv-toggle" checked={true} onCheckedChange={(v) => toggleInventory(v)} />
         </div>
+        <Button variant="outline" size="sm" onClick={getAiAdvice}>
+          <Sparkles className="mr-1.5 h-4 w-4" /> AI Advice
+        </Button>
+        {items.length === 0 && (
+          <Button variant="outline" size="sm" onClick={seedDemoData} disabled={seedingDemo}>
+            <Database className="mr-1.5 h-4 w-4" /> {seedingDemo ? "Loading..." : "Load Demo Data"}
+          </Button>
+        )}
         <Button variant="outline" size="sm" onClick={() => navigate("/items")}>
           <Package className="mr-1.5 h-4 w-4" /> Manage Items
         </Button>
@@ -321,6 +396,33 @@ export default function InventoryPage() {
         onItemAdded={() => fetchItems()}
         defaultType="product"
       />
+
+      <Dialog open={aiOpen} onOpenChange={setAiOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" /> AI Inventory Advisor
+            </DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="max-h-[60vh] pr-4">
+            {aiLoading ? (
+              <div className="py-10 text-center text-muted-foreground text-sm">
+                Analyzing your stock... ek minute ⏳
+              </div>
+            ) : (
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                <ReactMarkdown>{aiAdvice}</ReactMarkdown>
+              </div>
+            )}
+          </ScrollArea>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAiOpen(false)}>Close</Button>
+            <Button onClick={getAiAdvice} disabled={aiLoading}>
+              <Sparkles className="mr-1.5 h-4 w-4" /> Regenerate
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

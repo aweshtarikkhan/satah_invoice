@@ -78,7 +78,9 @@ export function InvoiceSettingsSheet() {
             <div className="space-y-3">
               <Label className="text-sm font-semibold">Template</Label>
               <div className="grid grid-cols-2 gap-2">
-                {DOCUMENT_TEMPLATES.map((t) => (
+                {DOCUMENT_TEMPLATES.filter(
+                  (t) => ((t as any).recommendedPaperSize || "a4") === settings.template_paper_size
+                ).map((t) => (
                   <button
                     key={t.id}
                     onClick={() => setSettings({ ...settings, template_style: t.id })}
@@ -96,6 +98,7 @@ export function InvoiceSettingsSheet() {
                   </button>
                 ))}
               </div>
+              <p className="text-[10px] text-muted-foreground">Showing templates for {settings.template_paper_size?.toUpperCase()}.</p>
             </div>
 
             <Separator />
@@ -103,7 +106,15 @@ export function InvoiceSettingsSheet() {
             {/* Paper Size */}
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Paper Size</Label>
-              <Select value={settings.template_paper_size} onValueChange={(v) => setSettings({ ...settings, template_paper_size: v })}>
+              <Select value={settings.template_paper_size} onValueChange={(v) => {
+                const compatible = DOCUMENT_TEMPLATES.filter((t) => ((t as any).recommendedPaperSize || "a4") === v);
+                const stillOk = compatible.some((t) => t.id === settings.template_style);
+                setSettings({
+                  ...settings,
+                  template_paper_size: v,
+                  template_style: stillOk ? settings.template_style : (compatible[0]?.id || settings.template_style),
+                });
+              }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {PAPER_SIZES.map((s) => (

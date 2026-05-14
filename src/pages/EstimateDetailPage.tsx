@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/table";
 import { getDocumentPreviewClass, getPaperSizeLabel, getPrintPageCSS } from "@/lib/document-templates";
 import { CompactBillTemplate } from "@/components/invoice/CompactBillTemplate";
+import { StyledInvoiceTemplate } from "@/components/invoice/StyledInvoiceTemplate";
+import { A6Template } from "@/components/invoice/A6Templates";
 
 const statusVariants: Record<string, "default" | "info" | "success" | "warning" | "danger" | "muted"> = {
   draft: "muted", sent: "info", viewed: "default", accepted: "success",
@@ -160,6 +162,14 @@ export default function EstimateDetailPage() {
       {org?.template_style === "compact" ? (
         <div className={getDocumentPreviewClass("compact", org?.template_paper_size)}>
           <CompactBillTemplate org={org} invoice={estimate} lines={lines} fmt={fmt} type="estimate" />
+        </div>
+      ) : ["alpha_blue", "monochrome", "amanda_cream", "redblue_modern"].includes(org?.template_style) ? (
+        <div className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
+          <A6Template org={org} invoice={estimate} lines={lines} fmt={fmt} type="estimate" variant={org.template_style as any} />
+        </div>
+      ) : org?.template_style && org.template_style !== "pos" ? (
+        <div className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
+          <StyledInvoiceTemplate org={org} invoice={estimate} lines={lines} fmt={fmt} type="estimate" />
         </div>
       ) : (
       <Card className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>

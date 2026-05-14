@@ -46,13 +46,15 @@ export default function InvoiceTemplatePage() {
 
   const handlePaperSizeChange = async (sizeId: string) => {
     if (!org) return;
-    // Auto-switch template if paper size requires it for best output.
+    // Filter templates compatible with this paper size
+    const compatible = DOCUMENT_TEMPLATES.filter(
+      (t) => ((t as any).recommendedPaperSize || "a4") === sizeId
+    );
     let newTemplate = selected;
-    if (sizeId === "pos80") newTemplate = "pos";
-    else if (sizeId === "a6") newTemplate = "compact";
-    else if ((selected === "pos" || selected === "compact")) {
-      // Switching away from a locked-size template -> fall back to classic.
-      newTemplate = "classic";
+    const currentTpl = DOCUMENT_TEMPLATES.find((t) => t.id === selected);
+    const currentSize = (currentTpl as any)?.recommendedPaperSize || "a4";
+    if (currentSize !== sizeId) {
+      newTemplate = compatible[0]?.id || selected;
     }
 
     const updates: any = { template_paper_size: sizeId };
@@ -74,6 +76,10 @@ export default function InvoiceTemplatePage() {
       description: newTemplate !== selected ? `Template switched to "${DOCUMENT_TEMPLATES.find(t => t.id === newTemplate)?.name}" for best fit.` : undefined,
     });
   };
+
+  const visibleTemplates = DOCUMENT_TEMPLATES.filter(
+    (t) => ((t as any).recommendedPaperSize || "a4") === paperSize
+  );
 
   return (
     <div className="p-6 space-y-6">

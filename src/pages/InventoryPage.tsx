@@ -221,6 +221,14 @@ export default function InventoryPage() {
           <Label htmlFor="inv-toggle" className="text-xs font-medium cursor-pointer">Tracking</Label>
           <Switch id="inv-toggle" checked={true} onCheckedChange={(v) => toggleInventory(v)} />
         </div>
+        <Button variant="outline" size="sm" onClick={getAiAdvice}>
+          <Sparkles className="mr-1.5 h-4 w-4" /> AI Advice
+        </Button>
+        {items.length === 0 && (
+          <Button variant="outline" size="sm" onClick={seedDemoData} disabled={seedingDemo}>
+            <Database className="mr-1.5 h-4 w-4" /> {seedingDemo ? "Loading..." : "Load Demo Data"}
+          </Button>
+        )}
         <Button variant="outline" size="sm" onClick={() => navigate("/items")}>
           <Package className="mr-1.5 h-4 w-4" /> Manage Items
         </Button>

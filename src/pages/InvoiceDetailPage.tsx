@@ -29,6 +29,7 @@ import { jsPDF } from "jspdf";
 import { CompactBillTemplate } from "@/components/invoice/CompactBillTemplate";
 import { PosBillTemplate } from "@/components/invoice/PosBillTemplate";
 import { StyledInvoiceTemplate } from "@/components/invoice/StyledInvoiceTemplate";
+import { A6Template } from "@/components/invoice/A6Templates";
 
 export default function InvoiceDetailPage() {
   const { id } = useParams();

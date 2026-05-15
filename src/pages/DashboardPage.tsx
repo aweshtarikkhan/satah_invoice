@@ -1225,6 +1225,87 @@ export default function DashboardPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Bottom: Overdue Invoices + Low Stock Alert (Zoho-style) */}
+      {(() => {
+        const today = new Date();
+        const overdueList = recentInvoices
+          .filter((i) => Number(i.balance_due) > 0 && i.due_date && new Date(i.due_date) < today && i.status !== "void" && i.status !== "paid")
+          .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
+          .slice(0, 4);
+        const inventoryOn = !!(org as any)?.inventory_enabled;
+        const threshold = Number((org as any)?.low_stock_threshold ?? 5);
+        const showLow = inventoryOn && lowStockItems.length > 0;
+        if (overdueList.length === 0 && !showLow) return null;
+        const fmtDue = (d: string) => {
+          try { return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" }); } catch { return d; }
+        };
+        return (
+          <div className={`grid grid-cols-1 ${showLow && overdueList.length > 0 ? "lg:grid-cols-2" : ""} gap-4`}>
+            {overdueList.length > 0 && (
+              <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-base">Overdue Invoices</h3>
+                  <button onClick={() => navigate("/invoices?status=overdue")} className="text-sm font-medium text-primary hover:underline">View all</button>
+                </div>
+                <div className="space-y-2.5">
+                  {overdueList.map((inv) => (
+                    <div
+                      key={inv.id}
+                      onClick={() => navigate(`/invoices/${inv.id}`)}
+                      className="flex items-center justify-between rounded-xl bg-rose-50 dark:bg-rose-950/20 px-4 py-3 cursor-pointer hover:bg-rose-100 dark:hover:bg-rose-950/40 transition-colors"
+                    >
+                      <div className="min-w-0">
+                        <div className="font-semibold text-sm truncate">
+                          {inv.invoice_number} · <span className="font-semibold">{(inv.clients as any)?.display_name || "—"}</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-0.5">Due {fmtDue(inv.due_date)}</div>
+                      </div>
+                      <div className="font-bold text-sm text-rose-600 dark:text-rose-400 tabular-nums shrink-0 ml-3">
+                        {fmt(Number(inv.balance_due))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {showLow && (
+              <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 text-amber-500" />
+                    <h3 className="font-semibold text-base">Low Stock Alert</h3>
+                  </div>
+                  <button onClick={() => navigate("/inventory")} className="text-sm font-medium text-primary hover:underline">Manage inventory</button>
+                </div>
+                <div className="space-y-2.5">
+                  {lowStockItems.slice(0, 4).map((it) => {
+                    const qty = Number(it.stock_quantity || 0);
+                    const isOut = qty <= 0;
+                    return (
+                      <div
+                        key={it.id}
+                        onClick={() => navigate("/inventory")}
+                        className="flex items-center justify-between rounded-xl bg-amber-50 dark:bg-amber-950/20 px-4 py-3 cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-950/40 transition-colors"
+                      >
+                        <div className="min-w-0">
+                          <div className="font-semibold text-sm truncate">{it.name}</div>
+                          {it.sku && <div className="text-[11px] uppercase tracking-wider text-muted-foreground mt-0.5">{it.sku}</div>}
+                        </div>
+                        <div className="text-sm tabular-nums shrink-0 ml-3">
+                          <span className={`font-bold ${isOut ? "text-rose-600" : "text-amber-600"}`}>{qty}</span>
+                          <span className="text-muted-foreground"> / {threshold}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }

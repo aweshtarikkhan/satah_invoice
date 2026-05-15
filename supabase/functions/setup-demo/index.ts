@@ -203,8 +203,8 @@ Deno.serve(async (req) => {
 
       // Credit notes
       await ins("credit_notes", [
-        { org_id: orgId, client_id: clients![0].id, invoice_id: invoicesData[0].id, credit_note_number: "CN-001", issue_date: d(50), total: 2950, subtotal: 2500, total_tax: 450, status: "open" as const },
-        { org_id: orgId, client_id: clients![2].id, invoice_id: invoicesData[2].id, credit_note_number: "CN-002", issue_date: d(25), total: 1180, subtotal: 1000, total_tax: 180, status: "open" as const },
+        { org_id: orgId, client_id: clients![0].id, invoice_id: invoicesData[0].id, credit_note_number: "CN-001", issue_date: d(50), total: 2950, subtotal: 2500, total_tax: 450, status: "sent" as const },
+        { org_id: orgId, client_id: clients![2].id, invoice_id: invoicesData[2].id, credit_note_number: "CN-002", issue_date: d(25), total: 1180, subtotal: 1000, total_tax: 180, status: "sent" as const },
       ]);
 
       // Update client balances

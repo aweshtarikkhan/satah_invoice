@@ -90,7 +90,7 @@ export default function BusinessExpensesPage() {
     setSeeding(false);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Demo expenses loaded", description: `${rows.length} entries added across last 12 months. P&L updated.` });
-    setPeriod("year");
+    setPeriod("6months");
     fetchExpenses();
   };
 

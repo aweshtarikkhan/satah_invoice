@@ -80,11 +80,12 @@ Deno.serve(async (req) => {
     const fd = (days: number) => new Date(today.getTime() + days * 86400000).toISOString().split("T")[0];
 
     // Tax rates
-    const { data: taxes } = await admin.from("tax_rates").insert([
+    const { data: taxes, error: taxErr } = await admin.from("tax_rates").insert([
       { org_id: orgId, name: "GST 18%", rate: 18, type: "simple", is_default: true },
       { org_id: orgId, name: "GST 12%", rate: 12, type: "simple" },
       { org_id: orgId, name: "GST 5%", rate: 5, type: "simple" },
     ]).select();
+    if (taxErr) console.error("TAX_ERR", taxErr);
     const tax18 = taxes?.[0]?.id;
     const tax12 = taxes?.[1]?.id;
     const tax5 = taxes?.[2]?.id;

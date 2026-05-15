@@ -137,6 +137,33 @@ export default function InvoicesPage() {
         .some((f) => f.toLowerCase().includes(search.toLowerCase()))
     );
 
+  const sorted = useMemo(() => {
+    const arr = [...filtered];
+    arr.sort((a, b) => {
+      let av: any, bv: any;
+      switch (sortKey) {
+        case "issue_date":
+        case "due_date":
+          av = a[sortKey] ? new Date(a[sortKey]).getTime() : 0;
+          bv = b[sortKey] ? new Date(b[sortKey]).getTime() : 0;
+          break;
+        case "total":
+        case "balance_due":
+          av = Number(a[sortKey] || 0); bv = Number(b[sortKey] || 0); break;
+        case "invoice_number":
+          av = a.invoice_number || ""; bv = b.invoice_number || ""; break;
+        case "client":
+          av = (a.clients as any)?.display_name || ""; bv = (b.clients as any)?.display_name || ""; break;
+        case "status":
+          av = a.status || ""; bv = b.status || ""; break;
+      }
+      if (av < bv) return sortDir === "asc" ? -1 : 1;
+      if (av > bv) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+    return arr;
+  }, [filtered, sortKey, sortDir]);
+
   const { paginatedItems, page, totalPages, totalItems, pageSize, setPage, setPageSize } = usePagination(filtered, 25);
 
   const allSelected = filtered.length > 0 && filtered.every(i => selected.has(i.id));

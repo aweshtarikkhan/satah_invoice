@@ -125,10 +125,10 @@ Deno.serve(async (req) => {
       { org_id: orgId, display_name: "Vikram Singh", company_name: "Singh Tech Pvt Ltd", email: "vikram@singhtech.in", phone: "+91 9856789012", opening_balance: 0 },
     ]);
 
-    // Build 12 months of invoices so the Sales vs Collections chart has data
+    // Build 6 months of invoices so charts show recent activity (today's date backwards)
     const invoiceRows: any[] = [];
     let inum = 1;
-    for (let m = 11; m >= 0; m--) {
+    for (let m = 5; m >= 0; m--) {
       // 2-3 invoices per month
       const baseDay = m * 30;
       const monthInvs = [

@@ -327,14 +327,14 @@ export default function InvoicesPage() {
               <TableHeader>
                 <TableRow className="bg-muted/30">
                   <TableHead className="w-10"><Checkbox checked={allSelected} onCheckedChange={toggleAll} /></TableHead>
-                  <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Date</TableHead>
-                  <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Invoice#</TableHead>
+                  <TableHead onClick={() => toggleSort("issue_date")} className="text-xs uppercase font-semibold text-muted-foreground cursor-pointer select-none hover:text-foreground">Date<SortArrow k="issue_date" /></TableHead>
+                  <TableHead onClick={() => toggleSort("invoice_number")} className="text-xs uppercase font-semibold text-muted-foreground cursor-pointer select-none hover:text-foreground">Invoice#<SortArrow k="invoice_number" /></TableHead>
                   <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Order Number</TableHead>
-                  <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Customer Name</TableHead>
-                  <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Status</TableHead>
-                  <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Due Date</TableHead>
-                  <TableHead className="text-xs uppercase font-semibold text-muted-foreground text-right">Amount</TableHead>
-                  <TableHead className="text-xs uppercase font-semibold text-muted-foreground text-right">Balance Due</TableHead>
+                  <TableHead onClick={() => toggleSort("client")} className="text-xs uppercase font-semibold text-muted-foreground cursor-pointer select-none hover:text-foreground">Customer Name<SortArrow k="client" /></TableHead>
+                  <TableHead onClick={() => toggleSort("status")} className="text-xs uppercase font-semibold text-muted-foreground cursor-pointer select-none hover:text-foreground">Status<SortArrow k="status" /></TableHead>
+                  <TableHead onClick={() => toggleSort("due_date")} className="text-xs uppercase font-semibold text-muted-foreground cursor-pointer select-none hover:text-foreground">Due Date<SortArrow k="due_date" /></TableHead>
+                  <TableHead onClick={() => toggleSort("total")} className="text-xs uppercase font-semibold text-muted-foreground cursor-pointer select-none hover:text-foreground text-right">Amount<SortArrow k="total" /></TableHead>
+                  <TableHead onClick={() => toggleSort("balance_due")} className="text-xs uppercase font-semibold text-muted-foreground cursor-pointer select-none hover:text-foreground text-right">Balance Due<SortArrow k="balance_due" /></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Pencil, Download } from "lucide-react";
+import { Plus, Trash2, Pencil, Download, Database } from "lucide-react";
 import { downloadCSV } from "@/lib/export-csv";
 import { formatCurrency } from "@/lib/currency";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";

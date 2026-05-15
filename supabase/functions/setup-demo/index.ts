@@ -223,9 +223,9 @@ Deno.serve(async (req) => {
       { org_id: orgId, client_id: clients![4].id, estimate_number: "EST-004", issue_date: d(5), expiry_date: fd(25), total: 28000, subtotal: 23729, total_tax: 4271, status: "draft" as const },
     ]);
 
-    // Business expenses across 12 months
+    // Business expenses across last 6 months (recent only)
     const expRows: any[] = [];
-    for (let m = 11; m >= 0; m--) {
+    for (let m = 5; m >= 0; m--) {
       const base = m * 30;
       expRows.push(
         { org_id: orgId, category: "Salary", description: "Staff salaries", amount: 150000, expense_date: d(base + 25), is_recurring: true, recurring_frequency: "monthly" },

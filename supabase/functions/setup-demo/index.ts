@@ -93,8 +93,8 @@ Deno.serve(async (req) => {
     // Tax rates
     const taxes = await ins("tax_rates", [
       { org_id: orgId, name: "GST 18%", rate: 18, type: "simple", is_default: true },
-      { org_id: orgId, name: "GST 12%", rate: 12, type: "simple" },
-      { org_id: orgId, name: "GST 5%", rate: 5, type: "simple" },
+      { org_id: orgId, name: "GST 12%", rate: 12, type: "simple", is_default: false },
+      { org_id: orgId, name: "GST 5%", rate: 5, type: "simple", is_default: false },
     ]);
     const tax18 = taxes?.[0]?.id;
     const tax12 = taxes?.[1]?.id;

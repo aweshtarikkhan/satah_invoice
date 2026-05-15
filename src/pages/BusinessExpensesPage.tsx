@@ -211,6 +211,9 @@ export default function BusinessExpensesPage() {
         }}>
           <Download className="mr-1 h-4 w-4" /> Export
         </Button>
+        <Button variant="outline" size="sm" onClick={seedDemoData} disabled={seeding}>
+          <Database className="mr-1 h-4 w-4" /> {seeding ? "Loading..." : "Load Demo Data"}
+        </Button>
         <Button size="sm" onClick={() => { setEditId(null); setForm(emptyForm); setDialogOpen(true); }}>
           <Plus className="mr-1 h-4 w-4" /> Add Expense
         </Button>

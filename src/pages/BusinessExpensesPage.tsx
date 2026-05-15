@@ -64,6 +64,35 @@ export default function BusinessExpensesPage() {
   const [form, setForm] = useState(emptyForm);
   const [period, setPeriod] = useState("current");
   const [loading, setLoading] = useState(true);
+  const [seeding, setSeeding] = useState(false);
+
+  const seedDemoData = async () => {
+    if (!org?.id) return;
+    setSeeding(true);
+    const today = new Date();
+    const d = (date: Date) => format(date, "yyyy-MM-dd");
+    const rows: any[] = [];
+    for (let m = 11; m >= 0; m--) {
+      const base = new Date(today.getFullYear(), today.getMonth() - m, 1);
+      const day = (n: number) => new Date(base.getFullYear(), base.getMonth(), n);
+      rows.push(
+        { org_id: org.id, category: "Salary", description: "Staff salaries", amount: 150000, expense_date: d(day(25)), is_recurring: true, recurring_frequency: "monthly" },
+        { org_id: org.id, category: "Rent", description: "Office rent", amount: 35000, expense_date: d(day(2)), is_recurring: true, recurring_frequency: "monthly" },
+        { org_id: org.id, category: "Electricity", description: "Office electricity bill", amount: 4000 + m * 120, expense_date: d(day(8)), is_recurring: false, recurring_frequency: null },
+        { org_id: org.id, category: "Internet", description: "Broadband connection", amount: 2000, expense_date: d(day(5)), is_recurring: true, recurring_frequency: "monthly" },
+        { org_id: org.id, category: "Software/Subscriptions", description: "SaaS tools", amount: 4500, expense_date: d(day(10)), is_recurring: true, recurring_frequency: "monthly" },
+        { org_id: org.id, category: "Office Supplies", description: "Stationery & supplies", amount: 1500 + m * 80, expense_date: d(day(14)), is_recurring: false, recurring_frequency: null },
+      );
+      if (m % 2 === 0) rows.push({ org_id: org.id, category: "Marketing", description: "Ad campaign", amount: 8000 + m * 500, expense_date: d(day(18)), is_recurring: false, recurring_frequency: null });
+      if (m % 3 === 0) rows.push({ org_id: org.id, category: "Transportation", description: "Travel & fuel", amount: 3500, expense_date: d(day(20)), is_recurring: false, recurring_frequency: null });
+    }
+    const { error } = await supabase.from("business_expenses").insert(rows);
+    setSeeding(false);
+    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Demo expenses loaded", description: `${rows.length} entries added across last 12 months. P&L updated.` });
+    setPeriod("year");
+    fetchExpenses();
+  };
 
   const dateRange = useMemo(() => {
     const now = new Date();

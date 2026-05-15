@@ -102,12 +102,12 @@ Deno.serve(async (req) => {
 
     // Items
     const items = await ins("items", [
-      { org_id: orgId, name: "Web Development", description: "Custom web development services", unit_price: 25000, type: "service", unit: "hrs", tax_id: tax18 },
-      { org_id: orgId, name: "Logo Design", description: "Professional logo design", unit_price: 8000, type: "service", unit: "nos", tax_id: tax18 },
-      { org_id: orgId, name: "SEO Package", description: "Monthly SEO optimization", unit_price: 15000, type: "service", unit: "month", tax_id: tax18 },
+      { org_id: orgId, name: "Web Development", description: "Custom web development services", unit_price: 25000, type: "service", unit: "hrs", tax_id: tax18, stock_quantity: 0 },
+      { org_id: orgId, name: "Logo Design", description: "Professional logo design", unit_price: 8000, type: "service", unit: "nos", tax_id: tax18, stock_quantity: 0 },
+      { org_id: orgId, name: "SEO Package", description: "Monthly SEO optimization", unit_price: 15000, type: "service", unit: "month", tax_id: tax18, stock_quantity: 0 },
       { org_id: orgId, name: "Business Cards", description: "500 premium business cards", unit_price: 2500, type: "product", unit: "box", tax_id: tax12, stock_quantity: 45 },
-      { org_id: orgId, name: "Hosting (Annual)", description: "Cloud hosting for 1 year", unit_price: 12000, type: "service", unit: "year", tax_id: tax18 },
-      { org_id: orgId, name: "Mobile App Development", description: "React Native mobile app", unit_price: 75000, type: "service", unit: "project", tax_id: tax18 },
+      { org_id: orgId, name: "Hosting (Annual)", description: "Cloud hosting for 1 year", unit_price: 12000, type: "service", unit: "year", tax_id: tax18, stock_quantity: 0 },
+      { org_id: orgId, name: "Mobile App Development", description: "React Native mobile app", unit_price: 75000, type: "service", unit: "project", tax_id: tax18, stock_quantity: 0 },
       { org_id: orgId, name: "Steel Rods 12mm", description: "TMT steel rods", unit_price: 75, type: "product", unit: "kg", tax_id: tax18, stock_quantity: 850 },
       { org_id: orgId, name: "Cement Bag (50kg)", description: "OPC 53 grade cement", unit_price: 420, type: "product", unit: "bag", tax_id: tax12, stock_quantity: 120 },
       { org_id: orgId, name: "Paint - White", description: "Premium emulsion paint", unit_price: 380, type: "product", unit: "ltr", tax_id: tax18, stock_quantity: 8 },

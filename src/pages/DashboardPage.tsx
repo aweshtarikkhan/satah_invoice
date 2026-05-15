@@ -190,11 +190,11 @@ export default function DashboardPage() {
       if (m) paymentMonthMap[m] = (paymentMonthMap[m] || 0) + Number(p.amount);
     });
     const months = [];
-    for (let i = 5; i >= 0; i--) {
+    for (let i = 11; i >= 0; i--) {
       const d = new Date();
       d.setMonth(d.getMonth() - i);
       const key = d.toISOString().slice(0, 7);
-      const label = d.toLocaleString("default", { month: "short", year: "2-digit" });
+      const label = d.toLocaleString("default", { month: "short" });
       months.push({ month: label, invoiced: monthMap[key] || 0, collected: paymentMonthMap[key] || 0 });
     }
     return months;
@@ -842,7 +842,7 @@ export default function DashboardPage() {
                 <span className="truncate">{kpi.label}</span>
               </div>
               <p
-                className={`text-xl sm:text-2xl lg:text-3xl font-extrabold leading-tight break-words tracking-tight ${kpi.valueClass || "text-foreground"}`}
+                className={`text-base sm:text-lg lg:text-xl font-extrabold leading-tight tracking-tight tabular-nums truncate ${kpi.valueClass || "text-foreground"}`}
                 title={kpi.value}
               >
                 {kpi.value}
@@ -942,30 +942,31 @@ export default function DashboardPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="card-hover">
           <CardHeader>
-            <CardTitle className="text-base">Sales and Collections</CardTitle>
+            <CardTitle className="text-base">Sales vs Collections</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">Monthly trend across the last 12 months</p>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={monthlyData} barGap={4}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} className="fill-muted-foreground" />
-                <YAxis tick={{ fontSize: 12 }} className="fill-muted-foreground" tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
-                <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", color: "hsl(var(--card-foreground))" }} formatter={(value: number) => fmt(value)} />
-                <Legend />
-                <Bar dataKey="invoiced" name="Sales" fill="hsl(142, 71%, 45%)" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="collected" name="Receipts" fill="hsl(201, 96%, 32%)" radius={[4, 4, 0, 0]} />
-              </BarChart>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={monthlyData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#2563eb" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="#2563eb" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="collGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#16a34a" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#16a34a" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="4 4" vertical={false} className="stroke-border" />
+                <XAxis dataKey="month" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} className="fill-muted-foreground" />
+                <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} className="fill-muted-foreground" tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`} />
+                <Tooltip contentStyle={{ borderRadius: "var(--radius)", border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }} formatter={(value: number) => fmt(value)} />
+                <Legend iconType="line" wrapperStyle={{ fontSize: 12 }} />
+                <Area type="monotone" dataKey="invoiced" name="Sales" stroke="#2563eb" strokeWidth={2.5} fill="url(#salesGrad)" dot={{ r: 3, fill: "#2563eb" }} activeDot={{ r: 5 }} />
+                <Area type="monotone" dataKey="collected" name="Collections" stroke="#16a34a" strokeWidth={2.5} fill="url(#collGrad)" dot={{ r: 3, fill: "#16a34a" }} activeDot={{ r: 5 }} />
+              </AreaChart>
             </ResponsiveContainer>
-            <div className="flex justify-around pt-4 border-t mt-4">
-              <div className="text-center">
-                <p className="text-xs text-success font-medium flex items-center gap-1 justify-center"><TrendingUp className="h-3 w-3" /> Total Sales</p>
-                <p className="text-lg font-bold">{fmt(totalSales)}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-xs text-primary font-medium flex items-center gap-1 justify-center"><TrendingDown className="h-3 w-3" /> Total Receipts</p>
-                <p className="text-lg font-bold">{fmt(totalReceipts)}</p>
-              </div>
-            </div>
           </CardContent>
         </Card>
 

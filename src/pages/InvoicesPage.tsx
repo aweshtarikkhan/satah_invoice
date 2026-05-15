@@ -164,7 +164,7 @@ export default function InvoicesPage() {
     return arr;
   }, [filtered, sortKey, sortDir]);
 
-  const { paginatedItems, page, totalPages, totalItems, pageSize, setPage, setPageSize } = usePagination(filtered, 25);
+  const { paginatedItems, page, totalPages, totalItems, pageSize, setPage, setPageSize } = usePagination(sorted, 25);
 
   const allSelected = filtered.length > 0 && filtered.every(i => selected.has(i.id));
   const toggleAll = () => {

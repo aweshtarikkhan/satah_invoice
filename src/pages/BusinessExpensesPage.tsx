@@ -72,7 +72,7 @@ export default function BusinessExpensesPage() {
     const today = new Date();
     const d = (date: Date) => format(date, "yyyy-MM-dd");
     const rows: any[] = [];
-    for (let m = 11; m >= 0; m--) {
+    for (let m = 5; m >= 0; m--) {
       const base = new Date(today.getFullYear(), today.getMonth() - m, 1);
       const day = (n: number) => new Date(base.getFullYear(), base.getMonth(), n);
       rows.push(
@@ -90,7 +90,7 @@ export default function BusinessExpensesPage() {
     setSeeding(false);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Demo expenses loaded", description: `${rows.length} entries added across last 12 months. P&L updated.` });
-    setPeriod("year");
+    setPeriod("6months");
     fetchExpenses();
   };
 

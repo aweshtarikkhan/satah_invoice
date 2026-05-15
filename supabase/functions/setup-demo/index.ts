@@ -125,10 +125,10 @@ Deno.serve(async (req) => {
       { org_id: orgId, display_name: "Vikram Singh", company_name: "Singh Tech Pvt Ltd", email: "vikram@singhtech.in", phone: "+91 9856789012", opening_balance: 0 },
     ]);
 
-    // Build 12 months of invoices so the Sales vs Collections chart has data
+    // Build 6 months of invoices so charts show recent activity (today's date backwards)
     const invoiceRows: any[] = [];
     let inum = 1;
-    for (let m = 11; m >= 0; m--) {
+    for (let m = 5; m >= 0; m--) {
       // 2-3 invoices per month
       const baseDay = m * 30;
       const monthInvs = [
@@ -223,9 +223,9 @@ Deno.serve(async (req) => {
       { org_id: orgId, client_id: clients![4].id, estimate_number: "EST-004", issue_date: d(5), expiry_date: fd(25), total: 28000, subtotal: 23729, total_tax: 4271, status: "draft" as const },
     ]);
 
-    // Business expenses across 12 months
+    // Business expenses across last 6 months (recent only)
     const expRows: any[] = [];
-    for (let m = 11; m >= 0; m--) {
+    for (let m = 5; m >= 0; m--) {
       const base = m * 30;
       expRows.push(
         { org_id: orgId, category: "Salary", description: "Staff salaries", amount: 150000, expense_date: d(base + 25), is_recurring: true, recurring_frequency: "monthly" },

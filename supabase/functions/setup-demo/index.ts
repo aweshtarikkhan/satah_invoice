@@ -129,12 +129,15 @@ Deno.serve(async (req) => {
     const invoiceRows: any[] = [];
     let inum = 1;
     for (let m = 5; m >= 0; m--) {
-      // 2-3 invoices per month
+      // 6 invoices per month, spread across the month so every month (incl. current) has volume
       const baseDay = m * 30;
       const monthInvs = [
-        { client: 0, item: 0, qty: 1, daysAgo: baseDay + 25, status: m === 0 ? "sent" : "paid" },
-        { client: (m + 1) % 5, item: (m + 2) % 12, qty: 2, daysAgo: baseDay + 15, status: m <= 1 ? "sent" : "paid" },
-        { client: (m + 2) % 5, item: (m + 4) % 12, qty: 1, daysAgo: baseDay + 5, status: m === 0 ? "draft" : (m <= 1 ? "overdue" : "paid") },
+        { client: 0, item: 0, qty: 1, daysAgo: baseDay + 27, status: m === 0 ? "sent" : "paid" },
+        { client: (m + 1) % 5, item: (m + 2) % 12, qty: 2, daysAgo: baseDay + 22, status: m === 0 ? "sent" : "paid" },
+        { client: (m + 2) % 5, item: (m + 4) % 12, qty: 1, daysAgo: baseDay + 17, status: m === 0 ? "partial" : "paid" },
+        { client: (m + 3) % 5, item: (m + 6) % 12, qty: 3, daysAgo: baseDay + 12, status: m <= 1 ? "sent" : "paid" },
+        { client: (m + 4) % 5, item: (m + 1) % 12, qty: 1, daysAgo: baseDay + 7, status: m === 0 ? "draft" : (m <= 1 ? "overdue" : "paid") },
+        { client: (m + 0) % 5, item: (m + 5) % 12, qty: 2, daysAgo: baseDay + 2, status: m === 0 ? "sent" : (m <= 1 ? "overdue" : "paid") },
       ];
       for (const r of monthInvs) {
         const item = items![r.item];

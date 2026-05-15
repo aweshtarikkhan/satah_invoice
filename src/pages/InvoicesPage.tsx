@@ -22,7 +22,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, FileText, Search, Upload, Trash2, Send, Download } from "lucide-react";
+import { Plus, FileText, Search, Upload, Trash2, Send, Download, ArrowUp, ArrowDown } from "lucide-react";
 import { downloadCSV } from "@/lib/export-csv";
 import { differenceInDays, parseISO, isToday, isBefore, addDays } from "date-fns";
 import { format } from "date-fns";
@@ -60,6 +60,17 @@ export default function InvoicesPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  type SortKey = "issue_date" | "due_date" | "total" | "balance_due" | "invoice_number" | "client" | "status";
+  const [sortKey, setSortKey] = useState<SortKey>("issue_date");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const toggleSort = (k: SortKey) => {
+    if (sortKey === k) setSortDir(sortDir === "asc" ? "desc" : "asc");
+    else { setSortKey(k); setSortDir("asc"); }
+  };
+  const SortArrow = ({ k }: { k: SortKey }) =>
+    sortKey === k ? (
+      sortDir === "asc" ? <ArrowUp className="inline h-3 w-3 ml-1" /> : <ArrowDown className="inline h-3 w-3 ml-1" />
+    ) : null;
 
   useEffect(() => {
     if (!org?.id) return;
@@ -126,7 +137,34 @@ export default function InvoicesPage() {
         .some((f) => f.toLowerCase().includes(search.toLowerCase()))
     );
 
-  const { paginatedItems, page, totalPages, totalItems, pageSize, setPage, setPageSize } = usePagination(filtered, 25);
+  const sorted = useMemo(() => {
+    const arr = [...filtered];
+    arr.sort((a, b) => {
+      let av: any, bv: any;
+      switch (sortKey) {
+        case "issue_date":
+        case "due_date":
+          av = a[sortKey] ? new Date(a[sortKey]).getTime() : 0;
+          bv = b[sortKey] ? new Date(b[sortKey]).getTime() : 0;
+          break;
+        case "total":
+        case "balance_due":
+          av = Number(a[sortKey] || 0); bv = Number(b[sortKey] || 0); break;
+        case "invoice_number":
+          av = a.invoice_number || ""; bv = b.invoice_number || ""; break;
+        case "client":
+          av = (a.clients as any)?.display_name || ""; bv = (b.clients as any)?.display_name || ""; break;
+        case "status":
+          av = a.status || ""; bv = b.status || ""; break;
+      }
+      if (av < bv) return sortDir === "asc" ? -1 : 1;
+      if (av > bv) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+    return arr;
+  }, [filtered, sortKey, sortDir]);
+
+  const { paginatedItems, page, totalPages, totalItems, pageSize, setPage, setPageSize } = usePagination(sorted, 25);
 
   const allSelected = filtered.length > 0 && filtered.every(i => selected.has(i.id));
   const toggleAll = () => {
@@ -289,14 +327,14 @@ export default function InvoicesPage() {
               <TableHeader>
                 <TableRow className="bg-muted/30">
                   <TableHead className="w-10"><Checkbox checked={allSelected} onCheckedChange={toggleAll} /></TableHead>
-                  <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Date</TableHead>
-                  <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Invoice#</TableHead>
+                  <TableHead onClick={() => toggleSort("issue_date")} className="text-xs uppercase font-semibold text-muted-foreground cursor-pointer select-none hover:text-foreground">Date<SortArrow k="issue_date" /></TableHead>
+                  <TableHead onClick={() => toggleSort("invoice_number")} className="text-xs uppercase font-semibold text-muted-foreground cursor-pointer select-none hover:text-foreground">Invoice#<SortArrow k="invoice_number" /></TableHead>
                   <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Order Number</TableHead>
-                  <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Customer Name</TableHead>
-                  <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Status</TableHead>
-                  <TableHead className="text-xs uppercase font-semibold text-muted-foreground">Due Date</TableHead>
-                  <TableHead className="text-xs uppercase font-semibold text-muted-foreground text-right">Amount</TableHead>
-                  <TableHead className="text-xs uppercase font-semibold text-muted-foreground text-right">Balance Due</TableHead>
+                  <TableHead onClick={() => toggleSort("client")} className="text-xs uppercase font-semibold text-muted-foreground cursor-pointer select-none hover:text-foreground">Customer Name<SortArrow k="client" /></TableHead>
+                  <TableHead onClick={() => toggleSort("status")} className="text-xs uppercase font-semibold text-muted-foreground cursor-pointer select-none hover:text-foreground">Status<SortArrow k="status" /></TableHead>
+                  <TableHead onClick={() => toggleSort("due_date")} className="text-xs uppercase font-semibold text-muted-foreground cursor-pointer select-none hover:text-foreground">Due Date<SortArrow k="due_date" /></TableHead>
+                  <TableHead onClick={() => toggleSort("total")} className="text-xs uppercase font-semibold text-muted-foreground cursor-pointer select-none hover:text-foreground text-right">Amount<SortArrow k="total" /></TableHead>
+                  <TableHead onClick={() => toggleSort("balance_due")} className="text-xs uppercase font-semibold text-muted-foreground cursor-pointer select-none hover:text-foreground text-right">Balance Due<SortArrow k="balance_due" /></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

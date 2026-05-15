@@ -1198,7 +1198,7 @@ export default function DashboardPage() {
           try { return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" }); } catch { return d; }
         };
         return (
-          <div className={`grid grid-cols-1 ${showLow && overdueList.length > 0 ? "lg:grid-cols-2" : ""} gap-4`}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {overdueList.length > 0 && (
               <div className="rounded-2xl border border-border/60 bg-card shadow-sm p-5">
                 <div className="flex items-center justify-between mb-4">

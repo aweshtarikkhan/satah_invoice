@@ -13,6 +13,7 @@ Deno.serve(async (req) => {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  console.log("HAS_URL", !!supabaseUrl, "HAS_KEY", !!serviceKey, "KEY_LEN", serviceKey?.length);
   const admin = createClient(supabaseUrl, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
   try {

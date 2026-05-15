@@ -1142,49 +1142,46 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      <Card className="card-hover">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Recent Invoices
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {recentInvoices.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">
-              No invoices yet.{" "}
-              <button onClick={() => navigate("/invoices/new")} className="text-primary hover:underline">
-                Create your first invoice
-              </button>
-            </p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Invoice #</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentInvoices.map((inv) => (
-                  <TableRow key={inv.id} className="cursor-pointer" onClick={() => navigate(`/invoices/${inv.id}`)}>
-                    <TableCell className="font-medium">{inv.invoice_number}</TableCell>
-                    <TableCell>{(inv.clients as any)?.display_name}</TableCell>
-                    <TableCell>{inv.issue_date}</TableCell>
-                    <TableCell>{inv.due_date}</TableCell>
-                    <TableCell className="text-right">{fmt(Number(inv.total))}</TableCell>
-                    <TableCell><StatusBadge status={inv.status} /></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      {/* Inventory Stock Chart */}
+      {(org as any)?.inventory_enabled && stockItems.length > 0 && (
+        <Card className="rounded-2xl border-border/60 shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2"><Package className="h-4 w-4" /> Inventory Stock Levels</CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">Top products by quantity in stock</p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => navigate("/inventory")}>View All</Button>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart
+                data={stockItems
+                  .map((p) => ({
+                    name: p.name.length > 14 ? p.name.slice(0, 14) + "…" : p.name,
+                    qty: Number(p.stock_quantity || 0),
+                    value: Number(p.stock_quantity || 0) * Number(p.unit_price || 0),
+                    unit: p.unit || "",
+                  }))
+                  .sort((a, b) => b.qty - a.qty)
+                  .slice(0, 10)}
+                margin={{ top: 8, right: 8, left: 0, bottom: 8 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-15} textAnchor="end" height={60} />
+                <YAxis tick={{ fontSize: 11 }} allowDecimals={false} width={50} />
+                <Tooltip
+                  formatter={(val: any, _key: any, item: any) => [
+                    `${val} ${item.payload.unit}  (${fmt(item.payload.value)})`,
+                    "Quantity",
+                  ]}
+                />
+                <Legend />
+                <Bar dataKey="qty" fill="hsl(201, 96%, 32%)" name="Quantity in Stock" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Bottom: Overdue Invoices + Low Stock Alert (Zoho-style) */}
       {(() => {

@@ -94,7 +94,9 @@ export default function RegisterPage() {
             <div className="space-y-2">
               <Label htmlFor="regEmail">Email</Label>
               <Input id="regEmail" type="email" placeholder="you@company.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <p className="text-xs text-muted-foreground">Verification email may take a few minutes to arrive due to high traffic. Please also check your spam folder.</p>
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="regPassword">Password</Label>
               <Input id="regPassword" type="password" placeholder="Min. 8 characters" value={password} onChange={(e) => setPassword(e.target.value)} required />

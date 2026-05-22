@@ -5,8 +5,8 @@ Deno.serve(async (req) => {
 
   try {
     const { items, currency, threshold, language } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY not configured');
 
     const itemList = (items || []).map((i: any) => ({
       name: i.name,
@@ -17,33 +17,30 @@ Deno.serve(async (req) => {
     }));
 
     const sys = `You are an inventory advisor for a small business. Analyze stock levels and give practical monthly purchasing guidance in ${language || 'Hinglish (mix of Hindi and English in Roman script)'}. Be concise, friendly, action-oriented. Use bullet points and emojis. Group as: 🔴 Urgent Restock, 🟡 Restock Soon, 🟢 Healthy Stock, 🛑 Reduce Buying (overstocked). For each item suggest approx monthly buy quantity. Currency: ${currency || 'INR'}. Low-stock threshold: ${threshold}.`;
-
     const user = `Here is the current inventory (JSON):\n${JSON.stringify(itemList, null, 2)}\n\nGive me month-wise purchasing advice: kaun sa item kitna kharidna chahiye, kaun sa kam kharide. Keep it under 400 words. Use markdown.`;
 
-    const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: sys },
-          { role: 'user', content: user },
-        ],
-      }),
-    });
+    // Direct Google Gemini API (uses user's own GEMINI_API_KEY — no Lovable AI credits)
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: sys }] },
+          contents: [{ role: 'user', parts: [{ text: user }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
+        }),
+      }
+    );
 
     if (!res.ok) {
       const txt = await res.text();
-      if (res.status === 429) return new Response(JSON.stringify({ error: 'Rate limit. Try again shortly.' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      if (res.status === 402) return new Response(JSON.stringify({ error: 'AI credits exhausted. Add credits in Settings → Workspace → Usage.' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      throw new Error(`AI gateway ${res.status}: ${txt}`);
+      if (res.status === 429) return new Response(JSON.stringify({ error: 'Gemini rate limit. Try again shortly.' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      throw new Error(`Gemini API ${res.status}: ${txt}`);
     }
 
     const data = await res.json();
-    const advice = data.choices?.[0]?.message?.content || 'No advice generated.';
+    const advice = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No advice generated.';
 
     return new Response(JSON.stringify({ advice }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

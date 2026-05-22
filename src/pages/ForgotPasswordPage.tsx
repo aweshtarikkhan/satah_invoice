@@ -47,6 +47,7 @@ export default function ForgotPasswordPage() {
               <div className="space-y-2">
                 <Label htmlFor="resetEmail">Email</Label>
                 <Input id="resetEmail" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
+                <p className="text-xs text-muted-foreground">Reset email may be delayed by a few minutes due to high server load. Please check your spam folder too.</p>
               </div>
             </CardContent>
             <CardFooter className="flex-col gap-3">

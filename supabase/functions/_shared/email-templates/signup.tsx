@@ -1,57 +1,52 @@
 /// <reference types="npm:@types/react@18.3.1" />
 
 import * as React from 'npm:react@18.3.1'
-
 import {
-  Body,
-  Button,
-  Container,
-  Head,
-  Heading,
-  Html,
-  Link,
-  Preview,
-  Text,
+  Body, Button, Container, Head, Heading, Hr, Html, Link, Preview, Section, Text,
 } from 'npm:@react-email/components@0.0.22'
 
-interface SignupEmailProps {
+interface Props {
   siteName: string
   siteUrl: string
   recipient: string
   confirmationUrl: string
 }
 
-export const SignupEmail = ({
-  siteName,
-  siteUrl,
-  recipient,
-  confirmationUrl,
-}: SignupEmailProps) => (
+const BRAND = 'SatahInvoice'
+
+export const SignupEmail = ({ siteUrl, recipient, confirmationUrl }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Confirm your email for {siteName}</Preview>
+    <Preview>Confirm your email to activate your {BRAND} account</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirm your email</Heading>
-        <Text style={text}>
-          Thanks for signing up for{' '}
-          <Link href={siteUrl} style={link}>
-            <strong>{siteName}</strong>
-          </Link>
-          !
-        </Text>
-        <Text style={text}>
-          Please confirm your email address (
-          <Link href={`mailto:${recipient}`} style={link}>
-            {recipient}
-          </Link>
-          ) by clicking the button below:
-        </Text>
-        <Button style={button} href={confirmationUrl}>
-          Verify Email
-        </Button>
-        <Text style={footer}>
-          If you didn't create an account, you can safely ignore this email.
+        <Section style={header}>
+          <Text style={logo}>{BRAND}</Text>
+          <Text style={tagline}>Invoicing made simple</Text>
+        </Section>
+        <Section style={card}>
+          <Heading style={h1}>Welcome aboard! 🎉</Heading>
+          <Text style={text}>
+            Thanks for signing up for <strong>{BRAND}</strong> — the easiest way to create
+            professional invoices, track payments, and grow your business.
+          </Text>
+          <Text style={text}>
+            Please confirm your email <strong>{recipient}</strong> to activate your account:
+          </Text>
+          <Section style={{ textAlign: 'center' as const, margin: '32px 0' }}>
+            <Button style={button} href={confirmationUrl}>Verify Email Address</Button>
+          </Section>
+          <Text style={smallText}>
+            Or copy and paste this link in your browser:<br />
+            <Link href={confirmationUrl} style={link}>{confirmationUrl}</Link>
+          </Text>
+          <Hr style={hr} />
+          <Text style={footer}>
+            If you didn't create a {BRAND} account, you can safely ignore this email.
+          </Text>
+        </Section>
+        <Text style={brandFooter}>
+          © {new Date().getFullYear()} {BRAND} · <Link href={siteUrl} style={brandLink}>satahinvoice.com</Link>
         </Text>
       </Container>
     </Body>
@@ -60,27 +55,22 @@ export const SignupEmail = ({
 
 export default SignupEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
-const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
-}
-const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
-}
-const link = { color: 'inherit', textDecoration: 'underline' }
+// === Shared styles (SatahInvoice brand) ===
+const main = { backgroundColor: '#ffffff', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif" }
+const container = { maxWidth: '560px', margin: '0 auto', padding: '32px 20px' }
+const header = { textAlign: 'center' as const, padding: '8px 0 24px' }
+const logo = { fontSize: '26px', fontWeight: 700 as const, color: '#1d4ed8', margin: '0', letterSpacing: '-0.5px' }
+const tagline = { fontSize: '12px', color: '#64748b', margin: '4px 0 0', textTransform: 'uppercase' as const, letterSpacing: '1.5px' }
+const card = { backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '32px 28px' }
+const h1 = { fontSize: '22px', fontWeight: 700 as const, color: '#0f172a', margin: '0 0 16px' }
+const text = { fontSize: '15px', color: '#334155', lineHeight: '1.6', margin: '0 0 16px' }
+const smallText = { fontSize: '13px', color: '#64748b', lineHeight: '1.5', margin: '20px 0 0', wordBreak: 'break-all' as const }
+const link = { color: '#1d4ed8', textDecoration: 'underline' }
 const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
-  textDecoration: 'none',
+  backgroundColor: '#1d4ed8', color: '#ffffff', fontSize: '15px', fontWeight: 600 as const,
+  borderRadius: '8px', padding: '14px 28px', textDecoration: 'none', display: 'inline-block',
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const hr = { borderColor: '#e2e8f0', margin: '28px 0 20px' }
+const footer = { fontSize: '13px', color: '#64748b', lineHeight: '1.5', margin: '0' }
+const brandFooter = { fontSize: '12px', color: '#94a3b8', textAlign: 'center' as const, margin: '24px 0 0' }
+const brandLink = { color: '#64748b', textDecoration: 'none' }

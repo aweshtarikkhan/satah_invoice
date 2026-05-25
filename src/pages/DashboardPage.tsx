@@ -397,6 +397,18 @@ export default function DashboardPage() {
       const pageHeight = 297;
       const pdf = new jsPDF("p", "mm", "a4");
 
+      // HTML-escape helper — prevents stored XSS via user-supplied DB values
+      // (org name, client names, item names, etc.) being injected into innerHTML.
+      const esc = (v: unknown): string => {
+        if (v === null || v === undefined) return "";
+        return String(v)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      };
+
       // Helper: render a section HTML to its own page(s)
       const renderSection = async (html: string, isFirstPage: boolean) => {
         const sec = document.createElement("div");

@@ -237,7 +237,7 @@ Deno.serve(async (req) => {
         { org_id: orgId, category: "Internet", description: "Broadband connection", amount: 2000, expense_date: d(base + 18), is_recurring: false },
       );
       if (m % 2 === 0) {
-        expRows.push({ org_id: orgId, category: "Marketing", description: "Ad campaign", amount: 8000 + m * 500, expense_date: d(base + 10) });
+        expRows.push({ org_id: orgId, category: "Marketing", description: "Ad campaign", amount: 8000 + m * 500, expense_date: d(base + 10), is_recurring: false });
       }
     }
     await ins("business_expenses", expRows);

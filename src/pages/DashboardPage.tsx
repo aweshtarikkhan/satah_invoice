@@ -436,9 +436,9 @@ export default function DashboardPage() {
       // Section 1: Header + KPIs
       const headerKpi = `
         <div style="margin-bottom:30px;border-bottom:3px solid #2563eb;padding-bottom:20px;">
-          <h1 style="font-size:28px;font-weight:800;color:#1a1a1a;margin:0;">${org?.name || "Organization"}</h1>
-          <p style="font-size:14px;color:#6b7280;margin:4px 0 0;">Financial Dashboard Report — Generated on ${today}</p>
-          ${org?.email ? `<p style="font-size:12px;color:#6b7280;margin:2px 0 0;">${org.email}${org.phone ? ` • ${org.phone}` : ""}</p>` : ""}
+          <h1 style="font-size:28px;font-weight:800;color:#1a1a1a;margin:0;">${esc(org?.name || "Organization")}</h1>
+          <p style="font-size:14px;color:#6b7280;margin:4px 0 0;">Financial Dashboard Report — Generated on ${esc(today)}</p>
+          ${org?.email ? `<p style="font-size:12px;color:#6b7280;margin:2px 0 0;">${esc(org.email)}${org.phone ? ` • ${esc(org.phone)}` : ""}</p>` : ""}
         </div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:30px;">
           <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;">

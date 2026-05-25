@@ -233,11 +233,11 @@ Deno.serve(async (req) => {
       expRows.push(
         { org_id: orgId, category: "Salary", description: "Staff salaries", amount: 150000, expense_date: d(base + 25), is_recurring: true, recurring_frequency: "monthly" },
         { org_id: orgId, category: "Rent", description: "Office rent", amount: 35000, expense_date: d(base + 23), is_recurring: true, recurring_frequency: "monthly" },
-        { org_id: orgId, category: "Electricity", description: "Office electricity bill", amount: 4000 + m * 100, expense_date: d(base + 20) },
-        { org_id: orgId, category: "Internet", description: "Broadband connection", amount: 2000, expense_date: d(base + 18) },
+        { org_id: orgId, category: "Electricity", description: "Office electricity bill", amount: 4000 + m * 100, expense_date: d(base + 20), is_recurring: false },
+        { org_id: orgId, category: "Internet", description: "Broadband connection", amount: 2000, expense_date: d(base + 18), is_recurring: false },
       );
       if (m % 2 === 0) {
-        expRows.push({ org_id: orgId, category: "Marketing", description: "Ad campaign", amount: 8000 + m * 500, expense_date: d(base + 10) });
+        expRows.push({ org_id: orgId, category: "Marketing", description: "Ad campaign", amount: 8000 + m * 500, expense_date: d(base + 10), is_recurring: false });
       }
     }
     await ins("business_expenses", expRows);

@@ -21,57 +21,37 @@ export default function PortalPage() {
   useEffect(() => {
     if (!token) return;
     const load = async () => {
-      // Fetch portal token
-      const { data: pt } = await supabase
-        .from("portal_tokens")
-        .select("*")
-        .eq("token", token)
-        .maybeSingle();
+      const { data, error: rpcError } = await supabase.rpc("get_portal_bundle", { p_token: token });
 
-      if (!pt) {
+      if (rpcError || !data) {
         setError("Invalid or expired link");
         setLoading(false);
         return;
       }
 
-      // Check expiry
-      if (pt.expires_at && new Date(pt.expires_at) < new Date()) {
+      const bundle: any = data;
+      if (bundle.error === "expired") {
         setError("This link has expired");
         setLoading(false);
         return;
       }
+      if (!bundle.token || !bundle.entity || !bundle.org) {
+        setError("Invalid or expired link");
+        setLoading(false);
+        return;
+      }
 
-      setPortalData(pt);
+      setPortalData(bundle.token);
+      setOrg(bundle.org);
+      const entityWithClient = { ...bundle.entity, clients: bundle.client };
+      setEntity(entityWithClient);
+      setLines(bundle.lines || []);
 
-      // Load org
-      const { data: orgData } = await supabase.from("organizations").select("*").eq("id", pt.org_id).single();
-      setOrg(orgData);
-
-      // Load entity based on type
-      if (pt.entity_type === "invoice") {
-        const { data: inv } = await supabase.from("invoices").select("*, clients(display_name, email)").eq("id", pt.entity_id).single();
-        setEntity(inv);
-        const { data: l } = await supabase.from("invoice_lines").select("*").eq("invoice_id", pt.entity_id).order("sort_order");
-        setLines(l || []);
-
-        // Mark as viewed
-        if (inv && !inv.viewed_at) {
-          await supabase.from("invoices").update({ viewed_at: new Date().toISOString(), status: inv.status === "sent" ? "viewed" : inv.status }).eq("id", pt.entity_id);
+      // Mark as viewed (fire-and-forget)
+      if (bundle.token.entity_type === "invoice" || bundle.token.entity_type === "estimate") {
+        if (!bundle.entity.viewed_at) {
+          supabase.rpc("mark_portal_viewed", { p_token: token });
         }
-      } else if (pt.entity_type === "estimate") {
-        const { data: est } = await supabase.from("estimates").select("*, clients(display_name, email)").eq("id", pt.entity_id).single();
-        setEntity(est);
-        const { data: l } = await supabase.from("estimate_lines").select("*").eq("estimate_id", pt.entity_id).order("sort_order");
-        setLines(l || []);
-
-        if (est && !est.viewed_at) {
-          await supabase.from("estimates").update({ viewed_at: new Date().toISOString(), status: est.status === "sent" ? "viewed" : est.status }).eq("id", pt.entity_id);
-        }
-      } else if (pt.entity_type === "credit_note") {
-        const { data: cn } = await supabase.from("credit_notes").select("*, clients(display_name, email)").eq("id", pt.entity_id).single();
-        setEntity(cn);
-        const { data: l } = await supabase.from("credit_note_lines").select("*").eq("credit_note_id", pt.entity_id).order("sort_order");
-        setLines(l || []);
       }
 
       setLoading(false);

@@ -397,6 +397,18 @@ export default function DashboardPage() {
       const pageHeight = 297;
       const pdf = new jsPDF("p", "mm", "a4");
 
+      // HTML-escape helper — prevents stored XSS via user-supplied DB values
+      // (org name, client names, item names, etc.) being injected into innerHTML.
+      const esc = (v: unknown): string => {
+        if (v === null || v === undefined) return "";
+        return String(v)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      };
+
       // Helper: render a section HTML to its own page(s)
       const renderSection = async (html: string, isFirstPage: boolean) => {
         const sec = document.createElement("div");
@@ -424,9 +436,9 @@ export default function DashboardPage() {
       // Section 1: Header + KPIs
       const headerKpi = `
         <div style="margin-bottom:30px;border-bottom:3px solid #2563eb;padding-bottom:20px;">
-          <h1 style="font-size:28px;font-weight:800;color:#1a1a1a;margin:0;">${org?.name || "Organization"}</h1>
-          <p style="font-size:14px;color:#6b7280;margin:4px 0 0;">Financial Dashboard Report — Generated on ${today}</p>
-          ${org?.email ? `<p style="font-size:12px;color:#6b7280;margin:2px 0 0;">${org.email}${org.phone ? ` • ${org.phone}` : ""}</p>` : ""}
+          <h1 style="font-size:28px;font-weight:800;color:#1a1a1a;margin:0;">${esc(org?.name || "Organization")}</h1>
+          <p style="font-size:14px;color:#6b7280;margin:4px 0 0;">Financial Dashboard Report — Generated on ${esc(today)}</p>
+          ${org?.email ? `<p style="font-size:12px;color:#6b7280;margin:2px 0 0;">${esc(org.email)}${org.phone ? ` • ${esc(org.phone)}` : ""}</p>` : ""}
         </div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:30px;">
           <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;">
@@ -535,7 +547,7 @@ export default function DashboardPage() {
             <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Total Revenue</th>
             <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">% of Total</th>
           </tr></thead>
-          <tbody>${topCustomersByRevenue.map((c, idx) => `<tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};"><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${idx + 1}</td><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:600;">${c.name}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:700;color:#16a34a;">${fmt(c.revenue)}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${totalSales > 0 ? ((c.revenue / totalSales) * 100).toFixed(1) : "0"}%</td></tr>`).join("")}</tbody>
+          <tbody>${topCustomersByRevenue.map((c, idx) => `<tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};"><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${idx + 1}</td><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:600;">${esc(c.name)}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:700;color:#16a34a;">${fmt(c.revenue)}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${totalSales > 0 ? ((c.revenue / totalSales) * 100).toFixed(1) : "0"}%</td></tr>`).join("")}</tbody>
         </table>` : ""}
         ${mostSellingItems.length > 0 ? `
         <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">📦 Most Selling Items</h2>
@@ -546,7 +558,7 @@ export default function DashboardPage() {
             <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Revenue</th>
             <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">% of Revenue</th>
           </tr></thead>
-          <tbody>${mostSellingItems.map((item, idx) => `<tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};"><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${ITEM_COLORS[idx % ITEM_COLORS.length]};margin-right:8px;"></span>${item.name}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${item.quantity}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;">${fmt(item.revenue)}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${totalItemRevenue > 0 ? ((item.revenue / totalItemRevenue) * 100).toFixed(1) : "0"}%</td></tr>`).join("")}</tbody>
+          <tbody>${mostSellingItems.map((item, idx) => `<tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};"><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${ITEM_COLORS[idx % ITEM_COLORS.length]};margin-right:8px;"></span>${esc(item.name)}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${item.quantity}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;">${fmt(item.revenue)}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${totalItemRevenue > 0 ? ((item.revenue / totalItemRevenue) * 100).toFixed(1) : "0"}%</td></tr>`).join("")}</tbody>
         </table>` : ""}
         <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">📋 Invoice Status Breakdown</h2>
         <table style="width:100%;border-collapse:collapse;">
@@ -572,7 +584,7 @@ export default function DashboardPage() {
             <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Max Overdue Days</th>
             <th style="text-align:center;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Risk Level</th>
           </tr></thead>
-          <tbody>${overdueClients.map((c) => { const riskColor = c.maxOverdueDays >= 90 ? "#dc2626" : c.maxOverdueDays >= 60 ? "#f59e0b" : "#fb923c"; const riskBg = c.maxOverdueDays >= 90 ? "#fef2f2" : c.maxOverdueDays >= 60 ? "#fffbeb" : "#fff7ed"; const riskLabel = c.maxOverdueDays >= 90 ? "🔴 Critical (90+)" : c.maxOverdueDays >= 60 ? "🟠 High Risk (60+)" : "🟡 Warning (30+)"; return `<tr style="background:${riskBg};border-left:4px solid ${riskColor};"><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:600;">${c.name}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:700;color:${riskColor};">${fmt(c.totalDue)}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${c.invoiceCount}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:700;color:${riskColor};">${c.maxOverdueDays} days</td><td style="padding:10px 12px;font-size:12px;text-align:center;border:1px solid #e5e7eb;font-weight:600;color:${riskColor};">${riskLabel}</td></tr>`; }).join("")}</tbody>
+          <tbody>${overdueClients.map((c) => { const riskColor = c.maxOverdueDays >= 90 ? "#dc2626" : c.maxOverdueDays >= 60 ? "#f59e0b" : "#fb923c"; const riskBg = c.maxOverdueDays >= 90 ? "#fef2f2" : c.maxOverdueDays >= 60 ? "#fffbeb" : "#fff7ed"; const riskLabel = c.maxOverdueDays >= 90 ? "🔴 Critical (90+)" : c.maxOverdueDays >= 60 ? "🟠 High Risk (60+)" : "🟡 Warning (30+)"; return `<tr style="background:${riskBg};border-left:4px solid ${riskColor};"><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:600;">${esc(c.name)}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:700;color:${riskColor};">${fmt(c.totalDue)}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${c.invoiceCount}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;">${c.maxOverdueDays} days</td><td style="padding:10px 12px;font-size:12px;text-align:center;border:1px solid #e5e7eb;font-weight:600;color:${riskColor};">${riskLabel}</td></tr>`; }).join("")}</tbody>
         </table>` : ""}
         ${topClients.length > 0 ? `
         <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">👥 Top Clients by Outstanding</h2>
@@ -582,7 +594,7 @@ export default function DashboardPage() {
             <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Client Name</th>
             <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Outstanding</th>
           </tr></thead>
-          <tbody>${topClients.map((c, idx) => `<tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};"><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${idx + 1}</td><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:500;">${c.name}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;color:#dc2626;">${fmt(c.amount)}</td></tr>`).join("")}</tbody>
+          <tbody>${topClients.map((c, idx) => `<tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};"><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${idx + 1}</td><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:500;">${esc(c.name)}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;color:#dc2626;">${fmt(c.amount)}</td></tr>`).join("")}</tbody>
         </table>` : ""}
         ${recentInvoices.length > 0 ? `
         <h2 style="font-size:18px;font-weight:700;color:#1a1a1a;margin:0 0 12px;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">🧾 Recent Invoices</h2>
@@ -595,11 +607,11 @@ export default function DashboardPage() {
             <th style="text-align:right;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Amount</th>
             <th style="text-align:left;padding:10px 12px;font-size:12px;font-weight:600;border:1px solid #e5e7eb;">Status</th>
           </tr></thead>
-          <tbody>${recentInvoices.map((inv, idx) => `<tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};"><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:600;">${inv.invoice_number}</td><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${(inv.clients as any)?.display_name || ""}</td><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${inv.issue_date}</td><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${inv.due_date}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;">${fmt(Number(inv.total))}</td><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;"><span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:${STATUS_COLORS[inv.status] || "#6b7280"}20;color:${STATUS_COLORS[inv.status] || "#6b7280"};">${inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}</span></td></tr>`).join("")}</tbody>
+          <tbody>${recentInvoices.map((inv, idx) => `<tr style="background:${idx % 2 === 0 ? "#fff" : "#f9fafb"};"><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;font-weight:600;">${esc(inv.invoice_number)}</td><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${esc((inv.clients as any)?.display_name || "")}</td><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${esc(inv.issue_date)}</td><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;">${esc(inv.due_date)}</td><td style="padding:10px 12px;font-size:13px;text-align:right;border:1px solid #e5e7eb;font-weight:600;">${fmt(Number(inv.total))}</td><td style="padding:10px 12px;font-size:13px;border:1px solid #e5e7eb;"><span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:${STATUS_COLORS[inv.status] || "#6b7280"}20;color:${STATUS_COLORS[inv.status] || "#6b7280"};">${esc(inv.status.charAt(0).toUpperCase() + inv.status.slice(1))}</span></td></tr>`).join("")}</tbody>
         </table>` : ""}
         <div style="border-top:2px solid #e5e7eb;padding-top:16px;margin-top:30px;text-align:center;">
-          <p style="font-size:11px;color:#9ca3af;margin:0;">Generated by ${org?.name || "BillFlow"} • ${today}</p>
-          <p style="font-size:10px;color:#d1d5db;margin:4px 0 0;">This is an auto-generated report. All amounts are in ${org?.currency_code || "USD"}.</p>
+          <p style="font-size:11px;color:#9ca3af;margin:0;">Generated by ${esc(org?.name || "BillFlow")} • ${esc(today)}</p>
+          <p style="font-size:10px;color:#d1d5db;margin:4px 0 0;">This is an auto-generated report. All amounts are in ${esc(org?.currency_code || "USD")}.</p>
         </div>
       `;
       await renderSection(overdueRecentHtml, false);

@@ -29,15 +29,33 @@ Deno.serve(async (req) => {
     const { data: existingUsers } = await admin.auth.admin.listUsers();
     let demoUser = existingUsers?.users?.find((u: any) => u.email === DEMO_EMAIL);
 
+    // Cooldown — if demo data was reseeded recently, just return creds without re-wiping.
+    // Prevents anonymous abuse where someone repeatedly hits this endpoint to DoS the demo
+    // org and burn service-role calls.
+    const RESEED_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
+    const lastResetIso = (demoUser?.user_metadata as any)?.last_demo_reset_at;
+    const lastResetMs = lastResetIso ? Date.parse(lastResetIso) : 0;
+    const withinCooldown = demoUser && lastResetMs && Date.now() - lastResetMs < RESEED_COOLDOWN_MS;
+
+    if (withinCooldown) {
+      return new Response(JSON.stringify({ email: DEMO_EMAIL, password: DEMO_PASSWORD }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (!demoUser) {
       const { data: newUser, error: createErr } = await admin.auth.admin.createUser({
         email: DEMO_EMAIL,
         password: DEMO_PASSWORD,
         email_confirm: true,
-        user_metadata: { first_name: "Demo", last_name: "User" },
+        user_metadata: { first_name: "Demo", last_name: "User", last_demo_reset_at: new Date().toISOString() },
       });
       if (createErr) throw createErr;
       demoUser = newUser.user;
+    } else {
+      await admin.auth.admin.updateUserById(demoUser.id, {
+        user_metadata: { ...(demoUser.user_metadata || {}), last_demo_reset_at: new Date().toISOString() },
+      });
     }
 
     let { data: profile } = await admin.from("profiles").select("org_id").eq("user_id", demoUser!.id).single();

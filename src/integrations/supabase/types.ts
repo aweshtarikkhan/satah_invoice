@@ -1388,6 +1388,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_portal_bundle: { Args: { p_token: string }; Returns: Json }
       get_user_org_id: { Args: never; Returns: string }
       has_role: {
         Args: {
@@ -1396,6 +1397,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      mark_portal_viewed: { Args: { p_token: string }; Returns: undefined }
     }
     Enums: {
       app_role: "owner" | "admin" | "staff" | "read_only"

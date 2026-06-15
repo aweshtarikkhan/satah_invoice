@@ -15,8 +15,9 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, RefreshCw, Trash2, Play, Pause } from "lucide-react";
+import { Plus, RefreshCw, Trash2, Play, Pause, Zap } from "lucide-react";
 import { format } from "date-fns";
+import { generateRecurringInvoice } from "@/lib/recurring";
 
 export default function RecurringInvoicesPage() {
   const navigate = useNavigate();

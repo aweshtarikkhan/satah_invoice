@@ -878,6 +878,8 @@ export type Database = {
       }
       invoices: {
         Row: {
+          ack_date: string | null
+          ack_no: string | null
           adjustment: number
           adjustment_name: string | null
           amount_paid: number
@@ -890,10 +892,17 @@ export type Database = {
           discount: number
           discount_type: Database["public"]["Enums"]["discount_type"]
           due_date: string
+          eway_bill_no: string | null
+          eway_distance_km: number | null
+          eway_transport_mode: string | null
+          eway_valid_until: string | null
+          eway_vehicle_no: string | null
           exchange_rate: number
           expenses: number
           id: string
           invoice_number: string
+          irn: string | null
+          irn_qr: string | null
           issue_date: string
           last_reminder_at: string | null
           notes: string | null
@@ -914,6 +923,8 @@ export type Database = {
           viewed_at: string | null
         }
         Insert: {
+          ack_date?: string | null
+          ack_no?: string | null
           adjustment?: number
           adjustment_name?: string | null
           amount_paid?: number
@@ -926,10 +937,17 @@ export type Database = {
           discount?: number
           discount_type?: Database["public"]["Enums"]["discount_type"]
           due_date?: string
+          eway_bill_no?: string | null
+          eway_distance_km?: number | null
+          eway_transport_mode?: string | null
+          eway_valid_until?: string | null
+          eway_vehicle_no?: string | null
           exchange_rate?: number
           expenses?: number
           id?: string
           invoice_number: string
+          irn?: string | null
+          irn_qr?: string | null
           issue_date?: string
           last_reminder_at?: string | null
           notes?: string | null
@@ -950,6 +968,8 @@ export type Database = {
           viewed_at?: string | null
         }
         Update: {
+          ack_date?: string | null
+          ack_no?: string | null
           adjustment?: number
           adjustment_name?: string | null
           amount_paid?: number
@@ -962,10 +982,17 @@ export type Database = {
           discount?: number
           discount_type?: Database["public"]["Enums"]["discount_type"]
           due_date?: string
+          eway_bill_no?: string | null
+          eway_distance_km?: number | null
+          eway_transport_mode?: string | null
+          eway_valid_until?: string | null
+          eway_vehicle_no?: string | null
           exchange_rate?: number
           expenses?: number
           id?: string
           invoice_number?: string
+          irn?: string | null
+          irn_qr?: string | null
           issue_date?: string
           last_reminder_at?: string | null
           notes?: string | null
@@ -1091,8 +1118,11 @@ export type Database = {
           inventory_enabled: boolean
           invoice_next_number: number
           invoice_prefix: string
+          irp_gsp_provider: string | null
+          irp_username: string | null
           logo_url: string | null
           low_stock_threshold: number
+          multi_warehouse_enabled: boolean
           name: string
           payment_prefix: string
           payment_terms: number
@@ -1130,8 +1160,11 @@ export type Database = {
           inventory_enabled?: boolean
           invoice_next_number?: number
           invoice_prefix?: string
+          irp_gsp_provider?: string | null
+          irp_username?: string | null
           logo_url?: string | null
           low_stock_threshold?: number
+          multi_warehouse_enabled?: boolean
           name: string
           payment_prefix?: string
           payment_terms?: number
@@ -1169,8 +1202,11 @@ export type Database = {
           inventory_enabled?: boolean
           invoice_next_number?: number
           invoice_prefix?: string
+          irp_gsp_provider?: string | null
+          irp_username?: string | null
           logo_url?: string | null
           low_stock_threshold?: number
+          multi_warehouse_enabled?: boolean
           name?: string
           payment_prefix?: string
           payment_terms?: number
@@ -1523,6 +1559,44 @@ export type Database = {
         }
         Relationships: []
       }
+      warehouses: {
+        Row: {
+          address: Json | null
+          created_at: string
+          id: string
+          is_default: boolean
+          name: string
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          address?: Json | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name: string
+          org_id: string
+          updated_at?: string
+        }
+        Update: {
+          address?: Json | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouses_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1549,8 +1623,11 @@ export type Database = {
           inventory_enabled: boolean
           invoice_next_number: number
           invoice_prefix: string
+          irp_gsp_provider: string | null
+          irp_username: string | null
           logo_url: string | null
           low_stock_threshold: number
+          multi_warehouse_enabled: boolean
           name: string
           payment_prefix: string
           payment_terms: number

@@ -17,7 +17,9 @@ import {
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Package, Search, AlertTriangle, PackageX, PackagePlus, Sparkles, Database, Wrench, Pencil, Trash2, Infinity as InfinityIcon } from "lucide-react";
+import { Package, Search, AlertTriangle, PackageX, PackagePlus, Sparkles, Database, Wrench, Pencil, Trash2, History, Infinity as InfinityIcon } from "lucide-react";
+import { logStockMovements } from "@/lib/stock";
+import { useAuth } from "@/lib/auth";
 import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import { AddItemDialog } from "@/components/shared/AddItemDialog";
@@ -42,6 +44,10 @@ export default function InventoryPage() {
   const [aiAdvice, setAiAdvice] = useState<string>("");
   const [seedingDemo, setSeedingDemo] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
+  const [historyTarget, setHistoryTarget] = useState<any>(null);
+  const [historyRows, setHistoryRows] = useState<any[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const { user } = useAuth();
 
   const threshold = Number((org as any)?.low_stock_threshold ?? 5);
 
@@ -93,11 +99,37 @@ export default function InventoryPage() {
   const saveAdjust = async () => {
     if (!target) return;
     const next = Math.max(0, Number(adjustQty));
+    const previous = Number(target.stock_quantity || 0);
     const { error } = await supabase.from("items").update({ stock_quantity: next }).eq("id", target.id);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    if (next !== previous && org?.id) {
+      await logStockMovements([{
+        orgId: org.id,
+        itemId: target.id,
+        changeQty: next - previous,
+        balanceAfter: next,
+        reason: "Manual adjustment",
+        refType: "adjustment",
+        createdBy: user?.id || null,
+      }]);
+    }
     toast({ title: "Stock updated", description: `${target.name} → ${next}` });
     setAdjustOpen(false);
     fetchItems();
+  };
+
+  const openHistory = async (item: any) => {
+    setHistoryTarget(item);
+    setHistoryRows([]);
+    setHistoryLoading(true);
+    const { data } = await (supabase as any)
+      .from("stock_movements")
+      .select("*")
+      .eq("item_id", item.id)
+      .order("created_at", { ascending: false })
+      .limit(100);
+    setHistoryRows(data || []);
+    setHistoryLoading(false);
   };
 
   const handleDelete = async () => {
@@ -326,6 +358,11 @@ export default function InventoryPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center justify-end gap-1">
+                          {!isService && (
+                            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openHistory(item)} title="Stock history">
+                              <History className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
                           <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => isService ? navigate("/items") : openAdjust(item)} title="Edit">
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>

@@ -93,6 +93,17 @@ export default function RecurringInvoicesPage() {
     fetchData();
   };
 
+  const handleGenerateNow = async (id: string) => {
+    try {
+      const invId = await generateRecurringInvoice(id);
+      toast({ title: "Invoice generated", description: "Opening the new draft invoice..." });
+      fetchData();
+      navigate(`/invoices/${invId}`);
+    } catch (e: any) {
+      toast({ title: "Could not generate", description: e?.message || "Unknown error", variant: "destructive" });
+    }
+  };
+
   const openEdit = (item: any) => {
     setEditItem(item);
     setForm({

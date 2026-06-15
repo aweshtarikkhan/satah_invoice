@@ -1011,6 +1011,72 @@ export default function InvoiceBuilderPage() {
               </div>
             </div>
           </label>
+
+          {/* Phase 5 — Opt-in Compliance */}
+          <div className="space-y-2 rounded-md border p-3">
+            <div className="text-sm font-medium">Compliance (optional)</div>
+            <p className="text-xs text-muted-foreground">
+              Tick to record IRN / E-way bill details. Nothing is generated automatically — paste the values you receive from the GST / NIC portal.
+            </p>
+
+            <label className="flex items-start gap-2 cursor-pointer mt-2">
+              <Checkbox checked={generateIrn} onCheckedChange={(v) => setGenerateIrn(!!v)} className="mt-0.5" />
+              <span className="text-sm font-medium">E-invoice (IRN) details</span>
+            </label>
+            {generateIrn && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 pl-6">
+                <div className="md:col-span-3">
+                  <Label className="text-xs">IRN</Label>
+                  <Input value={irn} onChange={(e) => setIrn(e.target.value)} placeholder="64-char hash" className="h-8 text-xs font-mono" />
+                </div>
+                <div>
+                  <Label className="text-xs">Ack No.</Label>
+                  <Input value={ackNo} onChange={(e) => setAckNo(e.target.value)} className="h-8 text-xs" />
+                </div>
+                <div>
+                  <Label className="text-xs">Ack Date</Label>
+                  <Input type="date" value={ackDate} onChange={(e) => setAckDate(e.target.value)} className="h-8 text-xs" />
+                </div>
+              </div>
+            )}
+
+            <label className="flex items-start gap-2 cursor-pointer mt-2">
+              <Checkbox checked={generateEway} onCheckedChange={(v) => setGenerateEway(!!v)} className="mt-0.5" />
+              <span className="text-sm font-medium">E-way bill details</span>
+            </label>
+            {generateEway && (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 pl-6">
+                <div>
+                  <Label className="text-xs">EWB No.</Label>
+                  <Input value={ewayBillNo} onChange={(e) => setEwayBillNo(e.target.value)} className="h-8 text-xs" />
+                </div>
+                <div>
+                  <Label className="text-xs">Valid Until</Label>
+                  <Input type="date" value={ewayValidUntil} onChange={(e) => setEwayValidUntil(e.target.value)} className="h-8 text-xs" />
+                </div>
+                <div>
+                  <Label className="text-xs">Vehicle No.</Label>
+                  <Input value={ewayVehicleNo} onChange={(e) => setEwayVehicleNo(e.target.value)} className="h-8 text-xs" />
+                </div>
+                <div>
+                  <Label className="text-xs">Transport Mode</Label>
+                  <Select value={ewayTransportMode} onValueChange={setEwayTransportMode}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="road">Road</SelectItem>
+                      <SelectItem value="rail">Rail</SelectItem>
+                      <SelectItem value="air">Air</SelectItem>
+                      <SelectItem value="ship">Ship</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Distance (km)</Label>
+                  <Input type="number" value={ewayDistanceKm} onChange={(e) => setEwayDistanceKm(e.target.value)} className="h-8 text-xs" />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <Card>

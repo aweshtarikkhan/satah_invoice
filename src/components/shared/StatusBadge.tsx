@@ -8,7 +8,7 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   draft: { label: "Draft", className: "bg-muted text-muted-foreground" },
   sent: { label: "Sent", className: "bg-primary/15 text-primary" },
   viewed: { label: "Viewed", className: "bg-purple-100 text-purple-700" },
-  partial: { label: "Partial", className: "bg-warning/15 text-warning" },
+  partial: { label: "Partially Paid", className: "bg-warning/15 text-warning" },
   paid: { label: "Paid", className: "bg-success/15 text-success" },
   overdue: { label: "Overdue", className: "bg-destructive/15 text-destructive animate-pulse-slow" },
   void: { label: "Void", className: "bg-muted text-muted-foreground line-through" },

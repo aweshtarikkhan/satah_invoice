@@ -284,6 +284,7 @@ export type Database = {
           description: string | null
           discount: number
           discount_type: Database["public"]["Enums"]["discount_type"]
+          hsn_code: string | null
           id: string
           item_id: string | null
           name: string
@@ -300,6 +301,7 @@ export type Database = {
           description?: string | null
           discount?: number
           discount_type?: Database["public"]["Enums"]["discount_type"]
+          hsn_code?: string | null
           id?: string
           item_id?: string | null
           name: string
@@ -316,6 +318,7 @@ export type Database = {
           description?: string | null
           discount?: number
           discount_type?: Database["public"]["Enums"]["discount_type"]
+          hsn_code?: string | null
           id?: string
           item_id?: string | null
           name?: string
@@ -586,6 +589,7 @@ export type Database = {
           discount: number
           discount_type: Database["public"]["Enums"]["discount_type"]
           estimate_id: string
+          hsn_code: string | null
           id: string
           item_id: string | null
           name: string
@@ -602,6 +606,7 @@ export type Database = {
           discount?: number
           discount_type?: Database["public"]["Enums"]["discount_type"]
           estimate_id: string
+          hsn_code?: string | null
           id?: string
           item_id?: string | null
           name: string
@@ -618,6 +623,7 @@ export type Database = {
           discount?: number
           discount_type?: Database["public"]["Enums"]["discount_type"]
           estimate_id?: string
+          hsn_code?: string | null
           id?: string
           item_id?: string | null
           name?: string
@@ -797,6 +803,7 @@ export type Database = {
           description: string | null
           discount: number
           discount_type: Database["public"]["Enums"]["discount_type"]
+          hsn_code: string | null
           id: string
           invoice_id: string
           item_id: string | null
@@ -813,6 +820,7 @@ export type Database = {
           description?: string | null
           discount?: number
           discount_type?: Database["public"]["Enums"]["discount_type"]
+          hsn_code?: string | null
           id?: string
           invoice_id: string
           item_id?: string | null
@@ -829,6 +837,7 @@ export type Database = {
           description?: string | null
           discount?: number
           discount_type?: Database["public"]["Enums"]["discount_type"]
+          hsn_code?: string | null
           id?: string
           invoice_id?: string
           item_id?: string | null
@@ -989,6 +998,7 @@ export type Database = {
           category: string | null
           created_at: string
           description: string | null
+          hsn_code: string | null
           id: string
           is_active: boolean
           name: string
@@ -1005,6 +1015,7 @@ export type Database = {
           category?: string | null
           created_at?: string
           description?: string | null
+          hsn_code?: string | null
           id?: string
           is_active?: boolean
           name: string
@@ -1021,6 +1032,7 @@ export type Database = {
           category?: string | null
           created_at?: string
           description?: string | null
+          hsn_code?: string | null
           id?: string
           is_active?: boolean
           name?: string

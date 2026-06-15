@@ -302,6 +302,13 @@ export default function SettingsPage() {
                       <p className="text-xs text-muted-foreground">Items at or below this stock level appear in the dashboard low-stock alert.</p>
                     </div>
                   )}
+                  <div className="flex items-center justify-between border-t pt-4">
+                    <div>
+                      <Label>Multi-warehouse mode</Label>
+                      <p className="text-xs text-muted-foreground">Track stock across multiple locations. When off, a single shared stock pool is used (recommended for most users).</p>
+                    </div>
+                    <Switch checked={orgForm.multi_warehouse_enabled} onCheckedChange={(v) => setOrgForm({ ...orgForm, multi_warehouse_enabled: v })} />
+                  </div>
                 </CardContent>
               </Card>
 

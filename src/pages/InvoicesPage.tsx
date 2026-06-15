@@ -256,6 +256,16 @@ export default function InvoicesPage() {
             </Button>
           )}
           {selected.size > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300"
+              onClick={() => setReminderOpen(true)}
+            >
+              <MessageCircle className="mr-1 h-4 w-4" /> Send Reminders ({selected.size})
+            </Button>
+          )}
+          {selected.size > 0 && (
             <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
               <Trash2 className="mr-1 h-4 w-4" /> Delete ({selected.size})
             </Button>

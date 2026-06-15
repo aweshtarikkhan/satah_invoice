@@ -16,8 +16,11 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2, Save, Send } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { AddClientDialog } from "@/components/shared/AddClientDialog";
 import { AddItemDialog } from "@/components/shared/AddItemDialog";
+import { logStockMovements } from "@/lib/stock";
+import { useAuth } from "@/lib/auth";
 
 interface LineItem {
   id: string;
@@ -45,6 +48,7 @@ export default function CreditNoteBuilderPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const org = useAppStore((s) => s.organization);
+  const { user } = useAuth();
   const { toast } = useToast();
   const isEdit = !!id;
 
@@ -62,6 +66,8 @@ export default function CreditNoteBuilderPage() {
   const [notes, setNotes] = useState("");
   const [terms, setTerms] = useState("");
   const [lines, setLines] = useState<LineItem[]>([createEmptyLine()]);
+  const [restockInventory, setRestockInventory] = useState(false);
+  const [prevRestock, setPrevRestock] = useState(false);
 
   useEffect(() => {
     if (!org?.id) return;
@@ -99,6 +105,8 @@ export default function CreditNoteBuilderPage() {
         setIssueDate(cn.issue_date);
         setNotes(cn.notes || "");
         setTerms(cn.terms_conditions || "");
+        setRestockInventory(!!(cn as any).restock_inventory);
+        setPrevRestock(!!(cn as any).restock_inventory);
       }
       const { data: lineData } = await supabase.from("credit_note_lines").select("*").eq("credit_note_id", id).order("sort_order");
       if (lineData?.length) {
@@ -167,7 +175,15 @@ export default function CreditNoteBuilderPage() {
       currency_code: org!.currency_code, subtotal, total_tax: totalTax,
       total_discount: totalDiscount, total, notes: notes || null,
       terms_conditions: terms || null,
-    };
+      restock_inventory: restockInventory,
+    } as any;
+
+    // Capture previous lines for stock adjustment on edit
+    let prevLines: any[] = [];
+    if (isEdit && id) {
+      const { data: existing } = await supabase.from("credit_note_lines").select("item_id, quantity").eq("credit_note_id", id);
+      prevLines = existing || [];
+    }
 
     let cnId = id;
     if (isEdit) {
@@ -181,14 +197,53 @@ export default function CreditNoteBuilderPage() {
       }).eq("id", org!.id);
     }
 
+    const validLines = lines.filter((l) => l.name.trim());
     if (cnId) {
-      const lineInserts = lines.filter((l) => l.name.trim()).map((l, i) => ({
+      const lineInserts = validLines.map((l, i) => ({
         credit_note_id: cnId!, item_id: l.item_id, name: l.name,
         description: l.description || null, quantity: l.quantity, rate: l.rate,
         discount: l.discount, discount_type: l.discount_type, tax_id: l.tax_id,
         tax_amount: l.tax_amount, amount: l.amount, sort_order: i,
       }));
       await supabase.from("credit_note_lines").insert(lineInserts);
+    }
+
+    // Inventory restock: undo prev restock and apply new restock
+    if (prevRestock || restockInventory) {
+      const delta: Record<string, number> = {};
+      if (prevRestock) {
+        for (const pl of prevLines) {
+          if (pl.item_id) delta[pl.item_id] = (delta[pl.item_id] || 0) - Number(pl.quantity || 0);
+        }
+      }
+      if (restockInventory) {
+        for (const ln of validLines) {
+          if (ln.item_id) delta[ln.item_id] = (delta[ln.item_id] || 0) + Number(ln.quantity || 0);
+        }
+      }
+      const itemIds = Object.keys(delta).filter((k) => delta[k] !== 0);
+      if (itemIds.length) {
+        const { data: itemsForStock } = await supabase.from("items").select("id, type, stock_quantity").in("id", itemIds);
+        const movements: Parameters<typeof logStockMovements>[0] = [];
+        for (const it of itemsForStock || []) {
+          if (it.type !== "product") continue;
+          const newQty = Math.max(0, Number(it.stock_quantity || 0) + delta[it.id]);
+          await supabase.from("items").update({ stock_quantity: newQty }).eq("id", it.id);
+          movements.push({
+            orgId: org!.id,
+            itemId: it.id,
+            changeQty: delta[it.id],
+            balanceAfter: newQty,
+            reason: isEdit ? "Credit note updated" : "Credit note restock",
+            refType: "credit_note",
+            refId: cnId!,
+            refNumber: creditNoteNumber,
+            createdBy: user?.id || null,
+          });
+        }
+        await logStockMovements(movements);
+      }
+      setPrevRestock(restockInventory);
     }
 
     toast({ title: status === "sent" ? "Credit note sent!" : "Credit note saved!" });
@@ -311,6 +366,13 @@ export default function CreditNoteBuilderPage() {
         <div className="space-y-4">
           <div className="space-y-2"><Label>Notes</Label><Textarea value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
           <div className="space-y-2"><Label>Terms & Conditions</Label><Textarea value={terms} onChange={(e) => setTerms(e.target.value)} /></div>
+          <label className="flex items-start gap-2 rounded-md border border-input bg-card p-3 cursor-pointer hover:bg-accent/40 transition">
+            <Checkbox checked={restockInventory} onCheckedChange={(v) => setRestockInventory(!!v)} className="mt-0.5" />
+            <div className="text-xs">
+              <div className="font-medium text-foreground">Restock items to inventory</div>
+              <div className="text-muted-foreground mt-0.5">Adds the line quantities back to product stock. Use this when items are physically returned by the customer.</div>
+            </div>
+          </label>
         </div>
         <Card>
           <CardContent className="pt-6 space-y-2 text-sm">

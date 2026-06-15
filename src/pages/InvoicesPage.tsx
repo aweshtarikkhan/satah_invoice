@@ -22,11 +22,12 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, FileText, Search, Upload, Trash2, Send, Download, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, FileText, Search, Upload, Trash2, Send, Download, ArrowUp, ArrowDown, MessageCircle } from "lucide-react";
 import { downloadCSV } from "@/lib/export-csv";
 import { differenceInDays, parseISO, isToday, isBefore, addDays } from "date-fns";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
+import { BulkReminderDialog } from "@/components/shared/BulkReminderDialog";
 
 const invoiceImportFields: ImportField[] = [
   { key: "invoice_number", label: "Invoice Number", required: true },

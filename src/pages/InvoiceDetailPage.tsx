@@ -320,6 +320,13 @@ export default function InvoiceDetailPage() {
               portalLink: token ? portalUrl(token) : null,
             });
             openWhatsappShare({ phone: client?.phone, message: msg });
+            await supabase
+              .from("invoices")
+              .update({
+                last_reminder_at: new Date().toISOString(),
+                reminder_count: ((invoice as any).reminder_count || 0) + 1,
+              })
+              .eq("id", id!);
           }}
         >
           <MessageCircle className="mr-1 h-4 w-4" /> WhatsApp

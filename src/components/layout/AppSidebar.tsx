@@ -21,6 +21,7 @@ import {
   Boxes,
   UserCog,
   CalendarCheck,
+  FileBarChart2,
 } from "lucide-react";
 import { useAppStore } from "@/store/app-store";
 import logoImg from "@/assets/logo.png";
@@ -56,6 +57,7 @@ const mainItems = [
   { title: "Statements", url: "/statements", icon: FileSpreadsheet, addUrl: null },
   { title: "Reports", url: "/reports", icon: BarChart3, addUrl: null },
   { title: "Profit & Loss", url: "/profit-loss", icon: PieChart, addUrl: null },
+  { title: "GST Returns", url: "/gst-returns", icon: FileBarChart2, addUrl: null },
   { title: "Templates", url: "/templates", icon: Layout, addUrl: null },
 ];
 

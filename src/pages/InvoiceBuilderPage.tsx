@@ -923,6 +923,19 @@ export default function InvoiceBuilderPage() {
             <Label>Terms & Conditions</Label>
             <Textarea value={terms} onChange={(e) => setTerms(e.target.value)} placeholder="Payment terms, late fees..." />
           </div>
+          <label className="flex items-start gap-2 rounded-md border p-3 cursor-pointer hover:bg-muted/40">
+            <Checkbox
+              checked={deductStock}
+              onCheckedChange={(v) => setDeductStock(!!v)}
+              className="mt-0.5"
+            />
+            <div className="text-sm">
+              <div className="font-medium">Deduct stock from inventory</div>
+              <div className="text-xs text-muted-foreground">
+                When saved, product item quantities on this invoice will be subtracted from stock.
+              </div>
+            </div>
+          </label>
         </div>
 
         <Card>

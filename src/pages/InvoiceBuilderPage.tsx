@@ -239,6 +239,8 @@ export default function InvoiceBuilderPage() {
   const [adjustment, setAdjustment] = useState(0);
   const [adjustmentName, setAdjustmentName] = useState("Adjustment");
   const [lines, setLines] = useState<LineItem[]>([createEmptyLine()]);
+  const [deductStock, setDeductStock] = useState(false);
+  const [prevDeductStock, setPrevDeductStock] = useState(false);
   const [saving, setSaving] = useState(false);
   const [clientInvoices, setClientInvoices] = useState<any[]>([]);
   const [bulkAddOpen, setBulkAddOpen] = useState(false);

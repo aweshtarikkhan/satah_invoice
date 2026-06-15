@@ -454,6 +454,58 @@ export default function InventoryPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Stock movement history dialog */}
+      <Dialog open={!!historyTarget} onOpenChange={(v) => { if (!v) setHistoryTarget(null); }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Stock History</DialogTitle>
+            {historyTarget && (
+              <DialogDescription>
+                {historyTarget.name} • Current stock: <span className="font-medium text-foreground">{Number(historyTarget.stock_quantity || 0)} {historyTarget.unit || ""}</span>
+              </DialogDescription>
+            )}
+          </DialogHeader>
+          <ScrollArea className="max-h-[60vh]">
+            {historyLoading ? (
+              <div className="py-10 text-center text-muted-foreground text-sm">Loading...</div>
+            ) : historyRows.length === 0 ? (
+              <div className="py-10 text-center text-muted-foreground text-sm">No movements yet for this item.</div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-[11px] tracking-wider text-muted-foreground">DATE</TableHead>
+                    <TableHead className="text-[11px] tracking-wider text-muted-foreground">REASON</TableHead>
+                    <TableHead className="text-[11px] tracking-wider text-muted-foreground">REF</TableHead>
+                    <TableHead className="text-[11px] tracking-wider text-muted-foreground text-right">CHANGE</TableHead>
+                    <TableHead className="text-[11px] tracking-wider text-muted-foreground text-right">BALANCE</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {historyRows.map((m: any) => {
+                    const change = Number(m.change_qty);
+                    return (
+                      <TableRow key={m.id}>
+                        <TableCell className="text-xs text-muted-foreground">{new Date(m.created_at).toLocaleString()}</TableCell>
+                        <TableCell className="text-sm">{m.reason}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{m.ref_number || "—"}</TableCell>
+                        <TableCell className={`text-right text-sm font-medium ${change > 0 ? "text-emerald-600" : "text-destructive"}`}>
+                          {change > 0 ? "+" : ""}{change}
+                        </TableCell>
+                        <TableCell className="text-right text-sm">{m.balance_after ?? "—"}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            )}
+          </ScrollArea>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setHistoryTarget(null)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

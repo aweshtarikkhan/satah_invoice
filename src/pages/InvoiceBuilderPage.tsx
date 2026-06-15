@@ -58,6 +58,7 @@ interface LineItem {
   tax_id: string | null;
   tax_amount: number;
   amount: number;
+  hsn_code: string;
 }
 
 const UNITS = ["pcs", "kg", "g", "ltr", "ml", "m", "cm", "ft", "inch", "box", "nos", "hrs", "days", "pair", "set", "sqft", "sqm", "ton", "dozen", "bundle", "roll", "bag", "carton"];
@@ -76,6 +77,7 @@ function createEmptyLine(): LineItem {
     tax_id: null,
     tax_amount: 0,
     amount: 0,
+    hsn_code: "",
   };
 }
 
@@ -110,6 +112,7 @@ function SortableLineItem({
     onChange(index, "description", item.description || "");
     onChange(index, "rate", Number(item.unit_price));
     onChange(index, "unit", item.unit || "pcs");
+    onChange(index, "hsn_code", item.hsn_code || "");
     setItemDropdownOpen(false);
   };
 
@@ -340,6 +343,7 @@ export default function InvoiceBuilderPage() {
           tax_id: l.tax_id,
           tax_amount: Number(l.tax_amount),
           amount: Number(l.amount),
+          hsn_code: (l as any).hsn_code || "",
         })));
       }
     };
@@ -511,6 +515,7 @@ export default function InvoiceBuilderPage() {
           tax_amount: l.tax_amount,
           amount: l.amount,
           sort_order: i,
+          hsn_code: l.hsn_code?.trim() || null,
         }));
 
       const { error: lineError } = await supabase.from("invoice_lines").insert(linePayloads);
@@ -893,6 +898,7 @@ export default function InvoiceBuilderPage() {
                     line.rate = Number(item.unit_price);
                     line.unit = item.unit || "pcs";
                     line.quantity = 1;
+                    line.hsn_code = item.hsn_code || "";
                     // Calculate amount
                     line.amount = line.quantity * line.rate;
                     newLines.push(line);

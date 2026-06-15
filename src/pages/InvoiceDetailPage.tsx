@@ -21,7 +21,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, Send, FileDown, Copy, Ban, CreditCard, Share2, Download, Printer } from "lucide-react";
+import { Edit, Send, FileDown, Copy, Ban, CreditCard, Share2, Download, Printer, MessageCircle } from "lucide-react";
+import { getOrCreatePortalToken, portalUrl, openWhatsappShare, buildInvoiceWhatsappMessage } from "@/lib/share";
 import { getDocumentPreviewClass, getPaperSizeLabel, getPrintPageCSS } from "@/lib/document-templates";
 import { QRCodeSVG } from "qrcode.react";
 import html2canvas from "html2canvas";
@@ -50,7 +51,7 @@ export default function InvoiceDetailPage() {
     if (!id) return;
     const { data: inv } = await supabase
       .from("invoices")
-      .select("*, clients(display_name, email, tax_number)")
+      .select("*, clients(display_name, email, tax_number, phone)")
       .eq("id", id)
       .single();
     setInvoice(inv);
@@ -295,18 +296,33 @@ export default function InvoiceDetailPage() {
           </Button>
         )}
         <Button variant="outline" size="sm" onClick={async () => {
-          const { data: existing } = await supabase.from("portal_tokens").select("token").eq("entity_type", "invoice").eq("entity_id", id!).maybeSingle();
-          let token = existing?.token;
-          if (!token) {
-            const { data } = await supabase.from("portal_tokens").insert({ org_id: org!.id, entity_type: "invoice", entity_id: id! }).select("token").single();
-            token = data?.token;
-          }
+          const token = await getOrCreatePortalToken(org!.id, "invoice", id!);
           if (token) {
-            await navigator.clipboard.writeText(`${window.location.origin}/portal/${token}`);
+            await navigator.clipboard.writeText(portalUrl(token));
             toast({ title: "Portal link copied!" });
           }
         }}>
           <Share2 className="mr-1 h-4 w-4" /> Share Link
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300"
+          onClick={async () => {
+            const token = await getOrCreatePortalToken(org!.id, "invoice", id!);
+            const client: any = (invoice as any)?.clients;
+            const msg = buildInvoiceWhatsappMessage({
+              orgName: org?.name,
+              clientName: client?.display_name,
+              invoiceNumber: invoice.invoice_number,
+              amountFormatted: fmt(Number(invoice.total)),
+              dueDate: invoice.due_date,
+              portalLink: token ? portalUrl(token) : null,
+            });
+            openWhatsappShare({ phone: client?.phone, message: msg });
+          }}
+        >
+          <MessageCircle className="mr-1 h-4 w-4" /> WhatsApp
         </Button>
       </PageHeader>
 

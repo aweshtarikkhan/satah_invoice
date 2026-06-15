@@ -19,6 +19,8 @@ import {
   RefreshCw,
   PieChart,
   Boxes,
+  UserCog,
+  CalendarCheck,
 } from "lucide-react";
 import { useAppStore } from "@/store/app-store";
 import logoImg from "@/assets/logo.png";
@@ -48,6 +50,8 @@ const mainItems = [
   { title: "Credit Notes", url: "/credit-notes", icon: FileMinus2, addUrl: "/credit-notes/new" },
   { title: "Payments Received", url: "/payments", icon: CreditCard, addUrl: "/payments/new" },
   { title: "Expenses", url: "/expenses", icon: Coins, addUrl: "/expenses?add=1" },
+  { title: "Employees", url: "/employees", icon: UserCog, addUrl: null },
+  { title: "Attendance", url: "/attendance", icon: CalendarCheck, addUrl: null },
   { title: "Recurring", url: "/recurring-invoices", icon: RefreshCw, addUrl: null },
   { title: "Statements", url: "/statements", icon: FileSpreadsheet, addUrl: null },
   { title: "Reports", url: "/reports", icon: BarChart3, addUrl: null },

@@ -38,6 +38,8 @@ import CustomerStatementPage from "./pages/CustomerStatementPage";
 import AgingDetailsPage from "./pages/AgingDetailsPage";
 import ProfitLossPage from "./pages/ProfitLossPage";
 import RecurringInvoicesPage from "./pages/RecurringInvoicesPage";
+import EmployeesPage from "./pages/EmployeesPage";
+import AttendancePage from "./pages/AttendancePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -93,6 +95,8 @@ const App = () => (
               <Route path="/aging-details" element={<AgingDetailsPage />} />
               <Route path="/profit-loss" element={<ProfitLossPage />} />
               <Route path="/recurring-invoices" element={<RecurringInvoicesPage />} />
+              <Route path="/employees" element={<EmployeesPage />} />
+              <Route path="/attendance" element={<AttendancePage />} />
               <Route path="/statements" element={<CustomerStatementPage />} />
               <Route path="/statements/:clientId" element={<CustomerStatementPage />} />
               <Route path="/settings" element={<SettingsPage />} />

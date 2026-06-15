@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      attendance: {
+        Row: {
+          attendance_date: string
+          created_at: string
+          employee_id: string
+          id: string
+          notes: string | null
+          org_id: string
+          status: Database["public"]["Enums"]["attendance_status"]
+          updated_at: string
+        }
+        Insert: {
+          attendance_date: string
+          created_at?: string
+          employee_id: string
+          id?: string
+          notes?: string | null
+          org_id: string
+          status?: Database["public"]["Enums"]["attendance_status"]
+          updated_at?: string
+        }
+        Update: {
+          attendance_date?: string
+          created_at?: string
+          employee_id?: string
+          id?: string
+          notes?: string | null
+          org_id?: string
+          status?: Database["public"]["Enums"]["attendance_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -468,6 +516,65 @@ export type Database = {
             columns: ["field_id"]
             isOneToOne: false
             referencedRelation: "custom_field_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employees: {
+        Row: {
+          created_at: string
+          designation: string | null
+          email: string | null
+          employee_code: string | null
+          id: string
+          is_active: boolean
+          joining_date: string | null
+          monthly_salary: number
+          name: string
+          notes: string | null
+          org_id: string
+          paid_leaves_per_month: number
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          designation?: string | null
+          email?: string | null
+          employee_code?: string | null
+          id?: string
+          is_active?: boolean
+          joining_date?: string | null
+          monthly_salary?: number
+          name: string
+          notes?: string | null
+          org_id: string
+          paid_leaves_per_month?: number
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          designation?: string | null
+          email?: string | null
+          employee_code?: string | null
+          id?: string
+          is_active?: boolean
+          joining_date?: string | null
+          monthly_salary?: number
+          name?: string
+          notes?: string | null
+          org_id?: string
+          paid_leaves_per_month?: number
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employees_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -1401,6 +1508,12 @@ export type Database = {
     }
     Enums: {
       app_role: "owner" | "admin" | "staff" | "read_only"
+      attendance_status:
+        | "present"
+        | "absent"
+        | "half_day"
+        | "paid_leave"
+        | "holiday"
       client_status: "active" | "inactive"
       credit_note_status: "draft" | "sent" | "void"
       discount_type: "percentage" | "fixed"
@@ -1550,6 +1663,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["owner", "admin", "staff", "read_only"],
+      attendance_status: [
+        "present",
+        "absent",
+        "half_day",
+        "paid_leave",
+        "holiday",
+      ],
       client_status: ["active", "inactive"],
       credit_note_status: ["draft", "sent", "void"],
       discount_type: ["percentage", "fixed"],

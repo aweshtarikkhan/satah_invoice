@@ -366,6 +366,13 @@ export default function CreditNoteBuilderPage() {
         <div className="space-y-4">
           <div className="space-y-2"><Label>Notes</Label><Textarea value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
           <div className="space-y-2"><Label>Terms & Conditions</Label><Textarea value={terms} onChange={(e) => setTerms(e.target.value)} /></div>
+          <label className="flex items-start gap-2 rounded-md border border-input bg-card p-3 cursor-pointer hover:bg-accent/40 transition">
+            <Checkbox checked={restockInventory} onCheckedChange={(v) => setRestockInventory(!!v)} className="mt-0.5" />
+            <div className="text-xs">
+              <div className="font-medium text-foreground">Restock items to inventory</div>
+              <div className="text-muted-foreground mt-0.5">Adds the line quantities back to product stock. Use this when items are physically returned by the customer.</div>
+            </div>
+          </label>
         </div>
         <Card>
           <CardContent className="pt-6 space-y-2 text-sm">

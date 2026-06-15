@@ -317,6 +317,8 @@ export default function InvoiceBuilderPage() {
       setExpenses(Number((inv as any).expenses || 0));
       setAdjustment(Number(inv.adjustment));
       setAdjustmentName(inv.adjustment_name || "Adjustment");
+      setDeductStock(!!(inv as any).deduct_stock);
+      setPrevDeductStock(!!(inv as any).deduct_stock);
 
       const { data: lineData } = await supabase
         .from("invoice_lines")

@@ -16,7 +16,7 @@ import {
 interface AddItemDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onItemAdded: (item: { id: string; name: string; unit_price: number; description: string | null; tax_id: string | null }) => void;
+  onItemAdded: (item: { id: string; name: string; unit_price: number; description: string | null; tax_id: string | null; hsn_code?: string | null }) => void;
   taxRates?: any[];
   defaultType?: "service" | "product";
 }
@@ -27,11 +27,11 @@ export function AddItemDialog({ open, onOpenChange, onItemAdded, taxRates = [], 
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     name: "", description: "", sku: "", type: defaultType as "service" | "product",
-    unit_price: 0, unit: "", tax_id: null as string | null,
+    unit_price: 0, unit: "", tax_id: null as string | null, hsn_code: "",
   });
 
   const reset = () => {
-    setForm({ name: "", description: "", sku: "", type: defaultType, unit_price: 0, unit: "", tax_id: null });
+    setForm({ name: "", description: "", sku: "", type: defaultType, unit_price: 0, unit: "", tax_id: null, hsn_code: "" });
   };
 
   const handleSave = async () => {
@@ -44,7 +44,8 @@ export function AddItemDialog({ open, onOpenChange, onItemAdded, taxRates = [], 
       org_id: org.id, name: form.name, description: form.description || null,
       sku: form.sku || null, type: form.type, unit_price: form.unit_price,
       unit: form.unit || null, tax_id: form.tax_id,
-    }).select().single();
+      hsn_code: form.hsn_code.trim() || null,
+    } as any).select().single();
 
     setSaving(false);
     if (error) {
@@ -52,7 +53,7 @@ export function AddItemDialog({ open, onOpenChange, onItemAdded, taxRates = [], 
       return;
     }
     toast({ title: "Item created" });
-    onItemAdded({ id: data.id, name: data.name, unit_price: data.unit_price, description: data.description, tax_id: data.tax_id });
+    onItemAdded({ id: data.id, name: data.name, unit_price: data.unit_price, description: data.description, tax_id: data.tax_id, hsn_code: (data as any).hsn_code });
     reset();
     onOpenChange(false);
   };
@@ -104,6 +105,15 @@ export function AddItemDialog({ open, onOpenChange, onItemAdded, taxRates = [], 
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          <div className="space-y-1">
+            <Label>HSN / SAC Code</Label>
+            <Input
+              value={form.hsn_code}
+              onChange={(e) => setForm({ ...form, hsn_code: e.target.value.replace(/[^0-9]/g, "").slice(0, 8) })}
+              placeholder="e.g. 998314 (optional, GST classification)"
+              inputMode="numeric"
+            />
           </div>
           {taxRates.length > 0 && (
             <div className="space-y-1">

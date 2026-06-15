@@ -40,6 +40,7 @@ import ProfitLossPage from "./pages/ProfitLossPage";
 import RecurringInvoicesPage from "./pages/RecurringInvoicesPage";
 import EmployeesPage from "./pages/EmployeesPage";
 import AttendancePage from "./pages/AttendancePage";
+import GstReturnsPage from "./pages/GstReturnsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -94,6 +95,7 @@ const App = () => (
               <Route path="/expenses" element={<BusinessExpensesPage />} />
               <Route path="/aging-details" element={<AgingDetailsPage />} />
               <Route path="/profit-loss" element={<ProfitLossPage />} />
+              <Route path="/gst-returns" element={<GstReturnsPage />} />
               <Route path="/recurring-invoices" element={<RecurringInvoicesPage />} />
               <Route path="/employees" element={<EmployeesPage />} />
               <Route path="/attendance" element={<AttendancePage />} />

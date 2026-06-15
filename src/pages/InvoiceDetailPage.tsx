@@ -341,6 +341,33 @@ export default function InvoiceDetailPage() {
         </span>
       </div>
 
+      {/* Phase 5 — compliance badges */}
+      {((invoice as any).irn || (invoice as any).eway_bill_no) && (
+        <div className="flex flex-wrap gap-2 text-xs">
+          {(invoice as any).irn && (
+            <div className="rounded-md border bg-muted/40 px-3 py-2">
+              <div className="font-medium">IRN</div>
+              <div className="font-mono break-all">{(invoice as any).irn}</div>
+              {(invoice as any).ack_no && (
+                <div className="text-muted-foreground">Ack {(invoice as any).ack_no} · {(invoice as any).ack_date ? new Date((invoice as any).ack_date).toLocaleDateString() : ""}</div>
+              )}
+            </div>
+          )}
+          {(invoice as any).eway_bill_no && (
+            <div className="rounded-md border bg-muted/40 px-3 py-2">
+              <div className="font-medium">E-way Bill</div>
+              <div className="font-mono">{(invoice as any).eway_bill_no}</div>
+              <div className="text-muted-foreground">
+                {(invoice as any).eway_vehicle_no && `Vehicle ${(invoice as any).eway_vehicle_no} · `}
+                {(invoice as any).eway_transport_mode || ""}
+                {(invoice as any).eway_distance_km && ` · ${(invoice as any).eway_distance_km} km`}
+                {(invoice as any).eway_valid_until && ` · valid till ${new Date((invoice as any).eway_valid_until).toLocaleDateString()}`}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Invoice Preview */}
       <div ref={invoiceRef}>
       {org?.template_style === "compact" ? (

@@ -39,6 +39,7 @@ export default function SettingsPage() {
     gst_enabled: false, gst_number: "", show_client_gst: false, qr_code_enabled: false,
     upi_id: "",
     inventory_enabled: false, low_stock_threshold: 5,
+    multi_warehouse_enabled: false,
   });
 
   // Tax rates
@@ -60,6 +61,7 @@ export default function SettingsPage() {
       upi_id: (org as any).upi_id || "",
       inventory_enabled: (org as any).inventory_enabled || false,
       low_stock_threshold: Number((org as any).low_stock_threshold ?? 5),
+      multi_warehouse_enabled: (org as any).multi_warehouse_enabled || false,
     });
     fetchTaxRates();
   }, [org]);
@@ -300,6 +302,13 @@ export default function SettingsPage() {
                       <p className="text-xs text-muted-foreground">Items at or below this stock level appear in the dashboard low-stock alert.</p>
                     </div>
                   )}
+                  <div className="flex items-center justify-between border-t pt-4">
+                    <div>
+                      <Label>Multi-warehouse mode</Label>
+                      <p className="text-xs text-muted-foreground">Track stock across multiple locations. When off, a single shared stock pool is used (recommended for most users).</p>
+                    </div>
+                    <Switch checked={orgForm.multi_warehouse_enabled} onCheckedChange={(v) => setOrgForm({ ...orgForm, multi_warehouse_enabled: v })} />
+                  </div>
                 </CardContent>
               </Card>
 

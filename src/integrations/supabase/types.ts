@@ -368,6 +368,7 @@ export type Database = {
           notes: string | null
           org_id: string
           reference_number: string | null
+          restock_inventory: boolean
           status: Database["public"]["Enums"]["credit_note_status"]
           subtotal: number
           terms_conditions: string | null
@@ -390,6 +391,7 @@ export type Database = {
           notes?: string | null
           org_id: string
           reference_number?: string | null
+          restock_inventory?: boolean
           status?: Database["public"]["Enums"]["credit_note_status"]
           subtotal?: number
           terms_conditions?: string | null
@@ -412,6 +414,7 @@ export type Database = {
           notes?: string | null
           org_id?: string
           reference_number?: string | null
+          restock_inventory?: boolean
           status?: Database["public"]["Enums"]["credit_note_status"]
           subtotal?: number
           terms_conditions?: string | null
@@ -1394,6 +1397,63 @@ export type Database = {
             columns: ["template_invoice_id"]
             isOneToOne: false
             referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_movements: {
+        Row: {
+          balance_after: number | null
+          change_qty: number
+          created_at: string
+          created_by: string | null
+          id: string
+          item_id: string
+          org_id: string
+          reason: string
+          ref_id: string | null
+          ref_number: string | null
+          ref_type: string | null
+        }
+        Insert: {
+          balance_after?: number | null
+          change_qty: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          item_id: string
+          org_id: string
+          reason: string
+          ref_id?: string | null
+          ref_number?: string | null
+          ref_type?: string | null
+        }
+        Update: {
+          balance_after?: number | null
+          change_qty?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          item_id?: string
+          org_id?: string
+          reason?: string
+          ref_id?: string | null
+          ref_number?: string | null
+          ref_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]

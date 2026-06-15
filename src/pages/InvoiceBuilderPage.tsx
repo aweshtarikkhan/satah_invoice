@@ -334,6 +334,19 @@ export default function InvoiceBuilderPage() {
       setAdjustmentName(inv.adjustment_name || "Adjustment");
       setDeductStock(!!(inv as any).deduct_stock);
       setPrevDeductStock(!!(inv as any).deduct_stock);
+      // Phase 5 compliance load
+      const _irn = (inv as any).irn || "";
+      const _eway = (inv as any).eway_bill_no || "";
+      setIrn(_irn);
+      setAckNo((inv as any).ack_no || "");
+      setAckDate((inv as any).ack_date ? String((inv as any).ack_date).slice(0, 10) : "");
+      setGenerateIrn(!!_irn);
+      setEwayBillNo(_eway);
+      setEwayValidUntil((inv as any).eway_valid_until ? String((inv as any).eway_valid_until).slice(0, 10) : "");
+      setEwayVehicleNo((inv as any).eway_vehicle_no || "");
+      setEwayTransportMode((inv as any).eway_transport_mode || "road");
+      setEwayDistanceKm((inv as any).eway_distance_km ? String((inv as any).eway_distance_km) : "");
+      setGenerateEway(!!_eway);
 
       const { data: lineData } = await supabase
         .from("invoice_lines")

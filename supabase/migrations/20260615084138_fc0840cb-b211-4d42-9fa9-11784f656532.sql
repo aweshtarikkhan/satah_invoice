@@ -1,0 +1,1 @@
+ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS deduct_stock boolean NOT NULL DEFAULT false;

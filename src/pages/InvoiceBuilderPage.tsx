@@ -239,6 +239,8 @@ export default function InvoiceBuilderPage() {
   const [adjustment, setAdjustment] = useState(0);
   const [adjustmentName, setAdjustmentName] = useState("Adjustment");
   const [lines, setLines] = useState<LineItem[]>([createEmptyLine()]);
+  const [deductStock, setDeductStock] = useState(false);
+  const [prevDeductStock, setPrevDeductStock] = useState(false);
   const [saving, setSaving] = useState(false);
   const [clientInvoices, setClientInvoices] = useState<any[]>([]);
   const [bulkAddOpen, setBulkAddOpen] = useState(false);
@@ -315,6 +317,8 @@ export default function InvoiceBuilderPage() {
       setExpenses(Number((inv as any).expenses || 0));
       setAdjustment(Number(inv.adjustment));
       setAdjustmentName(inv.adjustment_name || "Adjustment");
+      setDeductStock(!!(inv as any).deduct_stock);
+      setPrevDeductStock(!!(inv as any).deduct_stock);
 
       const { data: lineData } = await supabase
         .from("invoice_lines")
@@ -456,6 +460,7 @@ export default function InvoiceBuilderPage() {
       expenses,
       adjustment,
       adjustment_name: adjustmentName,
+      deduct_stock: deductStock,
       subtotal,
       total_tax: totalTax,
       total_discount: totalDiscount,
@@ -511,15 +516,20 @@ export default function InvoiceBuilderPage() {
       const { error: lineError } = await supabase.from("invoice_lines").insert(linePayloads);
       if (lineError) throw lineError;
 
-      // Inventory: adjust stock for product items (only if enabled)
-      if ((org as any)?.inventory_enabled) {
-        // Net delta per item: + restored from prevLines, - new quantities
+      // Inventory: adjust stock for product items (only when invoice opts in)
+      // Restore prev quantities if the previous version of this invoice deducted stock,
+      // and subtract new quantities if the current save opts in.
+      if (prevDeductStock || deductStock) {
         const delta: Record<string, number> = {};
-        for (const pl of prevLines) {
-          if (pl.item_id) delta[pl.item_id] = (delta[pl.item_id] || 0) + Number(pl.quantity || 0);
+        if (prevDeductStock) {
+          for (const pl of prevLines) {
+            if (pl.item_id) delta[pl.item_id] = (delta[pl.item_id] || 0) + Number(pl.quantity || 0);
+          }
         }
-        for (const ln of linePayloads) {
-          if (ln.item_id) delta[ln.item_id] = (delta[ln.item_id] || 0) - Number(ln.quantity || 0);
+        if (deductStock) {
+          for (const ln of linePayloads) {
+            if (ln.item_id) delta[ln.item_id] = (delta[ln.item_id] || 0) - Number(ln.quantity || 0);
+          }
         }
         const itemIds = Object.keys(delta).filter((k) => delta[k] !== 0);
         if (itemIds.length) {
@@ -530,6 +540,7 @@ export default function InvoiceBuilderPage() {
             await supabase.from("items").update({ stock_quantity: newQty }).eq("id", it.id);
           }
         }
+        setPrevDeductStock(deductStock);
       }
 
       // Save custom fields
@@ -912,6 +923,19 @@ export default function InvoiceBuilderPage() {
             <Label>Terms & Conditions</Label>
             <Textarea value={terms} onChange={(e) => setTerms(e.target.value)} placeholder="Payment terms, late fees..." />
           </div>
+          <label className="flex items-start gap-2 rounded-md border p-3 cursor-pointer hover:bg-muted/40">
+            <Checkbox
+              checked={deductStock}
+              onCheckedChange={(v) => setDeductStock(!!v)}
+              className="mt-0.5"
+            />
+            <div className="text-sm">
+              <div className="font-medium">Deduct stock from inventory</div>
+              <div className="text-xs text-muted-foreground">
+                When saved, product item quantities on this invoice will be subtracted from stock.
+              </div>
+            </div>
+          </label>
         </div>
 
         <Card>

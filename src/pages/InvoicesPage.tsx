@@ -60,6 +60,7 @@ export default function InvoicesPage() {
   const [importOpen, setImportOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [reminderOpen, setReminderOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   type SortKey = "issue_date" | "due_date" | "total" | "balance_due" | "invoice_number" | "client" | "status";
   const [sortKey, setSortKey] = useState<SortKey>("issue_date");

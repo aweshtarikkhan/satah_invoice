@@ -245,6 +245,17 @@ export default function InvoiceBuilderPage() {
   const [lines, setLines] = useState<LineItem[]>([createEmptyLine()]);
   const [deductStock, setDeductStock] = useState(false);
   const [prevDeductStock, setPrevDeductStock] = useState(false);
+  // Phase 5 — opt-in compliance
+  const [generateIrn, setGenerateIrn] = useState(false);
+  const [irn, setIrn] = useState("");
+  const [ackNo, setAckNo] = useState("");
+  const [ackDate, setAckDate] = useState("");
+  const [generateEway, setGenerateEway] = useState(false);
+  const [ewayBillNo, setEwayBillNo] = useState("");
+  const [ewayValidUntil, setEwayValidUntil] = useState("");
+  const [ewayVehicleNo, setEwayVehicleNo] = useState("");
+  const [ewayTransportMode, setEwayTransportMode] = useState("road");
+  const [ewayDistanceKm, setEwayDistanceKm] = useState("");
   const [saving, setSaving] = useState(false);
   const [clientInvoices, setClientInvoices] = useState<any[]>([]);
   const [bulkAddOpen, setBulkAddOpen] = useState(false);

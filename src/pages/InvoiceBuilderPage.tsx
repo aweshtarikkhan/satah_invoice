@@ -460,6 +460,7 @@ export default function InvoiceBuilderPage() {
       expenses,
       adjustment,
       adjustment_name: adjustmentName,
+      deduct_stock: deductStock,
       subtotal,
       total_tax: totalTax,
       total_discount: totalDiscount,

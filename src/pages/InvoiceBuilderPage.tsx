@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
 import { useAuth } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
+import { logStockMovements, detectNegativeStock } from "@/lib/stock";
 import { CustomFieldsForm, saveCustomFieldValues } from "@/components/shared/CustomFieldsForm";
 import { CURRENCIES, formatCurrency } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
@@ -448,6 +449,29 @@ export default function InvoiceBuilderPage() {
       return;
     }
     setLines(validLines);
+
+    // Non-blocking negative-stock warning (only when deducting)
+    if (deductStock) {
+      const restorePrev: Record<string, number> = {};
+      if (prevDeductStock && id) {
+        const { data: prev } = await supabase.from("invoice_lines").select("item_id, quantity").eq("invoice_id", id);
+        for (const p of prev || []) {
+          if (p.item_id) restorePrev[p.item_id] = (restorePrev[p.item_id] || 0) + Number(p.quantity || 0);
+        }
+      }
+      const warnings = await detectNegativeStock(
+        validLines.map((l) => ({ item_id: l.item_id, quantity: l.quantity, name: l.name })),
+        { restorePrevQty: restorePrev }
+      );
+      if (warnings.length) {
+        toast({
+          title: "Low stock warning",
+          description: warnings.slice(0, 3).map((w) => `${w.name}: need ${w.requested}, have ${w.available}`).join(" • "),
+          variant: "destructive",
+        });
+      }
+    }
+
     setSaving(true);
 
     const invoicePayload = {
@@ -539,11 +563,24 @@ export default function InvoiceBuilderPage() {
         const itemIds = Object.keys(delta).filter((k) => delta[k] !== 0);
         if (itemIds.length) {
           const { data: itemsForStock } = await supabase.from("items").select("id, type, stock_quantity").in("id", itemIds);
+          const movements: Parameters<typeof logStockMovements>[0] = [];
           for (const it of itemsForStock || []) {
             if (it.type !== "product") continue;
             const newQty = Math.max(0, Number(it.stock_quantity || 0) + delta[it.id]);
             await supabase.from("items").update({ stock_quantity: newQty }).eq("id", it.id);
+            movements.push({
+              orgId: org!.id,
+              itemId: it.id,
+              changeQty: delta[it.id],
+              balanceAfter: newQty,
+              reason: id ? "Invoice updated" : "Invoice created",
+              refType: "invoice",
+              refId: invoiceId,
+              refNumber: invoiceNumber,
+              createdBy: user?.id || null,
+            });
           }
+          await logStockMovements(movements);
         }
         setPrevDeductStock(deductStock);
       }

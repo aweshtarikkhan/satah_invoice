@@ -895,10 +895,12 @@ export type Database = {
           id: string
           invoice_number: string
           issue_date: string
+          last_reminder_at: string | null
           notes: string | null
           org_id: string
           paid_at: string | null
           reference_number: string | null
+          reminder_count: number
           sent_at: string | null
           shipping_address: Json | null
           shipping_charge: number
@@ -929,10 +931,12 @@ export type Database = {
           id?: string
           invoice_number: string
           issue_date?: string
+          last_reminder_at?: string | null
           notes?: string | null
           org_id: string
           paid_at?: string | null
           reference_number?: string | null
+          reminder_count?: number
           sent_at?: string | null
           shipping_address?: Json | null
           shipping_charge?: number
@@ -963,10 +967,12 @@ export type Database = {
           id?: string
           invoice_number?: string
           issue_date?: string
+          last_reminder_at?: string | null
           notes?: string | null
           org_id?: string
           paid_at?: string | null
           reference_number?: string | null
+          reminder_count?: number
           sent_at?: string | null
           shipping_address?: Json | null
           shipping_charge?: number

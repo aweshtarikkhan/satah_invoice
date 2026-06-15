@@ -129,7 +129,7 @@ export default function AttendancePage() {
   const postToExpenses = async () => {
     if (!org?.id) return;
     if (summaries.length === 0) return;
-    if (!confirm(`Post ${formatCurrency(totalPayable)} as salary expense for ${format(monthStart, "MMM yyyy")}?`)) return;
+    if (!confirm(`Post ${formatCurrency(totalPayable, org?.base_currency || "INR")} as salary expense for ${format(monthStart, "MMM yyyy")}?`)) return;
     setPosting(true);
     const rows = summaries
       .filter((s) => s.payable > 0)
@@ -270,13 +270,13 @@ export default function AttendancePage() {
                     <TableCell className="text-center">{r.a}</TableCell>
                     <TableCell className="text-center">{r.ho}</TableCell>
                     <TableCell className="text-right">{r.payableDays.toFixed(1)} / {r.workingDays}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(r.emp.monthly_salary)}</TableCell>
-                    <TableCell className="text-right font-semibold">{formatCurrency(r.payable)}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(r.emp.monthly_salary, org?.base_currency || "INR")}</TableCell>
+                    <TableCell className="text-right font-semibold">{formatCurrency(r.payable, org?.base_currency || "INR")}</TableCell>
                   </TableRow>
                 ))}
                 <TableRow>
                   <TableCell colSpan={8} className="text-right font-semibold">Total Payable</TableCell>
-                  <TableCell className="text-right font-bold text-primary">{formatCurrency(totalPayable)}</TableCell>
+                  <TableCell className="text-right font-bold text-primary">{formatCurrency(totalPayable, org?.base_currency || "INR")}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>

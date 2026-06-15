@@ -144,7 +144,7 @@ export default function EmployeesPage() {
                   <TableCell>{e.employee_code || "—"}</TableCell>
                   <TableCell>{e.designation || "—"}</TableCell>
                   <TableCell>{e.phone || "—"}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(e.monthly_salary, org?.base_currency || "INR")}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(e.monthly_salary, (org as any)?.currency || "INR")}</TableCell>
                   <TableCell className="text-right">{e.paid_leaves_per_month}</TableCell>
                   <TableCell>{e.is_active ? <span className="text-green-600 text-xs font-medium">Active</span> : <span className="text-muted-foreground text-xs">Inactive</span>}</TableCell>
                   <TableCell>

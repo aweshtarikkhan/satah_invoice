@@ -874,6 +874,7 @@ export type Database = {
           client_id: string
           created_at: string
           currency_code: string
+          deduct_stock: boolean
           discount: number
           discount_type: Database["public"]["Enums"]["discount_type"]
           due_date: string
@@ -907,6 +908,7 @@ export type Database = {
           client_id: string
           created_at?: string
           currency_code?: string
+          deduct_stock?: boolean
           discount?: number
           discount_type?: Database["public"]["Enums"]["discount_type"]
           due_date?: string
@@ -940,6 +942,7 @@ export type Database = {
           client_id?: string
           created_at?: string
           currency_code?: string
+          deduct_stock?: boolean
           discount?: number
           discount_type?: Database["public"]["Enums"]["discount_type"]
           due_date?: string

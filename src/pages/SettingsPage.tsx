@@ -39,6 +39,7 @@ export default function SettingsPage() {
     gst_enabled: false, gst_number: "", show_client_gst: false, qr_code_enabled: false,
     upi_id: "",
     inventory_enabled: false, low_stock_threshold: 5,
+    multi_warehouse_enabled: false,
   });
 
   // Tax rates

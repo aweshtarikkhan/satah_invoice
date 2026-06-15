@@ -22,11 +22,12 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, FileText, Search, Upload, Trash2, Send, Download, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, FileText, Search, Upload, Trash2, Send, Download, ArrowUp, ArrowDown, MessageCircle } from "lucide-react";
 import { downloadCSV } from "@/lib/export-csv";
 import { differenceInDays, parseISO, isToday, isBefore, addDays } from "date-fns";
 import { format } from "date-fns";
 import { toast } from "@/hooks/use-toast";
+import { BulkReminderDialog } from "@/components/shared/BulkReminderDialog";
 
 const invoiceImportFields: ImportField[] = [
   { key: "invoice_number", label: "Invoice Number", required: true },
@@ -59,6 +60,7 @@ export default function InvoicesPage() {
   const [importOpen, setImportOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [reminderOpen, setReminderOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   type SortKey = "issue_date" | "due_date" | "total" | "balance_due" | "invoice_number" | "client" | "status";
   const [sortKey, setSortKey] = useState<SortKey>("issue_date");
@@ -251,6 +253,16 @@ export default function InvoicesPage() {
           {selected.size > 0 && selectedHasDrafts && (
             <Button variant="outline" size="sm" onClick={handleMarkSent}>
               <Send className="mr-1 h-4 w-4" /> Mark as Sent
+            </Button>
+          )}
+          {selected.size > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300"
+              onClick={() => setReminderOpen(true)}
+            >
+              <MessageCircle className="mr-1 h-4 w-4" /> Send Reminders ({selected.size})
             </Button>
           )}
           {selected.size > 0 && (
@@ -449,6 +461,21 @@ export default function InvoicesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <BulkReminderDialog
+        open={reminderOpen}
+        onOpenChange={setReminderOpen}
+        invoiceIds={Array.from(selected)}
+        orgId={org?.id || ""}
+        orgName={org?.name}
+        currencyCode={org?.currency_code}
+        onSent={(invId) => {
+          setInvoices((prev) => prev.map((i) =>
+            i.id === invId
+              ? { ...i, last_reminder_at: new Date().toISOString(), reminder_count: (i.reminder_count || 0) + 1 }
+              : i
+          ));
+        }}
+      />
     </div>
   );
 }

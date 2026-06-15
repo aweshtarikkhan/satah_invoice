@@ -15,8 +15,9 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, RefreshCw, Trash2, Play, Pause } from "lucide-react";
+import { Plus, RefreshCw, Trash2, Play, Pause, Zap } from "lucide-react";
 import { format } from "date-fns";
+import { generateRecurringInvoice } from "@/lib/recurring";
 
 export default function RecurringInvoicesPage() {
   const navigate = useNavigate();
@@ -92,6 +93,17 @@ export default function RecurringInvoicesPage() {
     fetchData();
   };
 
+  const handleGenerateNow = async (id: string) => {
+    try {
+      const invId = await generateRecurringInvoice(id);
+      toast({ title: "Invoice generated", description: "Opening the new draft invoice..." });
+      fetchData();
+      navigate(`/invoices/${invId}`);
+    } catch (e: any) {
+      toast({ title: "Could not generate", description: e?.message || "Unknown error", variant: "destructive" });
+    }
+  };
+
   const openEdit = (item: any) => {
     setEditItem(item);
     setForm({
@@ -148,6 +160,16 @@ export default function RecurringInvoicesPage() {
                     </TableCell>
                     <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-primary"
+                          title="Generate invoice now"
+                          onClick={() => handleGenerateNow(item.id)}
+                          disabled={!item.template_invoice_id}
+                        >
+                          <Zap className="h-4 w-4" />
+                        </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toggleActive(item.id, item.is_active)}>
                           {item.is_active ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                         </Button>

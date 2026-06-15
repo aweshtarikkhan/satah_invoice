@@ -461,6 +461,21 @@ export default function InvoicesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <BulkReminderDialog
+        open={reminderOpen}
+        onOpenChange={setReminderOpen}
+        invoiceIds={Array.from(selected)}
+        orgId={org?.id || ""}
+        orgName={org?.name}
+        currencyCode={org?.currency_code}
+        onSent={(invId) => {
+          setInvoices((prev) => prev.map((i) =>
+            i.id === invId
+              ? { ...i, last_reminder_at: new Date().toISOString(), reminder_count: (i.reminder_count || 0) + 1 }
+              : i
+          ));
+        }}
+      />
     </div>
   );
 }

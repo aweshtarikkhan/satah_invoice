@@ -490,6 +490,28 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
+        <div className="mx-auto max-w-6xl px-4 mt-4 flex flex-wrap items-center justify-center gap-3">
+          <a
+            href="/"
+            className="inline-flex items-center gap-2 rounded-lg border bg-card px-3 py-2 hover:bg-muted transition"
+          >
+            <Smartphone className="h-4 w-4" />
+            <div className="leading-none">
+              <div className="text-[10px] text-muted-foreground">Install on Android</div>
+              <div className="text-xs font-medium">Web App</div>
+            </div>
+          </a>
+          <a
+            href="/"
+            className="inline-flex items-center gap-2 rounded-lg border bg-card px-3 py-2 hover:bg-muted transition"
+          >
+            <Smartphone className="h-4 w-4" />
+            <div className="leading-none">
+              <div className="text-[10px] text-muted-foreground">Install on iOS</div>
+              <div className="text-xs font-medium">Web App</div>
+            </div>
+          </a>
+        </div>
       </footer>
     </div>
   );

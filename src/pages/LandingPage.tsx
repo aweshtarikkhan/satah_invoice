@@ -185,8 +185,13 @@ export default function LandingPage() {
                 <a href="#demo"><PlayCircle className="h-4 w-4" /> {L.cta_secondary}</a>
               </Button>
             </div>
-            <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-emerald-600" /> No credit card</span>
+            <div className="mt-4">
+              <Badge variant="secondary" className="gap-1.5 py-1 px-2.5 text-xs font-medium">
+                <ShieldCheck className="h-3 w-3 text-emerald-600" /> {L.no_card_badge}
+              </Badge>
+            </div>
+            <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-emerald-600" /> {L.speed_claim}</span>
               <span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-emerald-600" /> Free forever plan</span>
               <span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-emerald-600" /> Setup in 30s</span>
             </div>

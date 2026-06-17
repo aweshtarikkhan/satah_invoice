@@ -250,7 +250,7 @@ export default function LandingPage() {
         <div className="border-t bg-muted/40">
           <div className="mx-auto max-w-6xl px-4 py-6 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
-              { v: "12,400+", l: L.trust_users },
+              { v: "500+", l: L.trust_users },
               { v: "₹820 Cr+", l: L.trust_invoices },
               { v: "4.8 ★", l: L.trust_rating },
               { v: "99.99%", l: L.trust_uptime },

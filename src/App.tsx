@@ -41,6 +41,7 @@ import RecurringInvoicesPage from "./pages/RecurringInvoicesPage";
 import EmployeesPage from "./pages/EmployeesPage";
 import AttendancePage from "./pages/AttendancePage";
 import GstReturnsPage from "./pages/GstReturnsPage";
+import DemoAutoLoginPage from "./pages/DemoAutoLoginPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,8 @@ const App = () => (
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/demo" element={<DemoAutoLoginPage />} />
+            <Route path="/try" element={<DemoAutoLoginPage />} />
 
             {/* Protected routes */}
             <Route

@@ -42,6 +42,7 @@ import EmployeesPage from "./pages/EmployeesPage";
 import AttendancePage from "./pages/AttendancePage";
 import GstReturnsPage from "./pages/GstReturnsPage";
 import DemoAutoLoginPage from "./pages/DemoAutoLoginPage";
+import LandingPage from "./pages/LandingPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

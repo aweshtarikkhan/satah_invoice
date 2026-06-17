@@ -112,7 +112,7 @@ const App = () => (
             <Route path="/portal/:token" element={<PortalPage />} />
 
             {/* Redirects */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<LandingPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import {
   Check, X, Zap, Shield, Smartphone, FileText, IndianRupee,
   MessageCircle, Star, ArrowRight, Sparkles, BarChart3, Package,
-  Globe, PlayCircle, ShieldCheck, Building2, Quote,
+  Globe, PlayCircle, ShieldCheck, Building2, Quote, Timer,
 } from "lucide-react";
 
 type Lang = "en" | "hi";
@@ -20,10 +20,12 @@ const t = {
     hero_sub: "Satah is the fastest GST-compliant billing software for shopkeepers, freelancers and growing businesses. Create, share and get paid — all in one place.",
     cta_primary: "Create your first invoice — Free",
     cta_secondary: "Watch 60-sec demo",
-    trust_users: "12,400+ businesses",
+    trust_users: "500+ businesses trust Satah",
     trust_invoices: "₹820 Cr+ invoiced",
     trust_rating: "4.8 / 5 on Play Store",
     trust_uptime: "99.99% uptime",
+    speed_claim: "Invoice ready in 60 seconds",
+    no_card_badge: "No credit card needed",
     badges_title: "Built for India. Verified for GST.",
     feat_title: "Everything you need to run your business",
     feat_sub: "Invoicing, inventory, GST returns, payments — no spreadsheets required.",
@@ -49,10 +51,12 @@ const t = {
     hero_sub: "Satah भारत का सबसे तेज़ GST बिलिंग सॉफ़्टवेयर है — दुकानदार, फ्रीलांसर और बढ़ते बिज़नेस के लिए। बिल बनाओ, भेजो, पेमेंट लो — एक ही जगह।",
     cta_primary: "अभी मुफ़्त बिल बनाएं",
     cta_secondary: "60-सेकंड डेमो देखें",
-    trust_users: "12,400+ बिज़नेस",
+    trust_users: "500+ बिज़नेस Satah पर भरोसा करते हैं",
     trust_invoices: "₹820 करोड़+ की बिलिंग",
     trust_rating: "Play Store पर 4.8 / 5",
     trust_uptime: "99.99% अपटाइम",
+    speed_claim: "60 सेकंड में इनवॉइस तैयार",
+    no_card_badge: "कोई क्रेडिट कार्ड नहीं चाहिए",
     badges_title: "भारत के लिए बना। GST के लिए वेरिफ़ाइड।",
     feat_title: "आपके बिज़नेस के लिए सब कुछ — एक ही जगह",
     feat_sub: "बिलिंग, स्टॉक, GST रिटर्न, पेमेंट — कोई एक्सेल नहीं चाहिए।",
@@ -181,8 +185,13 @@ export default function LandingPage() {
                 <a href="#demo"><PlayCircle className="h-4 w-4" /> {L.cta_secondary}</a>
               </Button>
             </div>
-            <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-emerald-600" /> No credit card</span>
+            <div className="mt-4">
+              <Badge variant="secondary" className="gap-1.5 py-1 px-2.5 text-xs font-medium">
+                <ShieldCheck className="h-3 w-3 text-emerald-600" /> {L.no_card_badge}
+              </Badge>
+            </div>
+            <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-emerald-600" /> {L.speed_claim}</span>
               <span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-emerald-600" /> Free forever plan</span>
               <span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-emerald-600" /> Setup in 30s</span>
             </div>
@@ -241,7 +250,7 @@ export default function LandingPage() {
         <div className="border-t bg-muted/40">
           <div className="mx-auto max-w-6xl px-4 py-6 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
-              { v: "12,400+", l: L.trust_users },
+              { v: "500+", l: L.trust_users },
               { v: "₹820 Cr+", l: L.trust_invoices },
               { v: "4.8 ★", l: L.trust_rating },
               { v: "99.99%", l: L.trust_uptime },
@@ -480,6 +489,28 @@ export default function LandingPage() {
               </button>
             </div>
           </div>
+        </div>
+        <div className="mx-auto max-w-6xl px-4 mt-4 flex flex-wrap items-center justify-center gap-3">
+          <a
+            href="/"
+            className="inline-flex items-center gap-2 rounded-lg border bg-card px-3 py-2 hover:bg-muted transition"
+          >
+            <Smartphone className="h-4 w-4" />
+            <div className="leading-none">
+              <div className="text-[10px] text-muted-foreground">Install on Android</div>
+              <div className="text-xs font-medium">Web App</div>
+            </div>
+          </a>
+          <a
+            href="/"
+            className="inline-flex items-center gap-2 rounded-lg border bg-card px-3 py-2 hover:bg-muted transition"
+          >
+            <Smartphone className="h-4 w-4" />
+            <div className="leading-none">
+              <div className="text-[10px] text-muted-foreground">Install on iOS</div>
+              <div className="text-xs font-medium">Web App</div>
+            </div>
+          </a>
         </div>
       </footer>
     </div>

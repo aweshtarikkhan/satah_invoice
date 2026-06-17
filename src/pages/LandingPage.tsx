@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import {
   Check, X, Zap, Shield, Smartphone, FileText, IndianRupee,
   MessageCircle, Star, ArrowRight, Sparkles, BarChart3, Package,
-  Globe, PlayCircle, ShieldCheck, Building2, Quote,
+  Globe, PlayCircle, ShieldCheck, Building2, Quote, Timer,
 } from "lucide-react";
 
 type Lang = "en" | "hi";

@@ -91,7 +91,8 @@ const features = [
   { icon: Smartphone, title: "Works offline, installs as app", desc: "PWA — install on phone or laptop. Use it even on a weak network." },
 ];
 
-const comparison = [
+type Cell = boolean | "partial";
+const comparison: { label: string; satah: Cell; vyapar: Cell; zoho: Cell; cleartax: Cell }[] = [
   { label: "WhatsApp-first share with UPI QR", satah: true, vyapar: "partial", zoho: false, cleartax: false },
   { label: "GSTR-1 + 3B export (free tier)", satah: true, vyapar: false, zoho: false, cleartax: "partial" },
   { label: "Unlimited invoices on free plan", satah: true, vyapar: "partial", zoho: false, cleartax: false },

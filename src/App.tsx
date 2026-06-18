@@ -69,6 +69,9 @@ import LeavesPage from "./pages/LeavesPage";
 import EmployeeDocumentsPage from "./pages/EmployeeDocumentsPage";
 import PayrollPage from "./pages/PayrollPage";
 import PayrollRunDetailPage from "./pages/PayrollRunDetailPage";
+import LeadsPage from "./pages/LeadsPage";
+import PipelinePage from "./pages/PipelinePage";
+import ActivitiesPage from "./pages/ActivitiesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

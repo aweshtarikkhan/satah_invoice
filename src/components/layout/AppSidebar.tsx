@@ -104,12 +104,21 @@ export function AppSidebar() {
   const org = useAppStore((s) => s.organization);
   const inventoryEnabled = (org as any)?.inventory_enabled;
 
-  const visibleMainItems = mainItems.flatMap((it) => {
+  const catalogVisible = catalogItems.flatMap((it) => {
     if (it.url === "/items" && inventoryEnabled) {
       return [it, { title: "Inventory", url: "/inventory", icon: Boxes, addUrl: null }];
     }
     return [it];
   });
+
+  const groups = [
+    { label: "Sales", items: salesItems },
+    { label: "Purchases", items: purchaseItems },
+    { label: "Accounting", items: accountingItems },
+    { label: "Catalog", items: catalogVisible },
+    { label: "People", items: peopleItems },
+    { label: "Reports", items: reportItems },
+  ];
 
   const isActive = (path: string) =>
     location.pathname === path || location.pathname.startsWith(path + "/");
@@ -127,36 +136,38 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Main</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {visibleMainItems.map((item) => (
-                <SidebarMenuItem key={item.title} className="group/item">
-                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <NavLink
-                      to={item.url}
-                      className="hover:bg-sidebar-accent"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                  {!collapsed && item.addUrl && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); navigate(item.addUrl!); }}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/item:opacity-100 transition-opacity h-5 w-5 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
-                      title={`New ${item.title.replace(/s$/, "")}`}
-                    >
-                      <Plus className="h-3 w-3" />
-                    </button>
-                  )}
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {groups.map((g) => (
+          <SidebarGroup key={g.label}>
+            <SidebarGroupLabel>{g.label}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {g.items.map((item) => (
+                  <SidebarMenuItem key={item.title} className="group/item">
+                    <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                      <NavLink
+                        to={item.url}
+                        className="hover:bg-sidebar-accent"
+                        activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                      >
+                        <item.icon className="h-4 w-4" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                    {!collapsed && item.addUrl && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); navigate(item.addUrl!); }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/item:opacity-100 transition-opacity h-5 w-5 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+                        title={`New ${item.title.replace(/s$/, "")}`}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </button>
+                    )}
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
 
         <SidebarGroup>
           <SidebarGroupLabel>System</SidebarGroupLabel>

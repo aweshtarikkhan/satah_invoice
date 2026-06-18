@@ -157,6 +157,12 @@ const App = () => (
               <Route path="/bank-accounts" element={<BankAccountsPage />} />
               <Route path="/bank-accounts/:id" element={<BankAccountDetailPage />} />
               <Route path="/cash-flow" element={<CashFlowPage />} />
+              <Route path="/shifts" element={<ShiftsPage />} />
+              <Route path="/leaves" element={<LeavesPage />} />
+              <Route path="/employees/:id/documents" element={<EmployeeDocumentsPage />} />
+              <Route path="/employee-documents" element={<EmployeeDocumentsPage />} />
+              <Route path="/payroll" element={<PayrollPage />} />
+              <Route path="/payroll/:id" element={<PayrollRunDetailPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
 

@@ -134,6 +134,7 @@ export function AppSidebar() {
     { label: "Accounting", items: accountingItems },
     { label: "Catalog", items: catalogVisible },
     { label: "People", items: peopleItems },
+    { label: "CRM", items: crmItems },
     { label: "Reports", items: reportItems },
   ];
 

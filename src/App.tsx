@@ -43,6 +43,15 @@ import AttendancePage from "./pages/AttendancePage";
 import GstReturnsPage from "./pages/GstReturnsPage";
 import DemoAutoLoginPage from "./pages/DemoAutoLoginPage";
 import LandingPage from "./pages/LandingPage";
+import VendorsPage from "./pages/VendorsPage";
+import BillsPage from "./pages/BillsPage";
+import BillBuilderPage from "./pages/BillBuilderPage";
+import BillDetailPage from "./pages/BillDetailPage";
+import ChartOfAccountsPage from "./pages/ChartOfAccountsPage";
+import JournalEntriesPage from "./pages/JournalEntriesPage";
+import BranchesPage from "./pages/BranchesPage";
+import TdsPage from "./pages/TdsPage";
+import AccountingReportsPage from "./pages/AccountingReportsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

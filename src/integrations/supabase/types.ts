@@ -71,6 +71,83 @@ export type Database = {
           },
         ]
       }
+      activities: {
+        Row: {
+          activity_type: Database["public"]["Enums"]["activity_type"]
+          body: string | null
+          client_id: string | null
+          completed_at: string | null
+          created_at: string
+          due_at: string | null
+          id: string
+          lead_id: string | null
+          opportunity_id: string | null
+          org_id: string
+          owner_id: string | null
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          activity_type?: Database["public"]["Enums"]["activity_type"]
+          body?: string | null
+          client_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          due_at?: string | null
+          id?: string
+          lead_id?: string | null
+          opportunity_id?: string | null
+          org_id: string
+          owner_id?: string | null
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          activity_type?: Database["public"]["Enums"]["activity_type"]
+          body?: string | null
+          client_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          due_at?: string | null
+          id?: string
+          lead_id?: string | null
+          opportunity_id?: string | null
+          org_id?: string
+          owner_id?: string | null
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activities_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendance: {
         Row: {
           attendance_date: string
@@ -2248,6 +2325,75 @@ export type Database = {
           },
         ]
       }
+      leads: {
+        Row: {
+          company: string | null
+          converted_client_id: string | null
+          created_at: string
+          email: string | null
+          estimated_value: number
+          id: string
+          name: string
+          notes: string | null
+          org_id: string
+          owner_id: string | null
+          phone: string | null
+          source: string | null
+          status: Database["public"]["Enums"]["lead_status"]
+          tags: string[]
+          updated_at: string
+        }
+        Insert: {
+          company?: string | null
+          converted_client_id?: string | null
+          created_at?: string
+          email?: string | null
+          estimated_value?: number
+          id?: string
+          name: string
+          notes?: string | null
+          org_id: string
+          owner_id?: string | null
+          phone?: string | null
+          source?: string | null
+          status?: Database["public"]["Enums"]["lead_status"]
+          tags?: string[]
+          updated_at?: string
+        }
+        Update: {
+          company?: string | null
+          converted_client_id?: string | null
+          created_at?: string
+          email?: string | null
+          estimated_value?: number
+          id?: string
+          name?: string
+          notes?: string | null
+          org_id?: string
+          owner_id?: string | null
+          phone?: string | null
+          source?: string | null
+          status?: Database["public"]["Enums"]["lead_status"]
+          tags?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_converted_client_id_fkey"
+            columns: ["converted_client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leaves: {
         Row: {
           approved_at: string | null
@@ -2307,6 +2453,89 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunities: {
+        Row: {
+          amount: number
+          client_id: string | null
+          created_at: string
+          currency: string
+          expected_close_date: string | null
+          id: string
+          lead_id: string | null
+          notes: string | null
+          org_id: string
+          owner_id: string | null
+          probability: number
+          sort_order: number
+          stage_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          client_id?: string | null
+          created_at?: string
+          currency?: string
+          expected_close_date?: string | null
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          org_id: string
+          owner_id?: string | null
+          probability?: number
+          sort_order?: number
+          stage_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          client_id?: string | null
+          created_at?: string
+          currency?: string
+          expected_close_date?: string | null
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          org_id?: string
+          owner_id?: string | null
+          probability?: number
+          sort_order?: number
+          stage_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunities_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunities_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunities_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunities_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_stages"
             referencedColumns: ["id"]
           },
         ]
@@ -2681,6 +2910,50 @@ export type Database = {
             columns: ["run_id"]
             isOneToOne: false
             referencedRelation: "payroll_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pipeline_stages: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          is_lost: boolean
+          is_won: boolean
+          name: string
+          org_id: string
+          sort_order: number
+          win_probability: number
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          is_lost?: boolean
+          is_won?: boolean
+          name: string
+          org_id: string
+          sort_order?: number
+          win_probability?: number
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          is_lost?: boolean
+          is_won?: boolean
+          name?: string
+          org_id?: string
+          sort_order?: number
+          win_probability?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pipeline_stages_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -3486,9 +3759,11 @@ export type Database = {
         Args: { p_org_id: string }
         Returns: undefined
       }
+      seed_default_pipeline: { Args: { p_org_id: string }; Returns: undefined }
     }
     Enums: {
       account_type: "asset" | "liability" | "equity" | "income" | "expense"
+      activity_type: "call" | "meeting" | "email" | "note" | "task" | "whatsapp"
       app_role: "owner" | "admin" | "staff" | "read_only"
       attendance_status:
         | "present"
@@ -3517,6 +3792,7 @@ export type Database = {
         | "overdue"
         | "void"
       item_type: "service" | "product"
+      lead_status: "new" | "contacted" | "qualified" | "converted" | "lost"
       leave_status: "pending" | "approved" | "rejected"
       leave_type: "casual" | "sick" | "paid" | "unpaid" | "other"
       payroll_status: "draft" | "approved" | "paid"
@@ -3649,6 +3925,7 @@ export const Constants = {
   public: {
     Enums: {
       account_type: ["asset", "liability", "equity", "income", "expense"],
+      activity_type: ["call", "meeting", "email", "note", "task", "whatsapp"],
       app_role: ["owner", "admin", "staff", "read_only"],
       attendance_status: [
         "present",
@@ -3680,6 +3957,7 @@ export const Constants = {
         "void",
       ],
       item_type: ["service", "product"],
+      lead_status: ["new", "contacted", "qualified", "converted", "lost"],
       leave_status: ["pending", "approved", "rejected"],
       leave_type: ["casual", "sick", "paid", "unpaid", "other"],
       payroll_status: ["draft", "approved", "paid"],

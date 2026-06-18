@@ -69,6 +69,9 @@ import LeavesPage from "./pages/LeavesPage";
 import EmployeeDocumentsPage from "./pages/EmployeeDocumentsPage";
 import PayrollPage from "./pages/PayrollPage";
 import PayrollRunDetailPage from "./pages/PayrollRunDetailPage";
+import LeadsPage from "./pages/LeadsPage";
+import PipelinePage from "./pages/PipelinePage";
+import ActivitiesPage from "./pages/ActivitiesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -163,6 +166,9 @@ const App = () => (
               <Route path="/employee-documents" element={<EmployeeDocumentsPage />} />
               <Route path="/payroll" element={<PayrollPage />} />
               <Route path="/payroll/:id" element={<PayrollRunDetailPage />} />
+              <Route path="/leads" element={<LeadsPage />} />
+              <Route path="/pipeline" element={<PipelinePage />} />
+              <Route path="/activities" element={<ActivitiesPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
 

@@ -25,7 +25,7 @@ Foundations for true accounting.
 - Purchase Management workflow: PO → GRN → Bill (3-way match).
 - Goods Dispatch (Delivery Challan upgrade with vehicle/transporter).
 
-## Phase 8 — Banking & Reconciliation
+## Phase 8 — Banking & Reconciliation ✅ DONE
 - `bank_accounts`, `bank_transactions` tables.
 - CSV / OFX bank statement import.
 - Reconciliation UI: match bank txns to payments/expenses/bills.

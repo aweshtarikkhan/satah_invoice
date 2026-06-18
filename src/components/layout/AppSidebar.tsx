@@ -71,6 +71,8 @@ const purchaseItems = [
 const accountingItems = [
   { title: "Chart of Accounts", url: "/accounts", icon: BookOpen, addUrl: null },
   { title: "Journal Entries", url: "/journal", icon: Calculator, addUrl: null },
+  { title: "Bank & Cash", url: "/bank-accounts", icon: Landmark, addUrl: null },
+  { title: "Cash Flow", url: "/cash-flow", icon: PieChart, addUrl: null },
   { title: "Branches", url: "/branches", icon: Building2, addUrl: null },
   { title: "TDS", url: "/tds", icon: Percent, addUrl: null },
   { title: "Accounting Reports", url: "/accounting-reports", icon: Landmark, addUrl: null },

@@ -61,6 +61,9 @@ import GrnDetailPage from "./pages/GrnDetailPage";
 import DeliveryChallansPage from "./pages/DeliveryChallansPage";
 import DeliveryChallanBuilderPage from "./pages/DeliveryChallanBuilderPage";
 import InventoryValuationPage from "./pages/InventoryValuationPage";
+import BankAccountsPage from "./pages/BankAccountsPage";
+import BankAccountDetailPage from "./pages/BankAccountDetailPage";
+import CashFlowPage from "./pages/CashFlowPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -146,6 +149,9 @@ const App = () => (
               <Route path="/delivery-challans/new" element={<DeliveryChallanBuilderPage />} />
               <Route path="/delivery-challans/:id/edit" element={<DeliveryChallanBuilderPage />} />
               <Route path="/inventory-valuation" element={<InventoryValuationPage />} />
+              <Route path="/bank-accounts" element={<BankAccountsPage />} />
+              <Route path="/bank-accounts/:id" element={<BankAccountDetailPage />} />
+              <Route path="/cash-flow" element={<CashFlowPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
 

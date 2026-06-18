@@ -22,6 +22,12 @@ import {
   UserCog,
   CalendarCheck,
   FileBarChart2,
+  Truck,
+  BookOpen,
+  Building2,
+  Percent,
+  Calculator,
+  Landmark,
 } from "lucide-react";
 import { useAppStore } from "@/store/app-store";
 import logoImg from "@/assets/logo.png";
@@ -42,23 +48,44 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const mainItems = [
+const salesItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, addUrl: null },
   { title: "Invoices", url: "/invoices", icon: FileText, addUrl: "/invoices/new" },
   { title: "Estimates", url: "/estimates", icon: ClipboardList, addUrl: "/estimates/new" },
   { title: "Clients", url: "/clients", icon: Users, addUrl: "/clients?add=1" },
-  { title: "Items", url: "/items", icon: Package, addUrl: "/items?add=1" },
   { title: "Credit Notes", url: "/credit-notes", icon: FileMinus2, addUrl: "/credit-notes/new" },
   { title: "Payments Received", url: "/payments", icon: CreditCard, addUrl: "/payments/new" },
+  { title: "Recurring", url: "/recurring-invoices", icon: RefreshCw, addUrl: null },
+];
+
+const purchaseItems = [
+  { title: "Vendors", url: "/vendors", icon: Truck, addUrl: null },
+  { title: "Bills", url: "/bills", icon: Receipt, addUrl: "/bills/new" },
   { title: "Expenses", url: "/expenses", icon: Coins, addUrl: "/expenses?add=1" },
+];
+
+const accountingItems = [
+  { title: "Chart of Accounts", url: "/accounts", icon: BookOpen, addUrl: null },
+  { title: "Journal Entries", url: "/journal", icon: Calculator, addUrl: null },
+  { title: "Branches", url: "/branches", icon: Building2, addUrl: null },
+  { title: "TDS", url: "/tds", icon: Percent, addUrl: null },
+  { title: "Accounting Reports", url: "/accounting-reports", icon: Landmark, addUrl: null },
+];
+
+const catalogItems = [
+  { title: "Items", url: "/items", icon: Package, addUrl: "/items?add=1" },
+];
+
+const peopleItems = [
   { title: "Employees", url: "/employees", icon: UserCog, addUrl: null },
   { title: "Attendance", url: "/attendance", icon: CalendarCheck, addUrl: null },
-  { title: "Recurring", url: "/recurring-invoices", icon: RefreshCw, addUrl: null },
+];
+
+const reportItems = [
   { title: "Statements", url: "/statements", icon: FileSpreadsheet, addUrl: null },
   { title: "Reports", url: "/reports", icon: BarChart3, addUrl: null },
   { title: "Profit & Loss", url: "/profit-loss", icon: PieChart, addUrl: null },
   { title: "GST Returns", url: "/gst-returns", icon: FileBarChart2, addUrl: null },
-  { title: "Templates", url: "/templates", icon: Layout, addUrl: null },
 ];
 
 const settingsItems = [
@@ -77,12 +104,21 @@ export function AppSidebar() {
   const org = useAppStore((s) => s.organization);
   const inventoryEnabled = (org as any)?.inventory_enabled;
 
-  const visibleMainItems = mainItems.flatMap((it) => {
+  const catalogVisible = catalogItems.flatMap((it) => {
     if (it.url === "/items" && inventoryEnabled) {
       return [it, { title: "Inventory", url: "/inventory", icon: Boxes, addUrl: null }];
     }
     return [it];
   });
+
+  const groups = [
+    { label: "Sales", items: salesItems },
+    { label: "Purchases", items: purchaseItems },
+    { label: "Accounting", items: accountingItems },
+    { label: "Catalog", items: catalogVisible },
+    { label: "People", items: peopleItems },
+    { label: "Reports", items: reportItems },
+  ];
 
   const isActive = (path: string) =>
     location.pathname === path || location.pathname.startsWith(path + "/");
@@ -100,36 +136,38 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Main</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {visibleMainItems.map((item) => (
-                <SidebarMenuItem key={item.title} className="group/item">
-                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <NavLink
-                      to={item.url}
-                      className="hover:bg-sidebar-accent"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                  {!collapsed && item.addUrl && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); navigate(item.addUrl!); }}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/item:opacity-100 transition-opacity h-5 w-5 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
-                      title={`New ${item.title.replace(/s$/, "")}`}
-                    >
-                      <Plus className="h-3 w-3" />
-                    </button>
-                  )}
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {groups.map((g) => (
+          <SidebarGroup key={g.label}>
+            <SidebarGroupLabel>{g.label}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {g.items.map((item) => (
+                  <SidebarMenuItem key={item.title} className="group/item">
+                    <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                      <NavLink
+                        to={item.url}
+                        className="hover:bg-sidebar-accent"
+                        activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                      >
+                        <item.icon className="h-4 w-4" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                    {!collapsed && item.addUrl && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); navigate(item.addUrl!); }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/item:opacity-100 transition-opacity h-5 w-5 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+                        title={`New ${item.title.replace(/s$/, "")}`}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </button>
+                    )}
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
 
         <SidebarGroup>
           <SidebarGroupLabel>System</SidebarGroupLabel>

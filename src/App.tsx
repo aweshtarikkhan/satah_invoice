@@ -43,6 +43,15 @@ import AttendancePage from "./pages/AttendancePage";
 import GstReturnsPage from "./pages/GstReturnsPage";
 import DemoAutoLoginPage from "./pages/DemoAutoLoginPage";
 import LandingPage from "./pages/LandingPage";
+import VendorsPage from "./pages/VendorsPage";
+import BillsPage from "./pages/BillsPage";
+import BillBuilderPage from "./pages/BillBuilderPage";
+import BillDetailPage from "./pages/BillDetailPage";
+import ChartOfAccountsPage from "./pages/ChartOfAccountsPage";
+import JournalEntriesPage from "./pages/JournalEntriesPage";
+import BranchesPage from "./pages/BranchesPage";
+import TdsPage from "./pages/TdsPage";
+import AccountingReportsPage from "./pages/AccountingReportsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -105,6 +114,16 @@ const App = () => (
               <Route path="/attendance" element={<AttendancePage />} />
               <Route path="/statements" element={<CustomerStatementPage />} />
               <Route path="/statements/:clientId" element={<CustomerStatementPage />} />
+              <Route path="/vendors" element={<VendorsPage />} />
+              <Route path="/bills" element={<BillsPage />} />
+              <Route path="/bills/new" element={<BillBuilderPage />} />
+              <Route path="/bills/:id" element={<BillDetailPage />} />
+              <Route path="/bills/:id/edit" element={<BillBuilderPage />} />
+              <Route path="/accounts" element={<ChartOfAccountsPage />} />
+              <Route path="/journal" element={<JournalEntriesPage />} />
+              <Route path="/branches" element={<BranchesPage />} />
+              <Route path="/tds" element={<TdsPage />} />
+              <Route path="/accounting-reports" element={<AccountingReportsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
 

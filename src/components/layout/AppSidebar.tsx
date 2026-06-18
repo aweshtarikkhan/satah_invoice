@@ -85,6 +85,10 @@ const catalogItems = [
 const peopleItems = [
   { title: "Employees", url: "/employees", icon: UserCog, addUrl: null },
   { title: "Attendance", url: "/attendance", icon: CalendarCheck, addUrl: null },
+  { title: "Leaves", url: "/leaves", icon: ClipboardList, addUrl: null },
+  { title: "Shifts", url: "/shifts", icon: CalendarCheck, addUrl: null },
+  { title: "Documents", url: "/employee-documents", icon: ScrollText, addUrl: null },
+  { title: "Payroll", url: "/payroll", icon: Calculator, addUrl: null },
 ];
 
 const reportItems = [

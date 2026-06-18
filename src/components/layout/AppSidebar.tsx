@@ -23,6 +23,7 @@ import {
   CalendarCheck,
   FileBarChart2,
   Truck,
+  PackageCheck,
   BookOpen,
   Building2,
   Percent,

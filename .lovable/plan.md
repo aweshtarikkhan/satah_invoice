@@ -38,11 +38,10 @@ Foundations for true accounting.
 - Employee Documents: private storage bucket, per-org folder, signed downloads.
 - Payroll runs per month → auto-generate payslips from attendance + salary structure (Basic/HRA/Allowances, PF 12%, ESIC 0.75%, editable TDS). Approve → post Salary expense → mark all paid. Individual payslip PDF download.
 
-## Phase 10 — CRM & Sales Pipeline
-- `leads`, `opportunities`, `pipeline_stages`.
-- Kanban pipeline UI.
-- Activity log per contact (calls, meetings, notes).
-- Customer segmentation (tags + saved filters; tags already exist on clients).
+## Phase 10 — CRM & Sales Pipeline ✅ DONE
+- `leads` (with status, source, tags, estimated_value), `opportunities` (amount, probability, expected_close), `pipeline_stages` (configurable, color, win %).
+- Drag-and-drop Kanban pipeline with weighted forecast.
+- Lead → Client conversion. Activities (call/meeting/email/whatsapp/task/note) linked to lead/opportunity/client with due dates and mark-done.
 
 ## Phase 11 — Marketing Automation
 - `campaigns` (email/SMS/WhatsApp), `campaign_recipients`, `campaign_events`.

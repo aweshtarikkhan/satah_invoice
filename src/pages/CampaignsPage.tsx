@@ -42,21 +42,21 @@ export default function CampaignsPage() {
   useEffect(() => { load(); }, [org?.id]);
 
   const buildAudience = async (channel: string, audience_type: string) => {
-    const { data: clients } = await supabase.from("clients").select("id,name,phone,email").eq("org_id", org!.id);
-    let list = clients || [];
+    const { data: clients } = await supabase.from("clients").select("id,display_name,phone,email").eq("org_id", org!.id);
+    let list: any[] = clients || [];
     if (audience_type === "overdue") {
       const { data: ovd } = await supabase.from("invoices").select("client_id").eq("org_id", org!.id).gt("balance_due", 0).lt("due_date", new Date().toISOString().split("T")[0]);
-      const ids = new Set((ovd || []).map((i) => i.client_id));
+      const ids = new Set((ovd || []).map((i: any) => i.client_id));
       list = list.filter((c) => ids.has(c.id));
     }
     const addrKey = channel === "email" ? "email" : "phone";
     return list
-      .filter((c) => c[addrKey as "phone" | "email"])
+      .filter((c) => c[addrKey])
       .map((c) => ({
         client_id: c.id,
-        name: c.name,
-        to_address: c[addrKey as "phone" | "email"]!,
-        vars: { name: c.name },
+        name: c.display_name,
+        to_address: c[addrKey] as string,
+        vars: { name: c.display_name },
         org_id: org!.id,
       }));
   };

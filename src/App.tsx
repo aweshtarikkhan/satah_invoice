@@ -72,6 +72,11 @@ import PayrollRunDetailPage from "./pages/PayrollRunDetailPage";
 import LeadsPage from "./pages/LeadsPage";
 import PipelinePage from "./pages/PipelinePage";
 import ActivitiesPage from "./pages/ActivitiesPage";
+import MarketingTemplatesPage from "./pages/MarketingTemplatesPage";
+import CampaignsPage from "./pages/CampaignsPage";
+import CampaignDetailPage from "./pages/CampaignDetailPage";
+import JourneysPage from "./pages/JourneysPage";
+import MessageLogsPage from "./pages/MessageLogsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -169,6 +174,11 @@ const App = () => (
               <Route path="/leads" element={<LeadsPage />} />
               <Route path="/pipeline" element={<PipelinePage />} />
               <Route path="/activities" element={<ActivitiesPage />} />
+              <Route path="/marketing/templates" element={<MarketingTemplatesPage />} />
+              <Route path="/campaigns" element={<CampaignsPage />} />
+              <Route path="/campaigns/:id" element={<CampaignDetailPage />} />
+              <Route path="/journeys" element={<JourneysPage />} />
+              <Route path="/message-logs" element={<MessageLogsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
 

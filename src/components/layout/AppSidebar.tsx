@@ -29,6 +29,9 @@ import {
   Percent,
   Calculator,
   Landmark,
+  Send,
+  MessageSquare,
+  Workflow,
 } from "lucide-react";
 import { useAppStore } from "@/store/app-store";
 import logoImg from "@/assets/logo.png";
@@ -105,6 +108,13 @@ const crmItems = [
   { title: "Activities", url: "/activities", icon: ClipboardList, addUrl: null },
 ];
 
+const marketingItems = [
+  { title: "Campaigns", url: "/campaigns", icon: Send, addUrl: null },
+  { title: "Templates", url: "/marketing/templates", icon: MessageSquare, addUrl: null },
+  { title: "Journeys", url: "/journeys", icon: Workflow, addUrl: null },
+  { title: "Message Logs", url: "/message-logs", icon: ScrollText, addUrl: null },
+];
+
 const settingsItems = [
   { title: "Templates", url: "/templates", icon: Layout },
   { title: "Custom Fields", url: "/custom-fields", icon: SlidersHorizontal },
@@ -135,6 +145,7 @@ export function AppSidebar() {
     { label: "Catalog", items: catalogVisible },
     { label: "People", items: peopleItems },
     { label: "CRM", items: crmItems },
+    { label: "Marketing", items: marketingItems },
     { label: "Reports", items: reportItems },
   ];
 

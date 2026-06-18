@@ -234,10 +234,10 @@ export default function BillBuilderPage() {
           </Table>
 
           <div className="mt-4 ml-auto w-72 space-y-1 text-sm">
-            <div className="flex justify-between"><span>Subtotal</span><span>{formatCurrency(totals.sub)}</span></div>
-            <div className="flex justify-between"><span>Tax</span><span>{formatCurrency(totals.tax)}</span></div>
-            {totals.tdsAmt > 0 && <div className="flex justify-between text-amber-600"><span>TDS</span><span>− {formatCurrency(totals.tdsAmt)}</span></div>}
-            <div className="flex justify-between font-semibold text-base border-t pt-2"><span>Total</span><span>{formatCurrency(totals.total)}</span></div>
+            <div className="flex justify-between"><span>Subtotal</span><span>{formatCurrency(totals.sub, org?.currency || "INR")}</span></div>
+            <div className="flex justify-between"><span>Tax</span><span>{formatCurrency(totals.tax, org?.currency || "INR")}</span></div>
+            {totals.tdsAmt > 0 && <div className="flex justify-between text-amber-600"><span>TDS</span><span>− {formatCurrency(totals.tdsAmt, org?.currency || "INR")}</span></div>}
+            <div className="flex justify-between font-semibold text-base border-t pt-2"><span>Total</span><span>{formatCurrency(totals.total, org?.currency || "INR")}</span></div>
           </div>
         </CardContent>
       </Card>

@@ -96,19 +96,19 @@ export default function AccountingReportsPage() {
                       <TableCell className="font-mono">{a.code}</TableCell>
                       <TableCell>{a.name}</TableCell>
                       <TableCell className="capitalize text-xs text-muted-foreground">{a.type}</TableCell>
-                      <TableCell className="text-right">{a.debit > 0 ? formatCurrency(a.debit) : "—"}</TableCell>
-                      <TableCell className="text-right">{a.credit > 0 ? formatCurrency(a.credit) : "—"}</TableCell>
+                      <TableCell className="text-right">{a.debit > 0 ? formatCurrency(a.debit, org?.currency || "INR") : "—"}</TableCell>
+                      <TableCell className="text-right">{a.credit > 0 ? formatCurrency(a.credit, org?.currency || "INR") : "—"}</TableCell>
                     </TableRow>
                   ))}
                   <TableRow className="font-semibold border-t-2">
                     <TableCell colSpan={3}>Total</TableCell>
-                    <TableCell className="text-right">{formatCurrency(totalDebit)}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(totalCredit)}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(totalDebit, org?.currency || "INR")}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(totalCredit, org?.currency || "INR")}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
               {Math.abs(totalDebit - totalCredit) > 0.01 && (
-                <div className="mt-2 text-sm text-destructive">⚠ Out of balance by {formatCurrency(Math.abs(totalDebit - totalCredit))}</div>
+                <div className="mt-2 text-sm text-destructive">⚠ Out of balance by {formatCurrency(Math.abs(totalDebit - totalCredit), org?.currency || "INR")}</div>
               )}
             </CardContent>
           </Card>
@@ -122,9 +122,9 @@ export default function AccountingReportsPage() {
                 <Table>
                   <TableBody>
                     {byType.asset.filter(a => a.balance !== 0).map(a => (
-                      <TableRow key={a.id}><TableCell>{a.name}</TableCell><TableCell className="text-right">{formatCurrency(a.balance)}</TableCell></TableRow>
+                      <TableRow key={a.id}><TableCell>{a.name}</TableCell><TableCell className="text-right">{formatCurrency(a.balance, org?.currency || "INR")}</TableCell></TableRow>
                     ))}
-                    <TableRow className="font-semibold border-t-2"><TableCell>Total Assets</TableCell><TableCell className="text-right">{formatCurrency(totalAssets)}</TableCell></TableRow>
+                    <TableRow className="font-semibold border-t-2"><TableCell>Total Assets</TableCell><TableCell className="text-right">{formatCurrency(totalAssets, org?.currency || "INR")}</TableCell></TableRow>
                   </TableBody>
                 </Table>
               </CardContent>
@@ -135,18 +135,18 @@ export default function AccountingReportsPage() {
                 <Table>
                   <TableBody>
                     {byType.liability.filter(a => a.balance !== 0).map(a => (
-                      <TableRow key={a.id}><TableCell>{a.name}</TableCell><TableCell className="text-right">{formatCurrency(a.balance)}</TableCell></TableRow>
+                      <TableRow key={a.id}><TableCell>{a.name}</TableCell><TableCell className="text-right">{formatCurrency(a.balance, org?.currency || "INR")}</TableCell></TableRow>
                     ))}
-                    <TableRow className="font-medium"><TableCell>Total Liabilities</TableCell><TableCell className="text-right">{formatCurrency(totalLiab)}</TableCell></TableRow>
+                    <TableRow className="font-medium"><TableCell>Total Liabilities</TableCell><TableCell className="text-right">{formatCurrency(totalLiab, org?.currency || "INR")}</TableCell></TableRow>
                     {byType.equity.filter(a => a.balance !== 0).map(a => (
-                      <TableRow key={a.id}><TableCell>{a.name}</TableCell><TableCell className="text-right">{formatCurrency(a.balance)}</TableCell></TableRow>
+                      <TableRow key={a.id}><TableCell>{a.name}</TableCell><TableCell className="text-right">{formatCurrency(a.balance, org?.currency || "INR")}</TableCell></TableRow>
                     ))}
-                    <TableRow><TableCell>Net Profit (period)</TableCell><TableCell className="text-right">{formatCurrency(netProfit)}</TableCell></TableRow>
-                    <TableRow className="font-semibold border-t-2"><TableCell>Total Liabilities + Equity</TableCell><TableCell className="text-right">{formatCurrency(totalLiabEq)}</TableCell></TableRow>
+                    <TableRow><TableCell>Net Profit (period)</TableCell><TableCell className="text-right">{formatCurrency(netProfit, org?.currency || "INR")}</TableCell></TableRow>
+                    <TableRow className="font-semibold border-t-2"><TableCell>Total Liabilities + Equity</TableCell><TableCell className="text-right">{formatCurrency(totalLiabEq, org?.currency || "INR")}</TableCell></TableRow>
                   </TableBody>
                 </Table>
                 {Math.abs(totalAssets - totalLiabEq) > 0.01 && (
-                  <div className="mt-2 text-xs text-amber-600">Difference: {formatCurrency(totalAssets - totalLiabEq)}</div>
+                  <div className="mt-2 text-xs text-amber-600">Difference: {formatCurrency(totalAssets - totalLiabEq, org?.currency || "INR")}</div>
                 )}
               </CardContent>
             </Card>
@@ -162,9 +162,9 @@ export default function AccountingReportsPage() {
                   {data.filter(a => a.code === "1000" || a.code === "1010").map(a => (
                     <TableRow key={a.id}>
                       <TableCell>{a.name}</TableCell>
-                      <TableCell className="text-right text-emerald-600">In: {formatCurrency(a.debit)}</TableCell>
-                      <TableCell className="text-right text-rose-600">Out: {formatCurrency(a.credit)}</TableCell>
-                      <TableCell className="text-right font-semibold">Net: {formatCurrency(a.balance)}</TableCell>
+                      <TableCell className="text-right text-emerald-600">In: {formatCurrency(a.debit, org?.currency || "INR")}</TableCell>
+                      <TableCell className="text-right text-rose-600">Out: {formatCurrency(a.credit, org?.currency || "INR")}</TableCell>
+                      <TableCell className="text-right font-semibold">Net: {formatCurrency(a.balance, org?.currency || "INR")}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

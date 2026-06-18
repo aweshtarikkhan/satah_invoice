@@ -101,20 +101,20 @@ export default function BillDetailPage() {
                   <TableCell>{l.description}</TableCell>
                   <TableCell>{l.hsn || "—"}</TableCell>
                   <TableCell>{l.quantity}</TableCell>
-                  <TableCell>{formatCurrency(Number(l.rate))}</TableCell>
+                  <TableCell>{formatCurrency(Number(l.rate), org?.currency || "INR")}</TableCell>
                   <TableCell>{l.tax_rate}%</TableCell>
-                  <TableCell className="text-right">{formatCurrency(Number(l.amount))}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(Number(l.amount), org?.currency || "INR")}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
           <div className="mt-4 ml-auto w-72 space-y-1 text-sm">
-            <div className="flex justify-between"><span>Subtotal</span><span>{formatCurrency(Number(bill.subtotal))}</span></div>
-            <div className="flex justify-between"><span>Tax</span><span>{formatCurrency(Number(bill.tax_total))}</span></div>
-            {Number(bill.tds_amount) > 0 && <div className="flex justify-between text-amber-600"><span>TDS</span><span>− {formatCurrency(Number(bill.tds_amount))}</span></div>}
-            <div className="flex justify-between font-semibold border-t pt-2"><span>Total</span><span>{formatCurrency(Number(bill.total))}</span></div>
-            <div className="flex justify-between text-emerald-600"><span>Paid</span><span>{formatCurrency(Number(bill.amount_paid))}</span></div>
-            <div className="flex justify-between font-medium text-base"><span>Balance Due</span><span>{formatCurrency(Number(bill.balance_due))}</span></div>
+            <div className="flex justify-between"><span>Subtotal</span><span>{formatCurrency(Number(bill.subtotal), org?.currency || "INR")}</span></div>
+            <div className="flex justify-between"><span>Tax</span><span>{formatCurrency(Number(bill.tax_total), org?.currency || "INR")}</span></div>
+            {Number(bill.tds_amount) > 0 && <div className="flex justify-between text-amber-600"><span>TDS</span><span>− {formatCurrency(Number(bill.tds_amount), org?.currency || "INR")}</span></div>}
+            <div className="flex justify-between font-semibold border-t pt-2"><span>Total</span><span>{formatCurrency(Number(bill.total), org?.currency || "INR")}</span></div>
+            <div className="flex justify-between text-emerald-600"><span>Paid</span><span>{formatCurrency(Number(bill.amount_paid), org?.currency || "INR")}</span></div>
+            <div className="flex justify-between font-medium text-base"><span>Balance Due</span><span>{formatCurrency(Number(bill.balance_due), org?.currency || "INR")}</span></div>
           </div>
         </CardContent>
       </Card>
@@ -131,7 +131,7 @@ export default function BillDetailPage() {
                     <TableCell>{format(new Date(p.payment_date), "dd MMM yyyy")}</TableCell>
                     <TableCell className="capitalize">{p.payment_method.replace("_", " ")}</TableCell>
                     <TableCell>{p.reference || "—"}</TableCell>
-                    <TableCell className="text-right font-medium">{formatCurrency(Number(p.amount))}</TableCell>
+                    <TableCell className="text-right font-medium">{formatCurrency(Number(p.amount), org?.currency || "INR")}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

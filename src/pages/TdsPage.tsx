@@ -76,7 +76,7 @@ export default function TdsPage() {
               <div><Label>To</Label><Input type="date" value={to} onChange={e => setTo(e.target.value)} /></div>
               <div className="ml-auto text-right">
                 <div className="text-xs text-muted-foreground">Total TDS Deducted</div>
-                <div className="text-2xl font-semibold text-amber-600">{formatCurrency(totalTds)}</div>
+                <div className="text-2xl font-semibold text-amber-600">{formatCurrency(totalTds, org?.currency || "INR")}</div>
               </div>
             </CardContent>
           </Card>
@@ -92,8 +92,8 @@ export default function TdsPage() {
                       <TableCell className="font-mono">{s.code}</TableCell>
                       <TableCell>{s.name}</TableCell>
                       <TableCell className="text-right">{s.count}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(s.base)}</TableCell>
-                      <TableCell className="text-right font-medium">{formatCurrency(s.tds)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(s.base, org?.currency || "INR")}</TableCell>
+                      <TableCell className="text-right font-medium">{formatCurrency(s.tds, org?.currency || "INR")}</TableCell>
                     </TableRow>
                   ))}
                   {!summary.length && <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">No TDS for this period</TableCell></TableRow>}
@@ -114,8 +114,8 @@ export default function TdsPage() {
                       <TableCell className="font-mono text-xs">{b.bill_number}</TableCell>
                       <TableCell>{b.vendors?.name}</TableCell>
                       <TableCell>{b.tds_sections?.code}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(Number(b.subtotal))}</TableCell>
-                      <TableCell className="text-right font-medium">{formatCurrency(Number(b.tds_amount))}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(Number(b.subtotal), org?.currency || "INR")}</TableCell>
+                      <TableCell className="text-right font-medium">{formatCurrency(Number(b.tds_amount), org?.currency || "INR")}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -139,7 +139,7 @@ export default function TdsPage() {
                       <TableCell className="font-mono">{s.code}</TableCell>
                       <TableCell>{s.name}</TableCell>
                       <TableCell className="text-right">{s.rate}%</TableCell>
-                      <TableCell className="text-right">{formatCurrency(Number(s.threshold))}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(Number(s.threshold), org?.currency || "INR")}</TableCell>
                       <TableCell className="text-right">
                         <Button size="icon" variant="ghost" onClick={() => { setEditId(s.id); setForm({ code: s.code, name: s.name, rate: String(s.rate), threshold: String(s.threshold) }); setOpen(true); }}><Pencil className="h-4 w-4" /></Button>
                         <Button size="icon" variant="ghost" onClick={async () => { if (confirm("Delete?")) { await (supabase as any).from("tds_sections").delete().eq("id", s.id); load(); } }}><Trash2 className="h-4 w-4 text-destructive" /></Button>

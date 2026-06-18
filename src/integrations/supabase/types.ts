@@ -1271,12 +1271,63 @@ export type Database = {
           },
         ]
       }
+      employee_documents: {
+        Row: {
+          doc_type: string
+          employee_id: string
+          file_name: string
+          file_path: string
+          id: string
+          org_id: string
+          uploaded_at: string
+        }
+        Insert: {
+          doc_type?: string
+          employee_id: string
+          file_name: string
+          file_path: string
+          id?: string
+          org_id: string
+          uploaded_at?: string
+        }
+        Update: {
+          doc_type?: string
+          employee_id?: string
+          file_name?: string
+          file_path?: string
+          id?: string
+          org_id?: string
+          uploaded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_documents_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
+          address: string | null
+          bank_account: string | null
+          bank_ifsc: string | null
+          basic_percent: number
           created_at: string
           designation: string | null
           email: string | null
           employee_code: string | null
+          esic_applicable: boolean
+          hra_percent: number
           id: string
           is_active: boolean
           joining_date: string | null
@@ -1285,14 +1336,23 @@ export type Database = {
           notes: string | null
           org_id: string
           paid_leaves_per_month: number
+          pan: string | null
+          pf_applicable: boolean
           phone: string | null
+          shift_id: string | null
           updated_at: string
         }
         Insert: {
+          address?: string | null
+          bank_account?: string | null
+          bank_ifsc?: string | null
+          basic_percent?: number
           created_at?: string
           designation?: string | null
           email?: string | null
           employee_code?: string | null
+          esic_applicable?: boolean
+          hra_percent?: number
           id?: string
           is_active?: boolean
           joining_date?: string | null
@@ -1301,14 +1361,23 @@ export type Database = {
           notes?: string | null
           org_id: string
           paid_leaves_per_month?: number
+          pan?: string | null
+          pf_applicable?: boolean
           phone?: string | null
+          shift_id?: string | null
           updated_at?: string
         }
         Update: {
+          address?: string | null
+          bank_account?: string | null
+          bank_ifsc?: string | null
+          basic_percent?: number
           created_at?: string
           designation?: string | null
           email?: string | null
           employee_code?: string | null
+          esic_applicable?: boolean
+          hra_percent?: number
           id?: string
           is_active?: boolean
           joining_date?: string | null
@@ -1317,7 +1386,10 @@ export type Database = {
           notes?: string | null
           org_id?: string
           paid_leaves_per_month?: number
+          pan?: string | null
+          pf_applicable?: boolean
           phone?: string | null
+          shift_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -2176,6 +2248,69 @@ export type Database = {
           },
         ]
       }
+      leaves: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          days: number
+          employee_id: string
+          end_date: string
+          id: string
+          leave_type: Database["public"]["Enums"]["leave_type"]
+          org_id: string
+          reason: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["leave_status"]
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          days?: number
+          employee_id: string
+          end_date: string
+          id?: string
+          leave_type?: Database["public"]["Enums"]["leave_type"]
+          org_id: string
+          reason?: string | null
+          start_date: string
+          status?: Database["public"]["Enums"]["leave_status"]
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          days?: number
+          employee_id?: string
+          end_date?: string
+          id?: string
+          leave_type?: Database["public"]["Enums"]["leave_type"]
+          org_id?: string
+          reason?: string | null
+          start_date?: string
+          status?: Database["public"]["Enums"]["leave_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leaves_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leaves_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           address: Json | null
@@ -2405,6 +2540,147 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payroll_runs: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          org_id: string
+          period_month: string
+          status: Database["public"]["Enums"]["payroll_status"]
+          total_deductions: number
+          total_gross: number
+          total_net: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          org_id: string
+          period_month: string
+          status?: Database["public"]["Enums"]["payroll_status"]
+          total_deductions?: number
+          total_gross?: number
+          total_net?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          org_id?: string
+          period_month?: string
+          status?: Database["public"]["Enums"]["payroll_status"]
+          total_deductions?: number
+          total_gross?: number
+          total_net?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_runs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payslips: {
+        Row: {
+          allowances: number
+          basic: number
+          created_at: string
+          employee_id: string
+          esic_employee: number
+          gross_salary: number
+          hra: number
+          id: string
+          lop_days: number
+          net_pay: number
+          org_id: string
+          other_deductions: number
+          paid_leave_days: number
+          payment_date: string | null
+          payment_status: string
+          pf_employee: number
+          present_days: number
+          run_id: string
+          tds: number
+          updated_at: string
+          working_days: number
+        }
+        Insert: {
+          allowances?: number
+          basic?: number
+          created_at?: string
+          employee_id: string
+          esic_employee?: number
+          gross_salary?: number
+          hra?: number
+          id?: string
+          lop_days?: number
+          net_pay?: number
+          org_id: string
+          other_deductions?: number
+          paid_leave_days?: number
+          payment_date?: string | null
+          payment_status?: string
+          pf_employee?: number
+          present_days?: number
+          run_id: string
+          tds?: number
+          updated_at?: string
+          working_days?: number
+        }
+        Update: {
+          allowances?: number
+          basic?: number
+          created_at?: string
+          employee_id?: string
+          esic_employee?: number
+          gross_salary?: number
+          hra?: number
+          id?: string
+          lop_days?: number
+          net_pay?: number
+          org_id?: string
+          other_deductions?: number
+          paid_leave_days?: number
+          payment_date?: string | null
+          payment_status?: string
+          pf_employee?: number
+          present_days?: number
+          run_id?: string
+          tds?: number
+          updated_at?: string
+          working_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payslips_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payslips_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payslips_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_runs"
             referencedColumns: ["id"]
           },
         ]
@@ -2716,6 +2992,50 @@ export type Database = {
             columns: ["template_invoice_id"]
             isOneToOne: false
             referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shifts: {
+        Row: {
+          created_at: string
+          end_time: string
+          id: string
+          is_default: boolean
+          name: string
+          org_id: string
+          start_time: string
+          updated_at: string
+          working_days: number[]
+        }
+        Insert: {
+          created_at?: string
+          end_time?: string
+          id?: string
+          is_default?: boolean
+          name: string
+          org_id: string
+          start_time?: string
+          updated_at?: string
+          working_days?: number[]
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          org_id?: string
+          start_time?: string
+          updated_at?: string
+          working_days?: number[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shifts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -3197,6 +3517,9 @@ export type Database = {
         | "overdue"
         | "void"
       item_type: "service" | "product"
+      leave_status: "pending" | "approved" | "rejected"
+      leave_type: "casual" | "sick" | "paid" | "unpaid" | "other"
+      payroll_status: "draft" | "approved" | "paid"
       tax_type: "simple" | "compound"
     }
     CompositeTypes: {
@@ -3357,6 +3680,9 @@ export const Constants = {
         "void",
       ],
       item_type: ["service", "product"],
+      leave_status: ["pending", "approved", "rejected"],
+      leave_type: ["casual", "sick", "paid", "unpaid", "other"],
+      payroll_status: ["draft", "approved", "paid"],
       tax_type: ["simple", "compound"],
     },
   },

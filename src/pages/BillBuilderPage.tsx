@@ -226,7 +226,7 @@ export default function BillBuilderPage() {
                   <TableCell><Input type="number" value={l.quantity} onChange={e => { const x = [...lines]; x[i].quantity = e.target.value; setLines(x); }} /></TableCell>
                   <TableCell><Input type="number" value={l.rate} onChange={e => { const x = [...lines]; x[i].rate = e.target.value; setLines(x); }} /></TableCell>
                   <TableCell><Input type="number" value={l.tax_rate} onChange={e => { const x = [...lines]; x[i].tax_rate = e.target.value; setLines(x); }} /></TableCell>
-                  <TableCell className="text-right">{formatCurrency((Number(l.quantity) || 0) * (Number(l.rate) || 0))}</TableCell>
+                  <TableCell className="text-right">{formatCurrency((Number(l.quantity) || 0) * (Number(l.rate) || 0), (org as any)?.currency || "INR")}</TableCell>
                   <TableCell><Button size="icon" variant="ghost" onClick={() => setLines(lines.filter((_, j) => j !== i))}><Trash2 className="h-4 w-4" /></Button></TableCell>
                 </TableRow>
               ))}

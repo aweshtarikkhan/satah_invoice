@@ -99,6 +99,12 @@ const reportItems = [
   { title: "Inventory Valuation", url: "/inventory-valuation", icon: Boxes, addUrl: null },
 ];
 
+const crmItems = [
+  { title: "Leads", url: "/leads", icon: Users, addUrl: "/leads?add=1" },
+  { title: "Pipeline", url: "/pipeline", icon: BarChart3, addUrl: null },
+  { title: "Activities", url: "/activities", icon: ClipboardList, addUrl: null },
+];
+
 const settingsItems = [
   { title: "Templates", url: "/templates", icon: Layout },
   { title: "Custom Fields", url: "/custom-fields", icon: SlidersHorizontal },

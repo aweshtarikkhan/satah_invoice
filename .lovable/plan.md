@@ -18,7 +18,7 @@ Foundations for true accounting.
 - TDS: `tds_sections`, deduction on bills/payments, TDS report.
 - Multi-Branch: `branches` table; tag transactions; branch filter on reports.
 
-## Phase 7 — Inventory & Warehouse Depth
+## Phase 7 — Inventory & Warehouse Depth ✅ DONE
 - Batch & Serial number tracking on `stock_movements`.
 - Inventory Valuation reports (FIFO / Weighted Avg).
 - Reorder alerts (already started) → dashboard widget + email.

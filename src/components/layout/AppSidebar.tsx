@@ -23,6 +23,7 @@ import {
   CalendarCheck,
   FileBarChart2,
   Truck,
+  PackageCheck,
   BookOpen,
   Building2,
   Percent,
@@ -55,11 +56,14 @@ const salesItems = [
   { title: "Clients", url: "/clients", icon: Users, addUrl: "/clients?add=1" },
   { title: "Credit Notes", url: "/credit-notes", icon: FileMinus2, addUrl: "/credit-notes/new" },
   { title: "Payments Received", url: "/payments", icon: CreditCard, addUrl: "/payments/new" },
+  { title: "Delivery Challans", url: "/delivery-challans", icon: Truck, addUrl: "/delivery-challans/new" },
   { title: "Recurring", url: "/recurring-invoices", icon: RefreshCw, addUrl: null },
 ];
 
 const purchaseItems = [
   { title: "Vendors", url: "/vendors", icon: Truck, addUrl: null },
+  { title: "Purchase Orders", url: "/purchase-orders", icon: ClipboardList, addUrl: "/purchase-orders/new" },
+  { title: "Goods Receipt (GRN)", url: "/grns", icon: PackageCheck, addUrl: "/grns/new" },
   { title: "Bills", url: "/bills", icon: Receipt, addUrl: "/bills/new" },
   { title: "Expenses", url: "/expenses", icon: Coins, addUrl: "/expenses?add=1" },
 ];
@@ -86,6 +90,7 @@ const reportItems = [
   { title: "Reports", url: "/reports", icon: BarChart3, addUrl: null },
   { title: "Profit & Loss", url: "/profit-loss", icon: PieChart, addUrl: null },
   { title: "GST Returns", url: "/gst-returns", icon: FileBarChart2, addUrl: null },
+  { title: "Inventory Valuation", url: "/inventory-valuation", icon: Boxes, addUrl: null },
 ];
 
 const settingsItems = [

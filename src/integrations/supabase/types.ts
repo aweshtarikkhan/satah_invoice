@@ -348,9 +348,11 @@ export type Database = {
           discount: number | null
           due_date: string | null
           exchange_rate: number | null
+          grn_id: string | null
           id: string
           notes: string | null
           org_id: string
+          po_id: string | null
           round_off: number | null
           status: Database["public"]["Enums"]["bill_status"] | null
           subtotal: number | null
@@ -375,9 +377,11 @@ export type Database = {
           discount?: number | null
           due_date?: string | null
           exchange_rate?: number | null
+          grn_id?: string | null
           id?: string
           notes?: string | null
           org_id: string
+          po_id?: string | null
           round_off?: number | null
           status?: Database["public"]["Enums"]["bill_status"] | null
           subtotal?: number | null
@@ -402,9 +406,11 @@ export type Database = {
           discount?: number | null
           due_date?: string | null
           exchange_rate?: number | null
+          grn_id?: string | null
           id?: string
           notes?: string | null
           org_id?: string
+          po_id?: string | null
           round_off?: number | null
           status?: Database["public"]["Enums"]["bill_status"] | null
           subtotal?: number | null
@@ -426,10 +432,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "bills_grn_id_fkey"
+            columns: ["grn_id"]
+            isOneToOne: false
+            referencedRelation: "grns"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "bills_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bills_po_id_fkey"
+            columns: ["po_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
             referencedColumns: ["id"]
           },
           {
@@ -935,6 +955,172 @@ export type Database = {
           },
         ]
       }
+      delivery_challan_lines: {
+        Row: {
+          batch_no: string | null
+          created_at: string
+          dc_id: string
+          description: string
+          id: string
+          item_id: string | null
+          org_id: string
+          quantity: number
+          serial_no: string | null
+          sort_order: number | null
+          unit: string | null
+        }
+        Insert: {
+          batch_no?: string | null
+          created_at?: string
+          dc_id: string
+          description: string
+          id?: string
+          item_id?: string | null
+          org_id: string
+          quantity?: number
+          serial_no?: string | null
+          sort_order?: number | null
+          unit?: string | null
+        }
+        Update: {
+          batch_no?: string | null
+          created_at?: string
+          dc_id?: string
+          description?: string
+          id?: string
+          item_id?: string | null
+          org_id?: string
+          quantity?: number
+          serial_no?: string | null
+          sort_order?: number | null
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_challan_lines_dc_id_fkey"
+            columns: ["dc_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_challans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_challan_lines_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_challan_lines_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      delivery_challans: {
+        Row: {
+          branch_id: string | null
+          challan_date: string
+          challan_number: string
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          destination: string | null
+          driver_name: string | null
+          driver_phone: string | null
+          eway_bill_number: string | null
+          id: string
+          invoice_id: string | null
+          notes: string | null
+          org_id: string
+          status: string
+          transporter: string | null
+          updated_at: string
+          vehicle_number: string | null
+          warehouse_id: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          challan_date?: string
+          challan_number: string
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          destination?: string | null
+          driver_name?: string | null
+          driver_phone?: string | null
+          eway_bill_number?: string | null
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          org_id: string
+          status?: string
+          transporter?: string | null
+          updated_at?: string
+          vehicle_number?: string | null
+          warehouse_id?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          challan_date?: string
+          challan_number?: string
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          destination?: string | null
+          driver_name?: string | null
+          driver_phone?: string | null
+          eway_bill_number?: string | null
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          org_id?: string
+          status?: string
+          transporter?: string | null
+          updated_at?: string
+          vehicle_number?: string | null
+          warehouse_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_challans_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_challans_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_challans_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_challans_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_challans_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           created_at: string
@@ -1219,6 +1405,176 @@ export type Database = {
         }
         Relationships: []
       }
+      grn_lines: {
+        Row: {
+          amount: number
+          batch_no: string | null
+          created_at: string
+          description: string
+          expiry_date: string | null
+          grn_id: string
+          id: string
+          item_id: string | null
+          org_id: string
+          po_line_id: string | null
+          quantity: number
+          serial_no: string | null
+          sort_order: number | null
+          unit_cost: number
+        }
+        Insert: {
+          amount?: number
+          batch_no?: string | null
+          created_at?: string
+          description: string
+          expiry_date?: string | null
+          grn_id: string
+          id?: string
+          item_id?: string | null
+          org_id: string
+          po_line_id?: string | null
+          quantity?: number
+          serial_no?: string | null
+          sort_order?: number | null
+          unit_cost?: number
+        }
+        Update: {
+          amount?: number
+          batch_no?: string | null
+          created_at?: string
+          description?: string
+          expiry_date?: string | null
+          grn_id?: string
+          id?: string
+          item_id?: string | null
+          org_id?: string
+          po_line_id?: string | null
+          quantity?: number
+          serial_no?: string | null
+          sort_order?: number | null
+          unit_cost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grn_lines_grn_id_fkey"
+            columns: ["grn_id"]
+            isOneToOne: false
+            referencedRelation: "grns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grn_lines_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grn_lines_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grn_lines_po_line_id_fkey"
+            columns: ["po_line_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_order_lines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      grns: {
+        Row: {
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          grn_date: string
+          grn_number: string
+          id: string
+          notes: string | null
+          org_id: string
+          po_id: string | null
+          status: string
+          transporter: string | null
+          updated_at: string
+          vehicle_number: string | null
+          vendor_id: string | null
+          warehouse_id: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          grn_date?: string
+          grn_number: string
+          id?: string
+          notes?: string | null
+          org_id: string
+          po_id?: string | null
+          status?: string
+          transporter?: string | null
+          updated_at?: string
+          vehicle_number?: string | null
+          vendor_id?: string | null
+          warehouse_id?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          grn_date?: string
+          grn_number?: string
+          id?: string
+          notes?: string | null
+          org_id?: string
+          po_id?: string | null
+          status?: string
+          transporter?: string | null
+          updated_at?: string
+          vehicle_number?: string | null
+          vendor_id?: string | null
+          warehouse_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grns_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grns_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grns_po_id_fkey"
+            columns: ["po_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grns_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grns_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_lines: {
         Row: {
           amount: number
@@ -1471,10 +1827,13 @@ export type Database = {
           sku: string | null
           stock_quantity: number
           tax_id: string | null
+          track_batches: boolean | null
+          track_serials: boolean | null
           type: Database["public"]["Enums"]["item_type"]
           unit: string | null
           unit_price: number
           updated_at: string
+          valuation_method: string | null
         }
         Insert: {
           category?: string | null
@@ -1488,10 +1847,13 @@ export type Database = {
           sku?: string | null
           stock_quantity?: number
           tax_id?: string | null
+          track_batches?: boolean | null
+          track_serials?: boolean | null
           type?: Database["public"]["Enums"]["item_type"]
           unit?: string | null
           unit_price?: number
           updated_at?: string
+          valuation_method?: string | null
         }
         Update: {
           category?: string | null
@@ -1505,10 +1867,13 @@ export type Database = {
           sku?: string | null
           stock_quantity?: number
           tax_id?: string | null
+          track_batches?: boolean | null
+          track_serials?: boolean | null
           type?: Database["public"]["Enums"]["item_type"]
           unit?: string | null
           unit_price?: number
           updated_at?: string
+          valuation_method?: string | null
         }
         Relationships: [
           {
@@ -1670,12 +2035,16 @@ export type Database = {
           credit_note_prefix: string
           currency_code: string
           date_format: string
+          dc_next_number: number | null
+          dc_prefix: string | null
           default_notes: string | null
           default_terms: string | null
           email: string | null
           estimate_next_number: number
           estimate_prefix: string
           fiscal_year_start: number
+          grn_next_number: number | null
+          grn_prefix: string | null
           gst_enabled: boolean
           gst_number: string | null
           id: string
@@ -1692,6 +2061,8 @@ export type Database = {
           payment_prefix: string
           payment_terms: number
           phone: string | null
+          po_next_number: number | null
+          po_prefix: string | null
           qr_code_enabled: boolean
           show_client_gst: boolean
           tax_name: string | null
@@ -1714,12 +2085,16 @@ export type Database = {
           credit_note_prefix?: string
           currency_code?: string
           date_format?: string
+          dc_next_number?: number | null
+          dc_prefix?: string | null
           default_notes?: string | null
           default_terms?: string | null
           email?: string | null
           estimate_next_number?: number
           estimate_prefix?: string
           fiscal_year_start?: number
+          grn_next_number?: number | null
+          grn_prefix?: string | null
           gst_enabled?: boolean
           gst_number?: string | null
           id?: string
@@ -1736,6 +2111,8 @@ export type Database = {
           payment_prefix?: string
           payment_terms?: number
           phone?: string | null
+          po_next_number?: number | null
+          po_prefix?: string | null
           qr_code_enabled?: boolean
           show_client_gst?: boolean
           tax_name?: string | null
@@ -1758,12 +2135,16 @@ export type Database = {
           credit_note_prefix?: string
           currency_code?: string
           date_format?: string
+          dc_next_number?: number | null
+          dc_prefix?: string | null
           default_notes?: string | null
           default_terms?: string | null
           email?: string | null
           estimate_next_number?: number
           estimate_prefix?: string
           fiscal_year_start?: number
+          grn_next_number?: number | null
+          grn_prefix?: string | null
           gst_enabled?: boolean
           gst_number?: string | null
           id?: string
@@ -1780,6 +2161,8 @@ export type Database = {
           payment_prefix?: string
           payment_terms?: number
           phone?: string | null
+          po_next_number?: number | null
+          po_prefix?: string | null
           qr_code_enabled?: boolean
           show_client_gst?: boolean
           tax_name?: string | null
@@ -1955,6 +2338,171 @@ export type Database = {
           },
         ]
       }
+      purchase_order_lines: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string
+          hsn: string | null
+          id: string
+          item_id: string | null
+          org_id: string
+          po_id: string
+          quantity: number
+          rate: number
+          received_quantity: number
+          sort_order: number | null
+          tax_rate: number | null
+          unit: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          description: string
+          hsn?: string | null
+          id?: string
+          item_id?: string | null
+          org_id: string
+          po_id: string
+          quantity?: number
+          rate?: number
+          received_quantity?: number
+          sort_order?: number | null
+          tax_rate?: number | null
+          unit?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string
+          hsn?: string | null
+          id?: string
+          item_id?: string | null
+          org_id?: string
+          po_id?: string
+          quantity?: number
+          rate?: number
+          received_quantity?: number
+          sort_order?: number | null
+          tax_rate?: number | null
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_lines_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_lines_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_lines_po_id_fkey"
+            columns: ["po_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_orders: {
+        Row: {
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          currency: string | null
+          expected_date: string | null
+          id: string
+          notes: string | null
+          org_id: string
+          po_date: string
+          po_number: string
+          status: string
+          subtotal: number
+          tax_amount: number
+          terms: string | null
+          total: number
+          updated_at: string
+          vendor_id: string | null
+          warehouse_id: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          expected_date?: string | null
+          id?: string
+          notes?: string | null
+          org_id: string
+          po_date?: string
+          po_number: string
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          terms?: string | null
+          total?: number
+          updated_at?: string
+          vendor_id?: string | null
+          warehouse_id?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          expected_date?: string | null
+          id?: string
+          notes?: string | null
+          org_id?: string
+          po_date?: string
+          po_number?: string
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          terms?: string | null
+          total?: number
+          updated_at?: string
+          vendor_id?: string | null
+          warehouse_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_orders_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recurring_invoices: {
         Row: {
           client_id: string
@@ -2025,9 +2573,11 @@ export type Database = {
       stock_movements: {
         Row: {
           balance_after: number | null
+          batch_no: string | null
           change_qty: number
           created_at: string
           created_by: string | null
+          expiry_date: string | null
           id: string
           item_id: string
           org_id: string
@@ -2035,12 +2585,17 @@ export type Database = {
           ref_id: string | null
           ref_number: string | null
           ref_type: string | null
+          serial_no: string | null
+          unit_cost: number | null
+          warehouse_id: string | null
         }
         Insert: {
           balance_after?: number | null
+          batch_no?: string | null
           change_qty: number
           created_at?: string
           created_by?: string | null
+          expiry_date?: string | null
           id?: string
           item_id: string
           org_id: string
@@ -2048,12 +2603,17 @@ export type Database = {
           ref_id?: string | null
           ref_number?: string | null
           ref_type?: string | null
+          serial_no?: string | null
+          unit_cost?: number | null
+          warehouse_id?: string | null
         }
         Update: {
           balance_after?: number | null
+          batch_no?: string | null
           change_qty?: number
           created_at?: string
           created_by?: string | null
+          expiry_date?: string | null
           id?: string
           item_id?: string
           org_id?: string
@@ -2061,6 +2621,9 @@ export type Database = {
           ref_id?: string | null
           ref_number?: string | null
           ref_type?: string | null
+          serial_no?: string | null
+          unit_cost?: number | null
+          warehouse_id?: string | null
         }
         Relationships: [
           {
@@ -2075,6 +2638,13 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
             referencedColumns: ["id"]
           },
         ]
@@ -2383,12 +2953,16 @@ export type Database = {
           credit_note_prefix: string
           currency_code: string
           date_format: string
+          dc_next_number: number | null
+          dc_prefix: string | null
           default_notes: string | null
           default_terms: string | null
           email: string | null
           estimate_next_number: number
           estimate_prefix: string
           fiscal_year_start: number
+          grn_next_number: number | null
+          grn_prefix: string | null
           gst_enabled: boolean
           gst_number: string | null
           id: string
@@ -2405,6 +2979,8 @@ export type Database = {
           payment_prefix: string
           payment_terms: number
           phone: string | null
+          po_next_number: number | null
+          po_prefix: string | null
           qr_code_enabled: boolean
           show_client_gst: boolean
           tax_name: string | null

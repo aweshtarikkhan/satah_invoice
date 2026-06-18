@@ -36,6 +36,9 @@ const empty = {
   name: "", employee_code: "", designation: "", phone: "", email: "",
   joining_date: "", monthly_salary: "0", paid_leaves_per_month: "2",
   is_active: true, notes: "",
+  pan: "", bank_account: "", bank_ifsc: "", address: "",
+  basic_percent: "50", hra_percent: "20",
+  pf_applicable: false, esic_applicable: false,
 };
 
 export default function EmployeesPage() {

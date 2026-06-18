@@ -1,6 +1,6 @@
 // Satah Invoices service worker — minimal app-shell + offline fallback.
-// Network-first for navigation; cache-first for same-origin static assets.
-const CACHE = "satah-v1";
+// Network-first for navigation and JavaScript so Vite/React chunks never go stale.
+const CACHE = "satah-v2";
 const APP_SHELL = ["/", "/manifest.webmanifest", "/favicon.ico"];
 
 self.addEventListener("install", (event) => {
@@ -29,16 +29,18 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  if (req.destination === "script" || url.pathname.startsWith("/node_modules/.vite/") || url.pathname.startsWith("/src/")) {
+    event.respondWith(fetch(req, { cache: "no-store" }).catch(() => new Response("", { status: 504 })));
+    return;
+  }
+
   event.respondWith(
-    caches.match(req).then((cached) => {
-      if (cached) return cached;
-      return fetch(req).then((res) => {
-        if (res.ok && (req.destination === "script" || req.destination === "style" || req.destination === "image" || req.destination === "font")) {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
-        }
-        return res;
-      }).catch(() => cached || new Response("", { status: 504 }));
-    })
+    fetch(req).then((res) => {
+      if (res.ok && (req.destination === "style" || req.destination === "image" || req.destination === "font")) {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+      }
+      return res;
+    }).catch(() => caches.match(req).then((cached) => cached || new Response("", { status: 504 })))
   );
 });

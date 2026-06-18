@@ -57,7 +57,7 @@ export default function BillsPage() {
 
       <div className="grid grid-cols-3 gap-3">
         <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">Total Bills</div><div className="text-2xl font-semibold">{bills.length}</div></CardContent></Card>
-        <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">Outstanding</div><div className="text-2xl font-semibold text-amber-600">{formatCurrency(totalDue, org?.currency || "INR")}</div></CardContent></Card>
+        <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">Outstanding</div><div className="text-2xl font-semibold text-amber-600">{formatCurrency(totalDue, (org as any)?.currency || "INR")}</div></CardContent></Card>
         <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">Unpaid Bills</div><div className="text-2xl font-semibold">{bills.filter(b => b.balance_due > 0).length}</div></CardContent></Card>
       </div>
 
@@ -86,8 +86,8 @@ export default function BillsPage() {
                     <TableCell>{format(new Date(b.bill_date), "dd MMM yyyy")}</TableCell>
                     <TableCell>{b.due_date ? format(new Date(b.due_date), "dd MMM yyyy") : "—"}</TableCell>
                     <TableCell><Badge className={statusColor[b.status] || ""}>{b.status}</Badge></TableCell>
-                    <TableCell className="text-right">{formatCurrency(Number(b.total), org?.currency || "INR")}</TableCell>
-                    <TableCell className="text-right font-medium">{formatCurrency(Number(b.balance_due), org?.currency || "INR")}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(Number(b.total), (org as any)?.currency || "INR")}</TableCell>
+                    <TableCell className="text-right font-medium">{formatCurrency(Number(b.balance_due), (org as any)?.currency || "INR")}</TableCell>
                     <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <Button size="icon" variant="ghost" onClick={() => navigate(`/bills/${b.id}`)}><Eye className="h-4 w-4" /></Button>
                       <Button size="icon" variant="ghost" onClick={() => remove(b.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>

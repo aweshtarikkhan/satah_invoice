@@ -110,7 +110,7 @@ export default function JournalEntriesPage() {
                     <TableCell className="font-mono text-xs">{e.reference || "—"}</TableCell>
                     <TableCell>{e.narration || "—"}</TableCell>
                     <TableCell><Badge variant="outline" className="text-xs">{e.source_type || "manual"}</Badge></TableCell>
-                    <TableCell className="text-right">{formatCurrency(Number(e.total_debit), org?.currency || "INR")}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(Number(e.total_debit), (org as any)?.currency || "INR")}</TableCell>
                     <TableCell className="text-right" onClick={(ev) => ev.stopPropagation()}>
                       {e.source_type === "manual" && <Button size="icon" variant="ghost" onClick={() => remove(e.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                     </TableCell>
@@ -124,8 +124,8 @@ export default function JournalEntriesPage() {
                             <TableRow key={l.id}>
                               <TableCell>{l.accounts?.code} {l.accounts?.name}</TableCell>
                               <TableCell className="text-sm text-muted-foreground">{l.description || "—"}</TableCell>
-                              <TableCell className="text-right">{Number(l.debit) > 0 ? formatCurrency(Number(l.debit), org?.currency || "INR") : "—"}</TableCell>
-                              <TableCell className="text-right">{Number(l.credit) > 0 ? formatCurrency(Number(l.credit), org?.currency || "INR") : "—"}</TableCell>
+                              <TableCell className="text-right">{Number(l.debit) > 0 ? formatCurrency(Number(l.debit), (org as any)?.currency || "INR") : "—"}</TableCell>
+                              <TableCell className="text-right">{Number(l.credit) > 0 ? formatCurrency(Number(l.credit), (org as any)?.currency || "INR") : "—"}</TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
@@ -171,10 +171,10 @@ export default function JournalEntriesPage() {
               <Plus className="h-4 w-4 mr-1" /> Add Line
             </Button>
             <div className="flex justify-end gap-6 text-sm">
-              <span>Total Debit: <strong>{formatCurrency(totalDr, org?.currency || "INR")}</strong></span>
-              <span>Total Credit: <strong>{formatCurrency(totalCr, org?.currency || "INR")}</strong></span>
+              <span>Total Debit: <strong>{formatCurrency(totalDr, (org as any)?.currency || "INR")}</strong></span>
+              <span>Total Credit: <strong>{formatCurrency(totalCr, (org as any)?.currency || "INR")}</strong></span>
               <span className={Math.abs(totalDr - totalCr) > 0.01 ? "text-destructive" : "text-emerald-600"}>
-                {Math.abs(totalDr - totalCr) > 0.01 ? `Off by ${formatCurrency(Math.abs(totalDr - totalCr), org?.currency || "INR")}` : "✓ Balanced"}
+                {Math.abs(totalDr - totalCr) > 0.01 ? `Off by ${formatCurrency(Math.abs(totalDr - totalCr), (org as any)?.currency || "INR")}` : "✓ Balanced"}
               </span>
             </div>
           </div>

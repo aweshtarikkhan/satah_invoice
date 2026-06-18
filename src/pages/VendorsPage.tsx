@@ -141,7 +141,7 @@ export default function VendorsPage() {
                     <TableCell className="font-mono text-xs">{v.gstin || "—"}</TableCell>
                     <TableCell className="text-sm">{v.email || v.phone || "—"}</TableCell>
                     <TableCell>Net {v.payment_terms}</TableCell>
-                    <TableCell className="text-right font-medium">{formatCurrency(Number(v.balance_due) || 0, org?.currency || "INR")}</TableCell>
+                    <TableCell className="text-right font-medium">{formatCurrency(Number(v.balance_due) || 0, (org as any)?.currency || "INR")}</TableCell>
                     <TableCell className="text-right">
                       <Button size="icon" variant="ghost" onClick={() => edit(v)}><Pencil className="h-4 w-4" /></Button>
                       <Button size="icon" variant="ghost" onClick={() => remove(v.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>

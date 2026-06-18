@@ -63,13 +63,16 @@ export default function EmployeesPage() {
   useEffect(() => { load(); }, [org?.id]);
 
   const openNew = () => { setEditId(null); setForm(empty); setOpen(true); };
-  const openEdit = (e: Employee) => {
+  const openEdit = (e: any) => {
     setEditId(e.id);
     setForm({
       name: e.name, employee_code: e.employee_code || "", designation: e.designation || "",
       phone: e.phone || "", email: e.email || "", joining_date: e.joining_date || "",
       monthly_salary: String(e.monthly_salary), paid_leaves_per_month: String(e.paid_leaves_per_month),
       is_active: e.is_active, notes: e.notes || "",
+      pan: e.pan || "", bank_account: e.bank_account || "", bank_ifsc: e.bank_ifsc || "", address: e.address || "",
+      basic_percent: String(e.basic_percent ?? 50), hra_percent: String(e.hra_percent ?? 20),
+      pf_applicable: !!e.pf_applicable, esic_applicable: !!e.esic_applicable,
     });
     setOpen(true);
   };
@@ -89,6 +92,14 @@ export default function EmployeesPage() {
       paid_leaves_per_month: Number(form.paid_leaves_per_month) || 0,
       is_active: !!form.is_active,
       notes: form.notes || null,
+      pan: form.pan || null,
+      bank_account: form.bank_account || null,
+      bank_ifsc: form.bank_ifsc || null,
+      address: form.address || null,
+      basic_percent: Number(form.basic_percent) || 0,
+      hra_percent: Number(form.hra_percent) || 0,
+      pf_applicable: !!form.pf_applicable,
+      esic_applicable: !!form.esic_applicable,
     };
     const q = editId
       ? (supabase as any).from("employees").update(payload).eq("id", editId)

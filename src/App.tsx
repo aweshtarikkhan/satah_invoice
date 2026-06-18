@@ -64,6 +64,11 @@ import InventoryValuationPage from "./pages/InventoryValuationPage";
 import BankAccountsPage from "./pages/BankAccountsPage";
 import BankAccountDetailPage from "./pages/BankAccountDetailPage";
 import CashFlowPage from "./pages/CashFlowPage";
+import ShiftsPage from "./pages/ShiftsPage";
+import LeavesPage from "./pages/LeavesPage";
+import EmployeeDocumentsPage from "./pages/EmployeeDocumentsPage";
+import PayrollPage from "./pages/PayrollPage";
+import PayrollRunDetailPage from "./pages/PayrollRunDetailPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

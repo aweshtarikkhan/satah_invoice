@@ -32,10 +32,11 @@ Foundations for true accounting.
 - UPI txn import (CSV from PhonePe/GPay merchant).
 - Cash Flow Monitoring dashboard.
 
-## Phase 9 — HRM (Employees, Attendance, Payroll)
-- Employees already exists (basic). Extend: documents (storage bucket), self-service login via portal token.
-- Attendance: GPS + mobile check-in (already has `attendance` table). Add shift scheduling, leave requests (`leaves` table).
-- Payroll: `payroll_runs`, `payslips`, salary structure with PF/ESIC/TDS calc, PDF payslip export.
+## Phase 9 — HRM (Employees, Attendance, Payroll) ✅ DONE
+- Employees extended: PAN, bank, address, basic %, HRA %, PF/ESIC toggles.
+- Leaves with approval workflow; Shifts with working-days config.
+- Employee Documents: private storage bucket, per-org folder, signed downloads.
+- Payroll runs per month → auto-generate payslips from attendance + salary structure (Basic/HRA/Allowances, PF 12%, ESIC 0.75%, editable TDS). Approve → post Salary expense → mark all paid. Individual payslip PDF download.
 
 ## Phase 10 — CRM & Sales Pipeline
 - `leads`, `opportunities`, `pipeline_stages`.

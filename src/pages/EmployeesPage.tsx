@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, CalendarCheck } from "lucide-react";
+import { Plus, Pencil, Trash2, CalendarCheck, FileText } from "lucide-react";
 import { formatCurrency } from "@/lib/currency";
 import { NavLink } from "@/components/NavLink";
 
@@ -36,6 +36,9 @@ const empty = {
   name: "", employee_code: "", designation: "", phone: "", email: "",
   joining_date: "", monthly_salary: "0", paid_leaves_per_month: "2",
   is_active: true, notes: "",
+  pan: "", bank_account: "", bank_ifsc: "", address: "",
+  basic_percent: "50", hra_percent: "20",
+  pf_applicable: false, esic_applicable: false,
 };
 
 export default function EmployeesPage() {
@@ -60,13 +63,16 @@ export default function EmployeesPage() {
   useEffect(() => { load(); }, [org?.id]);
 
   const openNew = () => { setEditId(null); setForm(empty); setOpen(true); };
-  const openEdit = (e: Employee) => {
+  const openEdit = (e: any) => {
     setEditId(e.id);
     setForm({
       name: e.name, employee_code: e.employee_code || "", designation: e.designation || "",
       phone: e.phone || "", email: e.email || "", joining_date: e.joining_date || "",
       monthly_salary: String(e.monthly_salary), paid_leaves_per_month: String(e.paid_leaves_per_month),
       is_active: e.is_active, notes: e.notes || "",
+      pan: e.pan || "", bank_account: e.bank_account || "", bank_ifsc: e.bank_ifsc || "", address: e.address || "",
+      basic_percent: String(e.basic_percent ?? 50), hra_percent: String(e.hra_percent ?? 20),
+      pf_applicable: !!e.pf_applicable, esic_applicable: !!e.esic_applicable,
     });
     setOpen(true);
   };
@@ -86,6 +92,14 @@ export default function EmployeesPage() {
       paid_leaves_per_month: Number(form.paid_leaves_per_month) || 0,
       is_active: !!form.is_active,
       notes: form.notes || null,
+      pan: form.pan || null,
+      bank_account: form.bank_account || null,
+      bank_ifsc: form.bank_ifsc || null,
+      address: form.address || null,
+      basic_percent: Number(form.basic_percent) || 0,
+      hra_percent: Number(form.hra_percent) || 0,
+      pf_applicable: !!form.pf_applicable,
+      esic_applicable: !!form.esic_applicable,
     };
     const q = editId
       ? (supabase as any).from("employees").update(payload).eq("id", editId)
@@ -149,6 +163,9 @@ export default function EmployeesPage() {
                   <TableCell>{e.is_active ? <span className="text-green-600 text-xs font-medium">Active</span> : <span className="text-muted-foreground text-xs">Inactive</span>}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
+                      <Button size="icon" variant="ghost" asChild title="Documents">
+                        <NavLink to={`/employees/${e.id}/documents`}><FileText className="h-4 w-4" /></NavLink>
+                      </Button>
                       <Button size="icon" variant="ghost" onClick={() => openEdit(e)}><Pencil className="h-4 w-4" /></Button>
                       <Button size="icon" variant="ghost" onClick={() => remove(e.id)}><Trash2 className="h-4 w-4" /></Button>
                     </div>
@@ -161,7 +178,7 @@ export default function EmployeesPage() {
       </Card>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{editId ? "Edit" : "New"} Employee</DialogTitle></DialogHeader>
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2"><Label>Name *</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
@@ -170,8 +187,18 @@ export default function EmployeesPage() {
             <div><Label>Phone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
             <div><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
             <div><Label>Joining Date</Label><Input type="date" value={form.joining_date} onChange={(e) => setForm({ ...form, joining_date: e.target.value })} /></div>
-            <div><Label>Monthly Salary</Label><Input type="number" value={form.monthly_salary} onChange={(e) => setForm({ ...form, monthly_salary: e.target.value })} /></div>
+            <div><Label>PAN</Label><Input value={form.pan} onChange={(e) => setForm({ ...form, pan: e.target.value })} /></div>
+            <div><Label>Bank Account</Label><Input value={form.bank_account} onChange={(e) => setForm({ ...form, bank_account: e.target.value })} /></div>
+            <div><Label>IFSC</Label><Input value={form.bank_ifsc} onChange={(e) => setForm({ ...form, bank_ifsc: e.target.value })} /></div>
+            <div className="col-span-2"><Label>Address</Label><Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
+
+            <div className="col-span-2 mt-2 pt-2 border-t"><div className="text-sm font-medium text-muted-foreground mb-1">Salary Structure</div></div>
+            <div><Label>Monthly Salary (CTC)</Label><Input type="number" value={form.monthly_salary} onChange={(e) => setForm({ ...form, monthly_salary: e.target.value })} /></div>
             <div><Label>Paid Leaves / Month</Label><Input type="number" step="0.5" value={form.paid_leaves_per_month} onChange={(e) => setForm({ ...form, paid_leaves_per_month: e.target.value })} /></div>
+            <div><Label>Basic %</Label><Input type="number" value={form.basic_percent} onChange={(e) => setForm({ ...form, basic_percent: e.target.value })} /></div>
+            <div><Label>HRA %</Label><Input type="number" value={form.hra_percent} onChange={(e) => setForm({ ...form, hra_percent: e.target.value })} /></div>
+            <div className="flex items-center gap-2 mt-6"><Switch checked={form.pf_applicable} onCheckedChange={(v) => setForm({ ...form, pf_applicable: v })} /><Label>PF Applicable (12% of Basic)</Label></div>
+            <div className="flex items-center gap-2 mt-6"><Switch checked={form.esic_applicable} onCheckedChange={(v) => setForm({ ...form, esic_applicable: v })} /><Label>ESIC Applicable (0.75% if gross ≤ ₹21k)</Label></div>
             <div className="flex items-center gap-2 mt-6"><Switch checked={form.is_active} onCheckedChange={(v) => setForm({ ...form, is_active: v })} /><Label>Active</Label></div>
             <div className="col-span-2"><Label>Notes</Label><Input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
           </div>

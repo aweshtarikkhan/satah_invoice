@@ -64,6 +64,11 @@ import InventoryValuationPage from "./pages/InventoryValuationPage";
 import BankAccountsPage from "./pages/BankAccountsPage";
 import BankAccountDetailPage from "./pages/BankAccountDetailPage";
 import CashFlowPage from "./pages/CashFlowPage";
+import ShiftsPage from "./pages/ShiftsPage";
+import LeavesPage from "./pages/LeavesPage";
+import EmployeeDocumentsPage from "./pages/EmployeeDocumentsPage";
+import PayrollPage from "./pages/PayrollPage";
+import PayrollRunDetailPage from "./pages/PayrollRunDetailPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -152,6 +157,12 @@ const App = () => (
               <Route path="/bank-accounts" element={<BankAccountsPage />} />
               <Route path="/bank-accounts/:id" element={<BankAccountDetailPage />} />
               <Route path="/cash-flow" element={<CashFlowPage />} />
+              <Route path="/shifts" element={<ShiftsPage />} />
+              <Route path="/leaves" element={<LeavesPage />} />
+              <Route path="/employees/:id/documents" element={<EmployeeDocumentsPage />} />
+              <Route path="/employee-documents" element={<EmployeeDocumentsPage />} />
+              <Route path="/payroll" element={<PayrollPage />} />
+              <Route path="/payroll/:id" element={<PayrollRunDetailPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
 

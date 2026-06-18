@@ -133,6 +133,19 @@ const App = () => (
               <Route path="/branches" element={<BranchesPage />} />
               <Route path="/tds" element={<TdsPage />} />
               <Route path="/accounting-reports" element={<AccountingReportsPage />} />
+              <Route path="/accounting-reports" element={<AccountingReportsPage />} />
+              <Route path="/purchase-orders" element={<PurchaseOrdersPage />} />
+              <Route path="/purchase-orders/new" element={<PurchaseOrderBuilderPage />} />
+              <Route path="/purchase-orders/:id" element={<PurchaseOrderDetailPage />} />
+              <Route path="/purchase-orders/:id/edit" element={<PurchaseOrderBuilderPage />} />
+              <Route path="/grns" element={<GrnsPage />} />
+              <Route path="/grns/new" element={<GrnBuilderPage />} />
+              <Route path="/grns/:id" element={<GrnDetailPage />} />
+              <Route path="/grns/:id/edit" element={<GrnBuilderPage />} />
+              <Route path="/delivery-challans" element={<DeliveryChallansPage />} />
+              <Route path="/delivery-challans/new" element={<DeliveryChallanBuilderPage />} />
+              <Route path="/delivery-challans/:id/edit" element={<DeliveryChallanBuilderPage />} />
+              <Route path="/inventory-valuation" element={<InventoryValuationPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
 

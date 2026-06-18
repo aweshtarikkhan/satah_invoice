@@ -163,6 +163,156 @@ export type Database = {
           },
         ]
       }
+      bank_accounts: {
+        Row: {
+          account_id: string | null
+          account_number: string | null
+          account_type: string
+          bank_name: string | null
+          created_at: string
+          currency: string | null
+          current_balance: number
+          id: string
+          ifsc: string | null
+          is_active: boolean
+          name: string
+          notes: string | null
+          opening_balance: number
+          org_id: string
+          updated_at: string
+          upi_id: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          account_number?: string | null
+          account_type?: string
+          bank_name?: string | null
+          created_at?: string
+          currency?: string | null
+          current_balance?: number
+          id?: string
+          ifsc?: string | null
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          opening_balance?: number
+          org_id: string
+          updated_at?: string
+          upi_id?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          account_number?: string | null
+          account_type?: string
+          bank_name?: string | null
+          created_at?: string
+          currency?: string | null
+          current_balance?: number
+          id?: string
+          ifsc?: string | null
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          opening_balance?: number
+          org_id?: string
+          updated_at?: string
+          upi_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_accounts_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_accounts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_transactions: {
+        Row: {
+          amount: number
+          balance_after: number | null
+          bank_account_id: string
+          counterparty: string | null
+          created_at: string
+          description: string | null
+          direction: string
+          id: string
+          matched_id: string | null
+          matched_type: string | null
+          notes: string | null
+          org_id: string
+          reconciled: boolean
+          reconciled_at: string | null
+          reference: string | null
+          source: string | null
+          txn_date: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          balance_after?: number | null
+          bank_account_id: string
+          counterparty?: string | null
+          created_at?: string
+          description?: string | null
+          direction: string
+          id?: string
+          matched_id?: string | null
+          matched_type?: string | null
+          notes?: string | null
+          org_id: string
+          reconciled?: boolean
+          reconciled_at?: string | null
+          reference?: string | null
+          source?: string | null
+          txn_date: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number | null
+          bank_account_id?: string
+          counterparty?: string | null
+          created_at?: string
+          description?: string | null
+          direction?: string
+          id?: string
+          matched_id?: string | null
+          matched_type?: string | null
+          notes?: string | null
+          org_id?: string
+          reconciled?: boolean
+          reconciled_at?: string | null
+          reference?: string | null
+          source?: string | null
+          txn_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_transactions_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_transactions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bill_lines: {
         Row: {
           account_id: string | null

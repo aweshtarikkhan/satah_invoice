@@ -799,6 +799,139 @@ export type Database = {
           },
         ]
       }
+      campaign_recipients: {
+        Row: {
+          campaign_id: string
+          client_id: string | null
+          created_at: string
+          error: string | null
+          id: string
+          name: string | null
+          org_id: string
+          provider_message_id: string | null
+          sent_at: string | null
+          status: string
+          to_address: string
+          vars: Json | null
+        }
+        Insert: {
+          campaign_id: string
+          client_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          name?: string | null
+          org_id: string
+          provider_message_id?: string | null
+          sent_at?: string | null
+          status?: string
+          to_address: string
+          vars?: Json | null
+        }
+        Update: {
+          campaign_id?: string
+          client_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          name?: string | null
+          org_id?: string
+          provider_message_id?: string | null
+          sent_at?: string | null
+          status?: string
+          to_address?: string
+          vars?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_recipients_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_recipients_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_recipients_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaigns: {
+        Row: {
+          audience_filter: Json | null
+          audience_type: string
+          channel: string
+          created_at: string
+          failed_count: number
+          id: string
+          name: string
+          org_id: string
+          scheduled_at: string | null
+          sent_count: number
+          status: string
+          template_id: string | null
+          total_count: number
+          updated_at: string
+        }
+        Insert: {
+          audience_filter?: Json | null
+          audience_type?: string
+          channel: string
+          created_at?: string
+          failed_count?: number
+          id?: string
+          name: string
+          org_id: string
+          scheduled_at?: string | null
+          sent_count?: number
+          status?: string
+          template_id?: string | null
+          total_count?: number
+          updated_at?: string
+        }
+        Update: {
+          audience_filter?: Json | null
+          audience_type?: string
+          channel?: string
+          created_at?: string
+          failed_count?: number
+          id?: string
+          name?: string
+          org_id?: string
+          scheduled_at?: string | null
+          sent_count?: number
+          status?: string
+          template_id?: string | null
+          total_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaigns_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaigns_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "message_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           billing_address: Json | null
@@ -2325,6 +2458,172 @@ export type Database = {
           },
         ]
       }
+      journey_enrollments: {
+        Row: {
+          client_id: string | null
+          completed_at: string | null
+          current_step: number
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          journey_id: string
+          next_run_at: string
+          org_id: string
+          started_at: string
+          status: string
+        }
+        Insert: {
+          client_id?: string | null
+          completed_at?: string | null
+          current_step?: number
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          journey_id: string
+          next_run_at?: string
+          org_id: string
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          client_id?: string | null
+          completed_at?: string | null
+          current_step?: number
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          journey_id?: string
+          next_run_at?: string
+          org_id?: string
+          started_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journey_enrollments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journey_enrollments_journey_id_fkey"
+            columns: ["journey_id"]
+            isOneToOne: false
+            referencedRelation: "journeys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journey_enrollments_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journey_steps: {
+        Row: {
+          channel: string | null
+          created_at: string
+          id: string
+          journey_id: string
+          org_id: string
+          sort_order: number
+          step_type: string
+          template_id: string | null
+          wait_hours: number | null
+        }
+        Insert: {
+          channel?: string | null
+          created_at?: string
+          id?: string
+          journey_id: string
+          org_id: string
+          sort_order?: number
+          step_type: string
+          template_id?: string | null
+          wait_hours?: number | null
+        }
+        Update: {
+          channel?: string | null
+          created_at?: string
+          id?: string
+          journey_id?: string
+          org_id?: string
+          sort_order?: number
+          step_type?: string
+          template_id?: string | null
+          wait_hours?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journey_steps_journey_id_fkey"
+            columns: ["journey_id"]
+            isOneToOne: false
+            referencedRelation: "journeys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journey_steps_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journey_steps_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "message_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journeys: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          org_id: string
+          trigger_config: Json | null
+          trigger_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          org_id: string
+          trigger_config?: Json | null
+          trigger_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          org_id?: string
+          trigger_config?: Json | null
+          trigger_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journeys_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           company: string | null
@@ -2450,6 +2749,146 @@ export type Database = {
           },
           {
             foreignKeyName: "leaves_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_logs: {
+        Row: {
+          body: string | null
+          campaign_id: string | null
+          channel: string
+          client_id: string | null
+          error: string | null
+          id: string
+          journey_id: string | null
+          org_id: string
+          provider_message_id: string | null
+          sent_at: string
+          status: string
+          template_id: string | null
+          to_address: string
+        }
+        Insert: {
+          body?: string | null
+          campaign_id?: string | null
+          channel: string
+          client_id?: string | null
+          error?: string | null
+          id?: string
+          journey_id?: string | null
+          org_id: string
+          provider_message_id?: string | null
+          sent_at?: string
+          status: string
+          template_id?: string | null
+          to_address: string
+        }
+        Update: {
+          body?: string | null
+          campaign_id?: string | null
+          channel?: string
+          client_id?: string | null
+          error?: string | null
+          id?: string
+          journey_id?: string | null
+          org_id?: string
+          provider_message_id?: string | null
+          sent_at?: string
+          status?: string
+          template_id?: string | null
+          to_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_logs_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_logs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_logs_journey_id_fkey"
+            columns: ["journey_id"]
+            isOneToOne: false
+            referencedRelation: "journeys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_logs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_logs_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "message_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_templates: {
+        Row: {
+          body: string
+          category: string | null
+          channel: string
+          created_at: string
+          id: string
+          name: string
+          org_id: string
+          subject: string | null
+          updated_at: string
+          variables: Json | null
+          wa_approved: boolean | null
+          wa_language: string | null
+          wa_template_name: string | null
+        }
+        Insert: {
+          body: string
+          category?: string | null
+          channel: string
+          created_at?: string
+          id?: string
+          name: string
+          org_id: string
+          subject?: string | null
+          updated_at?: string
+          variables?: Json | null
+          wa_approved?: boolean | null
+          wa_language?: string | null
+          wa_template_name?: string | null
+        }
+        Update: {
+          body?: string
+          category?: string | null
+          channel?: string
+          created_at?: string
+          id?: string
+          name?: string
+          org_id?: string
+          subject?: string | null
+          updated_at?: string
+          variables?: Json | null
+          wa_approved?: boolean | null
+          wa_language?: string | null
+          wa_template_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_templates_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"

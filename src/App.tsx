@@ -149,6 +149,9 @@ const App = () => (
               <Route path="/delivery-challans/new" element={<DeliveryChallanBuilderPage />} />
               <Route path="/delivery-challans/:id/edit" element={<DeliveryChallanBuilderPage />} />
               <Route path="/inventory-valuation" element={<InventoryValuationPage />} />
+              <Route path="/bank-accounts" element={<BankAccountsPage />} />
+              <Route path="/bank-accounts/:id" element={<BankAccountDetailPage />} />
+              <Route path="/cash-flow" element={<CashFlowPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
 

@@ -114,6 +114,16 @@ const App = () => (
               <Route path="/attendance" element={<AttendancePage />} />
               <Route path="/statements" element={<CustomerStatementPage />} />
               <Route path="/statements/:clientId" element={<CustomerStatementPage />} />
+              <Route path="/vendors" element={<VendorsPage />} />
+              <Route path="/bills" element={<BillsPage />} />
+              <Route path="/bills/new" element={<BillBuilderPage />} />
+              <Route path="/bills/:id" element={<BillDetailPage />} />
+              <Route path="/bills/:id/edit" element={<BillBuilderPage />} />
+              <Route path="/accounts" element={<ChartOfAccountsPage />} />
+              <Route path="/journal" element={<JournalEntriesPage />} />
+              <Route path="/branches" element={<BranchesPage />} />
+              <Route path="/tds" element={<TdsPage />} />
+              <Route path="/accounting-reports" element={<AccountingReportsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
 

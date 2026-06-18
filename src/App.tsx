@@ -52,6 +52,15 @@ import JournalEntriesPage from "./pages/JournalEntriesPage";
 import BranchesPage from "./pages/BranchesPage";
 import TdsPage from "./pages/TdsPage";
 import AccountingReportsPage from "./pages/AccountingReportsPage";
+import PurchaseOrdersPage from "./pages/PurchaseOrdersPage";
+import PurchaseOrderBuilderPage from "./pages/PurchaseOrderBuilderPage";
+import PurchaseOrderDetailPage from "./pages/PurchaseOrderDetailPage";
+import GrnsPage from "./pages/GrnsPage";
+import GrnBuilderPage from "./pages/GrnBuilderPage";
+import GrnDetailPage from "./pages/GrnDetailPage";
+import DeliveryChallansPage from "./pages/DeliveryChallansPage";
+import DeliveryChallanBuilderPage from "./pages/DeliveryChallanBuilderPage";
+import InventoryValuationPage from "./pages/InventoryValuationPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

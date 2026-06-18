@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, CalendarCheck } from "lucide-react";
+import { Plus, Pencil, Trash2, CalendarCheck, FileText } from "lucide-react";
 import { formatCurrency } from "@/lib/currency";
 import { NavLink } from "@/components/NavLink";
 

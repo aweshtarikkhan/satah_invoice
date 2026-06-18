@@ -61,6 +61,9 @@ import GrnDetailPage from "./pages/GrnDetailPage";
 import DeliveryChallansPage from "./pages/DeliveryChallansPage";
 import DeliveryChallanBuilderPage from "./pages/DeliveryChallanBuilderPage";
 import InventoryValuationPage from "./pages/InventoryValuationPage";
+import BankAccountsPage from "./pages/BankAccountsPage";
+import BankAccountDetailPage from "./pages/BankAccountDetailPage";
+import CashFlowPage from "./pages/CashFlowPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

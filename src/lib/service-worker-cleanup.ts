@@ -42,3 +42,13 @@ export async function cleanupStaleServiceWorkers() {
     // Best-effort cleanup only.
   }
 }
+
+export function setupWebAppManifest() {
+  if (isPreviewOrDevHost(window.location.hostname)) return;
+  if (document.querySelector('link[rel="manifest"]')) return;
+
+  const manifest = document.createElement("link");
+  manifest.rel = "manifest";
+  manifest.href = "/manifest.webmanifest";
+  document.head.appendChild(manifest);
+}

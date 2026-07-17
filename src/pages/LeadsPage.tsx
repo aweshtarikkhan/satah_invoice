@@ -87,10 +87,11 @@ export default function LeadsPage() {
     if (!confirm(`Convert "${l.name}" into a Client?`)) return;
     const { data: client, error } = await (supabase as any).from("clients").insert({
       org_id: org.id,
-      name: l.company || l.name,
-      contact_person: l.name,
-      email: l.email,
-      phone: l.phone,
+      display_name: l.company || l.name,
+      company_name: l.company || null,
+      email: l.email || null,
+      phone: l.phone || null,
+      notes: `Converted from lead. Contact: ${l.name}`,
     }).select("*").single();
     if (error) { toast({ title: "Convert failed", description: error.message, variant: "destructive" }); return; }
     await (supabase as any).from("leads").update({ status: "converted", converted_client_id: client.id }).eq("id", l.id);

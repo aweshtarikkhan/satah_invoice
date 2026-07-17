@@ -52,7 +52,7 @@ export function BulkReminderDialog({
   }, [open, invoiceIds]);
 
   const fmt = useMemo(
-    () => new Intl.NumberFormat("en-US", { style: "currency", currency: currencyCode }).format,
+    () => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format,
     [currencyCode]
   );
 

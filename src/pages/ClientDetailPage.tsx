@@ -47,7 +47,7 @@ export default function ClientDetailPage() {
   }, [id, org?.id]);
 
   const fmt = (n: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "INR" }).format(n);
+    new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(n);
 
   // Analytics
   const totalBilled = useMemo(() => invoices.filter(i => i.status !== "void").reduce((s, i) => s + Number(i.total), 0), [invoices]);

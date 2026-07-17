@@ -83,7 +83,7 @@ export default function PortalPage() {
   if (!entity || !org) return null;
 
   const currency = entity.currency_code || org.currency_code || "INR";
-  const fmt = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency }).format(n);
+  const fmt = (n: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(n);
 
   const entityLabel = portalData.entity_type === "invoice" ? "Invoice" : portalData.entity_type === "estimate" ? "Estimate" : "Credit Note";
   const entityNumber = entity.invoice_number || entity.estimate_number || entity.credit_note_number;

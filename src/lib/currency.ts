@@ -29,11 +29,7 @@ export function getCurrencySymbol(code: string): string {
 }
 
 export function formatCurrency(amount: number, currencyCode: string): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currencyCode,
-    minimumFractionDigits: 2,
-  }).format(amount);
+  return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(amount);
 }
 
 // Fetch live exchange rates from a free API

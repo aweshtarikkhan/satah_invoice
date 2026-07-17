@@ -123,7 +123,7 @@ function SortableLineItem({
   }, [line.name, items]);
 
   const fmt = (n: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency }).format(n);
+    new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(n);
 
   return (
     <div ref={setNodeRef} style={style} className="flex items-start gap-1 py-3 border-b last:border-0">
@@ -165,7 +165,7 @@ function SortableLineItem({
                       onClick={() => handleItemSelect(item)}
                     >
                       <span className="font-medium">{item.name}</span>
-                      <span className="text-muted-foreground">{new Intl.NumberFormat("en-US", { style: "currency", currency }).format(item.unit_price)}</span>
+                      <span className="text-muted-foreground">{new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(item.unit_price)}</span>
                     </button>
                   ))}
                 </div>
@@ -459,7 +459,7 @@ export default function InvoiceBuilderPage() {
   const total = discountedSubtotal + totalTax + shippingCharge + adjustment - expenses;
 
   const fmt = (n: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "INR" }).format(n);
+    new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(n);
 
   const handleSave = async (status: "draft" | "sent" = "draft") => {
     if (!clientId) {

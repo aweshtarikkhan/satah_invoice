@@ -19,7 +19,7 @@ interface Insight {
 
 export function SmartInsights({ invoices, payments, expenses, clients, currency }: InsightProps) {
   const fmt = (n: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 }).format(n);
+    new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
 
   const insights = useMemo(() => {
     const result: Insight[] = [];

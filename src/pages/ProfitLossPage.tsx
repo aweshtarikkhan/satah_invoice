@@ -21,7 +21,7 @@ export default function ProfitLossPage() {
   const [loading, setLoading] = useState(true);
 
   const currency = org?.currency_code || "INR";
-  const fmt = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency }).format(n);
+  const fmt = (n: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(n);
 
   useEffect(() => {
     if (!org?.id) return;

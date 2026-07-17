@@ -77,7 +77,7 @@ export default function InvoiceDetailPage() {
   useEffect(() => { fetchInvoice(); }, [id]);
 
   const fmt = (n: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "INR" }).format(n);
+    new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(n);
 
   const handleRecordPayment = async () => {
     if (!invoice || paymentForm.amount <= 0) return;

@@ -66,7 +66,7 @@ export default function EstimatesPage() {
   useEffect(() => { fetchEstimates(); }, [org?.id]);
 
   const fmt = (n: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "INR" }).format(n);
+    new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(n);
 
   const visible = estimates
     .filter((e) => tab === "all" || e.status === tab)

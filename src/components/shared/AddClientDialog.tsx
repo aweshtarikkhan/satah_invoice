@@ -79,10 +79,14 @@ export function AddClientDialog({ open, onOpenChange, onClientAdded }: AddClient
       email: email.trim() || null,
       phone: phone.trim() || null,
       notes: notes.trim() || null,
-      gst_number: gstNumber.trim() || null,
-      billing_address: billingAddress.trim() || null,
-      billing_state: billingState.trim() || null,
-      billing_zip: billingZip.trim() || null,
+      tax_number: gstNumber.trim() || null,
+      billing_address: {
+        street: billingAddress.trim() || null,
+        city: "",
+        state: billingState.trim() || null,
+        zip: billingZip.trim() || null,
+        country: "",
+      },
     }).select("id, display_name").single();
 
     if (error) {

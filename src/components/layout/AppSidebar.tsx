@@ -38,6 +38,7 @@ import {
   ChevronRight,
   Check,
   ShoppingCart,
+  Shield,
 } from "lucide-react";
 import { useAppStore } from "@/store/app-store";
 import { useFeatureStore, ADMIN_FEATURE_GROUPS } from "@/store/feature-store";

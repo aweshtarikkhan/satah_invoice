@@ -256,16 +256,16 @@ export default function TemplateCustomizationPage() {
                 <span>Item</span><span className="text-right">Qty</span><span className="text-right">Rate</span><span className="text-right">Amount</span>
               </div>
               <div className="grid grid-cols-4 text-xs py-1 border-t">
-                <span>Web Design</span><span className="text-right">1</span><span className="text-right">$5,000</span><span className="text-right">$5,000</span>
+                <span>Web Design</span><span className="text-right">1</span><span className="text-right">₹5,000</span><span className="text-right">₹5,000</span>
               </div>
               <div className="grid grid-cols-4 text-xs py-1 border-t">
-                <span>Hosting</span><span className="text-right">12</span><span className="text-right">$50</span><span className="text-right">$600</span>
+                <span>Hosting</span><span className="text-right">12</span><span className="text-right">₹50</span><span className="text-right">₹600</span>
               </div>
             </div>
             <div className="flex justify-end">
               <div className="text-right text-sm space-y-1">
-                <div className="flex justify-between gap-8"><span className="text-muted-foreground">Subtotal</span><span>$5,600</span></div>
-                <div className="flex justify-between gap-8 font-bold" style={{ color: accentColor }}><span>Total</span><span>$5,600</span></div>
+                <div className="flex justify-between gap-8"><span className="text-muted-foreground">Subtotal</span><span>₹5,600</span></div>
+                <div className="flex justify-between gap-8 font-bold" style={{ color: accentColor }}><span>Total</span><span>₹5,600</span></div>
               </div>
             </div>
           </div>

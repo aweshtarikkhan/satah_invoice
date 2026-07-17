@@ -46,7 +46,7 @@ export default function EstimateDetailPage() {
   useEffect(() => { fetchData(); }, [id]);
 
   const fmt = (n: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);
+    new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "INR" }).format(n);
 
   const updateStatus = async (status: any, extra: Record<string, any> = {}) => {
     await supabase.from("estimates").update({ status, ...extra }).eq("id", id);

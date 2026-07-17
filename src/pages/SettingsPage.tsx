@@ -33,7 +33,7 @@ export default function SettingsPage() {
   // Org form
   const [orgForm, setOrgForm] = useState({
     name: "", email: "", phone: "", website: "",
-    tax_number: "", tax_name: "", currency_code: "USD",
+    tax_number: "", tax_name: "", currency_code: "INR",
     invoice_prefix: "INV", payment_terms: 30,
     default_notes: "", default_terms: "",
     address: { street: "", city: "", state: "", zip: "", country: "" },
@@ -54,7 +54,7 @@ export default function SettingsPage() {
     setOrgForm({
       name: org.name || "", email: org.email || "", phone: org.phone || "",
       website: org.website || "", tax_number: org.tax_number || "", tax_name: org.tax_name || "",
-      currency_code: org.currency_code || "USD", invoice_prefix: org.invoice_prefix || "INV",
+      currency_code: org.currency_code || "INR", invoice_prefix: org.invoice_prefix || "INV",
       payment_terms: org.payment_terms || 30, default_notes: org.default_notes || "",
       default_terms: org.default_terms || "",
       address: (org.address as any) || { street: "", city: "", state: "", zip: "", country: "" },

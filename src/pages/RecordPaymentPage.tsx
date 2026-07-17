@@ -63,7 +63,7 @@ export default function RecordPaymentPage() {
   const [saving, setSaving] = useState(false);
 
   const fmt = (n: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);
+    new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "INR" }).format(n);
 
   // Load clients
   useEffect(() => {

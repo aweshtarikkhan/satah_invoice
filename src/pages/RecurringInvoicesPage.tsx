@@ -66,7 +66,7 @@ export default function RecurringInvoicesPage() {
       ...form,
       org_id: org!.id,
       template_invoice_id: form.template_invoice_id || null,
-      currency_code: org?.currency_code || "USD",
+      currency_code: org?.currency_code || "INR",
     };
     if (editItem) {
       const { error } = await supabase.from("recurring_invoices").update(payload).eq("id", editItem.id);

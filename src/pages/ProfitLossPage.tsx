@@ -20,7 +20,7 @@ export default function ProfitLossPage() {
   const [period, setPeriod] = useState("12");
   const [loading, setLoading] = useState(true);
 
-  const currency = org?.currency_code || "USD";
+  const currency = org?.currency_code || "INR";
   const fmt = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency }).format(n);
 
   useEffect(() => {

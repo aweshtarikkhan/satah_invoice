@@ -58,7 +58,7 @@ export default function AgingDetailsPage() {
   const bucketFilter = searchParams.get("bucket");
   const allowedBuckets = bucketFilter ? (DASHBOARD_TO_DETAILS_BUCKET[bucketFilter] || [bucketFilter]) : null;
 
-  const currency = org?.currency_code || "USD";
+  const currency = org?.currency_code || "INR";
   const fmt = (n: number) => new Intl.NumberFormat("en-IN", { style: "currency", currency }).format(n);
 
   useEffect(() => {

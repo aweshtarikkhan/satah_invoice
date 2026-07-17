@@ -90,7 +90,7 @@ export default function InvoicesPage() {
   }, [org?.id]);
 
   const fmt = (n: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);
+    new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "INR" }).format(n);
 
   const summary = useMemo(() => {
     const today = new Date();

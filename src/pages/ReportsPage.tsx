@@ -41,7 +41,7 @@ export default function ReportsPage() {
     fetch();
   }, [org?.id]);
 
-  const currency = org?.currency_code || "USD";
+  const currency = org?.currency_code || "INR";
   const fmt = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency }).format(n);
 
   const months = useMemo(() => {

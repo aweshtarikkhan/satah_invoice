@@ -459,7 +459,7 @@ export default function InvoiceBuilderPage() {
   const total = discountedSubtotal + totalTax + shippingCharge + adjustment - expenses;
 
   const fmt = (n: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);
+    new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "INR" }).format(n);
 
   const handleSave = async (status: "draft" | "sent" = "draft") => {
     if (!clientId) {
@@ -841,7 +841,7 @@ export default function InvoiceBuilderPage() {
               </div>
               <div className="space-y-2">
                 <Label>Currency</Label>
-                <Select value={org?.currency_code || "USD"} disabled>
+                <Select value={org?.currency_code || "INR"} disabled>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {CURRENCIES.map((c) => <SelectItem key={c.code} value={c.code}>{c.code}</SelectItem>)}
@@ -886,7 +886,7 @@ export default function InvoiceBuilderPage() {
                   onChange={handleLineChange}
                   onRemove={removeLine}
                   onAddItem={() => setAddItemOpen(true)}
-                  currency={org?.currency_code || "USD"}
+                  currency={org?.currency_code || "INR"}
                 />
               ))}
             </SortableContext>
@@ -945,7 +945,7 @@ export default function InvoiceBuilderPage() {
                       {item.description && <span className="text-xs text-muted-foreground ml-2">{item.description}</span>}
                     </div>
                     <span className="text-xs text-muted-foreground">{item.unit || "pcs"}</span>
-                    <span className="text-sm font-medium">{formatCurrency(Number(item.unit_price), org?.currency_code || "USD")}</span>
+                    <span className="text-sm font-medium">{formatCurrency(Number(item.unit_price), org?.currency_code || "INR")}</span>
                   </div>
                 ))}
               </>

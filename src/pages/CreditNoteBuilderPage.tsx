@@ -162,7 +162,7 @@ export default function CreditNoteBuilderPage() {
   const total = subtotal - totalDiscount + totalTax;
 
   const fmt = (n: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);
+    new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "INR" }).format(n);
 
   const handleSave = async (status: "draft" | "sent" = "draft") => {
     if (!clientId || lines.every((l) => !l.name.trim())) {

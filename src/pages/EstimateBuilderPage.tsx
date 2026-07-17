@@ -247,7 +247,7 @@ export default function EstimateBuilderPage() {
   const discountedSubtotal = subtotal - totalDiscount;
   const totalTax = lines.reduce((s, l) => s + l.tax_amount, 0);
   const total = discountedSubtotal + totalTax + shippingCharge + adjustment;
-  const currency = org?.currency_code || "USD";
+  const currency = org?.currency_code || "INR";
   const fmt = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency }).format(n);
 
   const handleSave = async (status: "draft" | "sent" = "draft") => {

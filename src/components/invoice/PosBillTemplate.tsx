@@ -19,7 +19,7 @@ export function PosBillTemplate({ org, invoice, lines, fmt, type = "invoice" }: 
   const balanceDue = type === "estimate" ? Number(invoice.total) : Number(invoice.balance_due ?? invoice.total);
   const currencySymbol = (invoice.currency_code || org?.currency_code) === "INR"
     ? "₹"
-    : fmt(0).replace(/[\d.,\s]/g, "").trim() || "$";
+    : fmt(0).replace(/[\d.,\s]/g, "").trim() || "₹";
 
   const addressLines: string[] = [];
   if (org?.address) {

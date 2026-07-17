@@ -29,7 +29,7 @@ interface Props {
 }
 
 export function BulkReminderDialog({
-  open, onOpenChange, invoiceIds, orgId, orgName, currencyCode = "USD", onSent,
+  open, onOpenChange, invoiceIds, orgId, orgName, currencyCode = "INR", onSent,
 }: Props) {
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);

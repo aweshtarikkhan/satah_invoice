@@ -78,7 +78,7 @@ export default function CustomerStatementPage() {
   }, [selectedClientId, org?.id, dateFrom, dateTo]);
 
   const fmt = (n: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);
+    new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "INR" }).format(n);
 
   // Build transaction lines
   const transactions = useMemo(() => {

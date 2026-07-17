@@ -45,7 +45,7 @@ export default function CreditNotesPage() {
   }, [org?.id]);
 
   const fmt = (n: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);
+    new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "INR" }).format(n);
 
   const summary = useMemo(() => {
     const total = creditNotes.reduce((s, c) => s + Number(c.total || 0), 0);

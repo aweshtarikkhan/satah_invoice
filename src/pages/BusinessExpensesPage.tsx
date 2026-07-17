@@ -183,7 +183,7 @@ export default function BusinessExpensesPage() {
     setDialogOpen(true);
   };
 
-  const currency = org?.currency_code || "USD";
+  const currency = org?.currency_code || "INR";
   const fmt = (n: number) => formatCurrency(n, currency);
 
   return (

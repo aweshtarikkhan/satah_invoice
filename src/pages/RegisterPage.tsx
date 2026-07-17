@@ -15,7 +15,6 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [orgName, setOrgName] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -45,16 +44,6 @@ export default function RegisterPage() {
 
     if (authData.user) {
       if (authData.session) {
-        const { error: orgError } = await supabase.rpc("create_organization_for_current_user", {
-          org_name: orgName.trim(),
-        });
-
-        if (orgError) {
-          setLoading(false);
-          toast({ title: "Organization setup failed", description: orgError.message, variant: "destructive" });
-          return;
-        }
-
         toast({ title: "Account created!", description: "Welcome to InvoiceApp" });
         navigate("/dashboard", { replace: true });
       } else {
@@ -86,10 +75,6 @@ export default function RegisterPage() {
                 <Label htmlFor="lastName">Last Name</Label>
                 <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="orgName">Organization Name</Label>
-              <Input id="orgName" placeholder="Acme Corp" value={orgName} onChange={(e) => setOrgName(e.target.value)} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="regEmail">Email</Label>

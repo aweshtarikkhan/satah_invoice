@@ -25,9 +25,10 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Plus, Users, Search, Upload, Trash2, Eye, Edit, Download,
+  Plus, Users, Search, Upload, Trash2, Eye, Edit, Download, Loader2
 } from "lucide-react";
 import { downloadCSV } from "@/lib/export-csv";
+import { fetchGstDetails } from "@/lib/gst-service";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 
@@ -79,10 +80,11 @@ export default function ClientsPage() {
   const { toast } = useToast();
 
   const [form, setForm] = useState({
-    display_name: "", company_name: "", email: "", phone: "",
+    display_name: "", company_name: "", email: "", phone: "", tax_number: "",
     billing_address: { street: "", city: "", state: "", zip: "", country: "" },
     payment_terms: 30, notes: "", tags: [] as string[], credit_limit: 0,
   });
+  const [isFetchingGst, setIsFetchingGst] = useState(false);
 
   const fetchClients = async () => {
     if (!org?.id) return;
@@ -113,7 +115,7 @@ export default function ClientsPage() {
   useEffect(() => { fetchClients(); }, [org?.id]);
 
   const resetForm = () => {
-    setForm({ display_name: "", company_name: "", email: "", phone: "", billing_address: { street: "", city: "", state: "", zip: "", country: "" }, payment_terms: 30, notes: "", tags: [], credit_limit: 0 });
+    setForm({ display_name: "", company_name: "", email: "", phone: "", tax_number: "", billing_address: { street: "", city: "", state: "", zip: "", country: "" }, payment_terms: 30, notes: "", tags: [], credit_limit: 0 });
     setEditClient(null);
   };
   const openCreate = () => { resetForm(); setDialogOpen(true); };
@@ -121,7 +123,7 @@ export default function ClientsPage() {
     setEditClient(client);
     setForm({
       display_name: client.display_name || "", company_name: client.company_name || "",
-      email: client.email || "", phone: client.phone || "",
+      email: client.email || "", phone: client.phone || "", tax_number: client.tax_number || "",
       billing_address: client.billing_address || { street: "", city: "", state: "", zip: "", country: "" },
       payment_terms: client.payment_terms ?? 30, notes: client.notes || "",
       tags: client.tags || [], credit_limit: Number(client.credit_limit || 0),
@@ -138,12 +140,39 @@ export default function ClientsPage() {
       toast({ title: "Client updated" });
     } else {
       const { error } = await supabase.from("clients").insert(payload);
-      if (error) { toast({ title: "Create failed", description: error.message, variant: "destructive" }); return; }
+      if (error) { toast({ title: "Creation failed", description: error.message, variant: "destructive" }); return; }
       toast({ title: "Client created" });
     }
     setDialogOpen(false);
     resetForm();
     fetchClients();
+  };
+
+  const handleFetchGst = async () => {
+    if (!form.tax_number || form.tax_number.length !== 15) {
+      toast({ title: "Invalid GST", description: "Please enter a valid 15-character GSTIN", variant: "destructive" });
+      return;
+    }
+    setIsFetchingGst(true);
+    try {
+      const details = await fetchGstDetails(form.tax_number);
+      setForm(prev => ({
+        ...prev,
+        display_name: details.legalName || details.tradeName || prev.display_name,
+        company_name: details.tradeName || details.legalName || prev.company_name,
+        billing_address: {
+          ...prev.billing_address,
+          street: details.address || prev.billing_address.street,
+          state: details.state || prev.billing_address.state,
+          zip: details.pincode || prev.billing_address.zip,
+        }
+      }));
+      toast({ title: "GST Details Fetched", description: "Client details auto-filled successfully!" });
+    } catch (err: any) {
+      toast({ title: "GST Fetch Failed", description: err.message, variant: "destructive" });
+    } finally {
+      setIsFetchingGst(false);
+    }
   };
 
   const filtered = clients.filter((c) =>
@@ -359,6 +388,26 @@ export default function ClientsPage() {
             <DialogTitle>{editClient ? "Edit Client" : "Add Client"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>GST Number</Label>
+              <div className="flex gap-2">
+                <Input 
+                  value={form.tax_number} 
+                  onChange={(e) => setForm({ ...form, tax_number: e.target.value.toUpperCase() })} 
+                  placeholder="e.g. 22AAAAA0000A1Z5"
+                  maxLength={15}
+                />
+                <Button 
+                  type="button" 
+                  variant="secondary" 
+                  onClick={handleFetchGst}
+                  disabled={isFetchingGst || (form.tax_number || "").length !== 15}
+                >
+                  {isFetchingGst ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Search className="h-4 w-4 mr-2" />}
+                  Fetch Details
+                </Button>
+              </div>
+            </div>
             <div className="space-y-2">
               <Label>Display Name *</Label>
               <Input value={form.display_name} onChange={(e) => setForm({ ...form, display_name: e.target.value })} />

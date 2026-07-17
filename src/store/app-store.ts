@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface Organization {
   id: string;
@@ -35,16 +36,45 @@ interface Organization {
   low_stock_threshold: number;
 }
 
+interface BasicOrgInfo {
+  id: string;
+  name: string;
+}
+
 interface AppState {
   organization: Organization | null;
   setOrganization: (org: Organization | null) => void;
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
+  // Multi-business support
+  myOrganizations: BasicOrgInfo[];
+  addMyOrganization: (org: BasicOrgInfo) => void;
 }
 
-export const useAppStore = create<AppState>((set) => ({
-  organization: null,
-  setOrganization: (org) => set({ organization: org }),
-  sidebarOpen: true,
-  setSidebarOpen: (open) => set({ sidebarOpen: open }),
-}));
+export const useAppStore = create<AppState>()(
+  persist(
+    (set, get) => ({
+      organization: null,
+      setOrganization: (org) => {
+        set({ organization: org });
+        if (org) {
+          get().addMyOrganization({ id: org.id, name: org.name });
+        }
+      },
+      sidebarOpen: true,
+      setSidebarOpen: (open) => set({ sidebarOpen: open }),
+      
+      myOrganizations: [],
+      addMyOrganization: (org) => {
+        const current = get().myOrganizations;
+        if (!current.find((o) => o.id === org.id)) {
+          set({ myOrganizations: [...current, org] });
+        }
+      },
+    }),
+    {
+      name: "billflow-app-storage",
+      partialize: (state) => ({ myOrganizations: state.myOrganizations }), // Only persist myOrganizations
+    }
+  )
+);

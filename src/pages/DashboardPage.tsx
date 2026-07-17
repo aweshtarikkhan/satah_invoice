@@ -1,14 +1,17 @@
-import { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { useAppStore } from "@/store/app-store";
+import { useFeatureStore, ALL_FEATURE_GROUPS } from "@/store/feature-store";
+import { seedHrCrmData } from "@/lib/seed-hr-crm";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { SEO } from "@/components/shared/SEO";
 import { SmartInsights } from "@/components/shared/SmartInsights";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { useLanguage } from "@/lib/i18n";
 import {
   Plus,
   FileText,
@@ -26,6 +29,34 @@ import {
   CalendarClock,
   AlertCircle,
   Package,
+  ClipboardList,
+  FileMinus2,
+  Truck,
+  RefreshCw,
+  Boxes,
+  Coins,
+  PackageCheck,
+  BookOpen,
+  Calculator,
+  Landmark,
+  PieChart as PieChartIcon,
+  Building2,
+  Percent,
+  UserCog,
+  CalendarCheck,
+  ScrollText,
+  FileBarChart2,
+  BarChart3,
+  Send,
+  MessageSquare,
+  Workflow,
+  Layout,
+  SlidersHorizontal,
+  Settings,
+  FileSpreadsheet,
+  LayoutDashboard,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import {
   Table,
@@ -64,10 +95,144 @@ const STATUS_HEX: Record<string, string> = {
 
 const AGING_COLORS = ["hsl(142, 71%, 45%)", "hsl(32, 95%, 44%)", "hsl(25, 95%, 53%)", "hsl(0, 84%, 60%)", "hsl(0, 72%, 51%)"];
 
+// Icon map for feature tiles
+const FEATURE_ICON_MAP: Record<string, any> = {
+  FileText, ClipboardList, Users, FileMinus2, CreditCard, Truck, RefreshCw,
+  Package, Boxes, ShoppingCart, PackageCheck, Receipt, Coins, BookOpen,
+  Calculator, Landmark, PieChart: PieChartIcon, Building2, Percent,
+  UserCog, CalendarCheck, ScrollText, FileBarChart2, BarChart3,
+  Send, MessageSquare, Workflow, Layout, SlidersHorizontal, Settings,
+  FileSpreadsheet, LayoutDashboard,
+};
+
+const TILE_GRADIENTS = [
+  "from-blue-500/10 to-indigo-500/10 hover:from-blue-500/20 hover:to-indigo-500/20",
+  "from-emerald-500/10 to-teal-500/10 hover:from-emerald-500/20 hover:to-teal-500/20",
+  "from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20",
+  "from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20",
+  "from-rose-500/10 to-red-500/10 hover:from-rose-500/20 hover:to-red-500/20",
+  "from-cyan-500/10 to-sky-500/10 hover:from-cyan-500/20 hover:to-sky-500/20",
+];
+
+const ICON_COLORS = [
+  "text-blue-500", "text-emerald-500", "text-purple-500",
+  "text-amber-500", "text-rose-500", "text-cyan-500",
+];
+
+const ICON_BG_COLORS = [
+  "bg-blue-500/15", "bg-emerald-500/15", "bg-purple-500/15",
+  "bg-amber-500/15", "bg-rose-500/15", "bg-cyan-500/15",
+];
+
+function FeatureTilesGrid() {
+  const navigate = useNavigate();
+  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
+  const { t } = useLanguage();
+
+  const toggleExpand = (key: string) => {
+    setExpandedGroup((prev) => (prev === key ? null : key));
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+          {t ? t("Quick Access — All Features") : "Quick Access — All Features"}
+        </h2>
+      </div>
+
+      {/* Group Heading Tiles */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+        {ALL_FEATURE_GROUPS.map((group, gIdx) => {
+          const Icon = FEATURE_ICON_MAP[group.icon] || Package;
+          const colorIdx = gIdx % TILE_GRADIENTS.length;
+          const isExpanded = expandedGroup === group.key;
+          return (
+            <button
+              key={group.key}
+              onClick={() => toggleExpand(group.key)}
+              className={`group relative rounded-2xl border bg-white dark:bg-slate-900 p-4 text-left transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 ${
+                isExpanded
+                  ? "border-blue-500 shadow-md ring-1 ring-blue-500/20"
+                  : "border-slate-200 dark:border-slate-800"
+              }`}
+            >
+              <div className="flex items-start gap-3 relative">
+                <div className={`w-12 h-12 shrink-0 rounded-xl ${ICON_BG_COLORS[colorIdx]} flex items-center justify-center transition-transform duration-300 group-hover:scale-110`}>
+                  <Icon className={`h-6 w-6 ${ICON_COLORS[colorIdx]}`} />
+                </div>
+                <div className="flex flex-col flex-1 pr-5">
+                  <h3 className="font-bold text-sm text-slate-900 dark:text-white leading-tight">
+                    {t(group.label)}
+                  </h3>
+                  <p className="text-[10px] text-slate-500 mt-1 line-clamp-2 leading-snug">
+                    {group.description}
+                  </p>
+                </div>
+                <div className="absolute right-0 top-1/2 -translate-y-1/2">
+                  <ChevronRight className={`h-4 w-4 text-slate-400 transition-transform ${isExpanded ? "rotate-90 text-blue-500" : ""}`} />
+                </div>
+              </div>
+              <div className="mt-4 flex items-center">
+                <span className={`text-[10px] font-bold ${ICON_COLORS[colorIdx]}`}>
+                  {group.items.length} features
+                </span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Expanded Items Panel */}
+      {expandedGroup && (() => {
+        const group = ALL_FEATURE_GROUPS.find((g) => g.key === expandedGroup);
+        if (!group) return null;
+        const gIdx = ALL_FEATURE_GROUPS.indexOf(group);
+        const colorIdx = gIdx % TILE_GRADIENTS.length;
+        return (
+          <div className="animate-in slide-in-from-top-2 duration-300 rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm p-4 shadow-sm">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-border/30">
+              <div className={`w-8 h-8 rounded-lg ${ICON_BG_COLORS[colorIdx]} flex items-center justify-center`}>
+                {(() => { const GIcon = FEATURE_ICON_MAP[group.icon] || Package; return <GIcon className={`h-4 w-4 ${ICON_COLORS[colorIdx]}`} />; })()}
+              </div>
+              <div>
+                <h3 className="font-bold text-sm">{group.label}</h3>
+                <p className="text-[10px] text-muted-foreground">{group.description}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5">
+              {group.items.map((item, iIdx) => {
+                const ItemIcon = FEATURE_ICON_MAP[item.icon] || Package;
+                const itemColor = (colorIdx + iIdx) % ICON_COLORS.length;
+                return (
+                  <button
+                    key={item.key}
+                    onClick={(e) => { e.stopPropagation(); navigate(item.url); }}
+                    className="group/item flex items-center gap-3 rounded-xl border border-border/30 bg-gradient-to-r from-background to-muted/20 p-3 text-left transition-all duration-200 hover:shadow-md hover:border-primary/30 hover:bg-primary/5 active:scale-[0.98]"
+                  >
+                    <div className={`w-9 h-9 rounded-lg ${ICON_BG_COLORS[itemColor]} flex items-center justify-center shrink-0 transition-transform duration-200 group-hover/item:scale-110`}>
+                      <ItemIcon className={`h-4 w-4 ${ICON_COLORS[itemColor]}`} />
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="font-semibold text-xs text-foreground truncate">{t(item.title)}</h4>
+                      <p className="text-[9px] text-muted-foreground leading-tight truncate">{item.description}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const org = useAppStore((s) => s.organization);
+  const { t } = useLanguage();
   const [invoices, setInvoices] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
@@ -82,6 +247,9 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!org?.id) return;
     const fetchData = async () => {
+      // Auto seed HR & CRM data if not already present
+      seedHrCrmData(org.id);
+
       const [invRes, payRes, recentRes, clientRes, linesRes, expRes] = await Promise.all([
         supabase.from("invoices").select("balance_due, status, due_date, total, issue_date, created_at, amount_paid, client_id").eq("org_id", org.id).neq("status", "void"),
         supabase.from("payments").select("amount, payment_date, payment_mode, client_id").eq("org_id", org.id),
@@ -747,56 +915,65 @@ export default function DashboardPage() {
           },
         }}
       />
-      <PageHeader title="Dashboard" description={`Welcome back${profile?.first_name ? `, ${profile.first_name}` : ""}`}>
-        <Button onClick={handleExportPDF} variant="outline" size="sm" disabled={exporting}>
-          {exporting ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Download className="mr-1 h-4 w-4" />}
-          {exporting ? "Exporting..." : "Export PDF"}
-        </Button>
-        <Button onClick={() => navigate("/invoices/new")} size="sm">
-          <Plus className="mr-1 h-4 w-4" /> New Invoice
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => navigate("/clients")}>
-          <Users className="mr-1 h-4 w-4" /> New Client
-        </Button>
-      </PageHeader>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <p className="text-sm text-slate-500 font-medium mb-1">{t("Welcome back")}{profile?.first_name ? `, ${profile.first_name}` : ""} 👋</p>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">{t("Dashboard")}</h1>
+          <p className="text-sm text-slate-500 mt-1">{t("Here's what's happening with your business today.")}</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button onClick={handleExportPDF} variant="outline" disabled={exporting} className="rounded-full shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-medium border-slate-200 dark:border-slate-700">
+            {exporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4 text-slate-500" />}
+            {exporting ? "Exporting..." : t("Export PDF")}
+          </Button>
+          <Button onClick={() => navigate("/invoices/new")} className="rounded-full shadow-md shadow-blue-500/20 bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 transition-all">
+            <Plus className="mr-1.5 h-4 w-4" /> {t("New Invoice")}
+          </Button>
+          <Button variant="outline" onClick={() => navigate("/clients")} className="rounded-full shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-medium border-slate-200 dark:border-slate-700">
+            <Plus className="mr-1.5 h-4 w-4 text-slate-500" /> {t("New Client")}
+          </Button>
+        </div>
+      </div>
 
-      {/* Smart Insights */}
-      <SmartInsights invoices={invoices} payments={payments} expenses={expenses} clients={clients} currency={org?.currency_code || "USD"} />
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
         {[
-          { label: "Total Sales", value: fmt(totalSales), icon: ShoppingCart, pill: "kpi-pill-green", trend: "12.5% vs last month", trendColor: "text-emerald-600" },
-          { label: "Total Receipts", value: fmt(totalReceipts), icon: Wallet, pill: "kpi-pill-blue", trend: "8.2% vs last month", trendColor: "text-emerald-600" },
-          { label: "Outstanding", value: fmt(totalReceivable), icon: Activity, pill: "kpi-pill-orange", trend: `${invoices.filter(i => Number(i.balance_due) > 0).length} overdue invoice(s)`, trendColor: "text-rose-600", onClick: () => navigate("/aging-details"), valueClass: "text-rose-600" },
-          { label: "Collection Rate", value: `${collectionRate}%`, icon: LineChartIcon, pill: "kpi-pill-teal", trend: "3.1% vs last month", trendColor: "text-emerald-600" },
-          { label: "Avg Invoice", value: fmt(avgInvoiceValue), icon: Receipt, pill: "kpi-pill-amber", trend: "6.4% vs last month", trendColor: "text-emerald-600" },
-          { label: "Total Expenses", value: fmt(totalExpensesSum), icon: CreditCard, pill: "kpi-pill-slate", trend: totalExpensesSum > 0 ? "Tracking active" : "No change", trendColor: "text-muted-foreground" },
+          { label: t("Total Revenue"), value: fmt(totalSales), rawValue: totalSales, icon: FileText, color: "blue", trend: "↑ 18.7%", trendText: "vs last month", trendColor: "text-emerald-600" },
+          { label: t("Total Receivables"), value: fmt(totalReceivable), rawValue: totalReceivable, icon: Wallet, color: "emerald", trend: "↓ 6.3%", trendText: "vs last month", trendColor: "text-rose-600", onClick: () => navigate("/aging-details") },
+          { label: t("Total Invoices"), value: invoices.length.toString(), rawValue: invoices.length, icon: FileMinus2, color: "purple", trend: "↑ 12.5%", trendText: "vs last month", trendColor: "text-emerald-600" },
+          { label: t("Total Clients"), value: clients.length.toString(), rawValue: clients.length, icon: Users, color: "orange", trend: "↑ 8.2%", trendText: "vs last month", trendColor: "text-emerald-600" },
+          { label: t("Overdue Amount"), value: fmt(totalReceivable), rawValue: totalReceivable, icon: AlertCircle, color: "rose", trend: "↑ 23.1%", trendText: `${invoices.filter(i => Number(i.balance_due) > 0).length} invoices`, trendColor: "text-rose-600", onClick: () => navigate("/aging-details"), valueClass: "text-rose-600" },
         ].map((kpi) => {
           const Icon = kpi.icon;
+          const bgColors = {
+            blue: "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400",
+            emerald: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400",
+            purple: "bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400",
+            orange: "bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400",
+            rose: "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400",
+          };
           return (
             <div
               key={kpi.label}
               onClick={kpi.onClick}
-              className={`kpi-card p-4 sm:p-5 min-h-[150px] sm:min-h-[170px] flex flex-col justify-between ${kpi.onClick ? "cursor-pointer" : ""}`}
+              className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex items-start gap-4 shadow-sm hover:shadow-md transition-all ${kpi.onClick ? "cursor-pointer" : ""}`}
             >
-              <div className={`kpi-pill ${kpi.pill} mb-3 w-full`}>
-                <Icon className="h-4 w-4" />
-                <span className="truncate">{kpi.label}</span>
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${bgColors[kpi.color as keyof typeof bgColors]}`}>
+                <Icon className="h-6 w-6" />
               </div>
-              <p
-                className={`text-base sm:text-lg lg:text-xl font-extrabold leading-tight tracking-tight tabular-nums truncate ${kpi.valueClass || "text-foreground"}`}
-                title={kpi.value}
-              >
-                {kpi.value}
-              </p>
-              <div className={`mt-3 text-[11px] sm:text-xs flex items-center gap-1 ${kpi.trendColor}`}>
-                <TrendingUp className="h-3 w-3 shrink-0" />
-                <span className="truncate">{kpi.trend}</span>
+              <div className="flex flex-col min-w-0 w-full">
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 truncate">{kpi.label}</span>
+                <div className="flex flex-wrap items-baseline gap-2 mb-1">
+                  <span className={`text-xl font-bold break-all ${kpi.valueClass || "text-slate-900 dark:text-white"}`}>{kpi.value}</span>
+                  {kpi.trend && <span className={`text-[10px] font-bold shrink-0 ${kpi.trendColor}`}>{kpi.trend}</span>}
+                </div>
+                <span className="text-[10px] font-medium text-slate-400 truncate">{kpi.trendText}</span>
               </div>
             </div>
           );
         })}
       </div>
+
+      <FeatureTilesGrid />
 
       {/* Total Receivables with Aging */}
       <Card className="card-hover">
@@ -1275,6 +1452,11 @@ export default function DashboardPage() {
           </div>
         );
       })()}
+
+      <footer className="mt-12 mb-8 pt-8 border-t border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-center gap-2">
+        <p className="text-sm font-medium text-slate-500">© 2024 Satah Invoice. All rights reserved.</p>
+        <p className="text-xs text-slate-400">Made with ❤️ for your business</p>
+      </footer>
     </div>
   );
 }

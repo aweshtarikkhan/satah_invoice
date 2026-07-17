@@ -20,9 +20,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Loader2, Search } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
+import { fetchGstDetails } from "@/lib/gst-service";
 
 export default function SettingsPage() {
   const org = useAppStore((s) => s.organization);
@@ -41,6 +42,7 @@ export default function SettingsPage() {
     inventory_enabled: false, low_stock_threshold: 5,
     multi_warehouse_enabled: false,
   });
+  const [isFetchingGst, setIsFetchingGst] = useState(false);
 
   // Tax rates
   const [taxRates, setTaxRates] = useState<any[]>([]);
@@ -80,6 +82,33 @@ export default function SettingsPage() {
     } else {
       setOrganization({ ...org, ...orgForm } as any);
       toast({ title: "Settings saved!" });
+    }
+  };
+
+  const handleFetchGst = async () => {
+    if (!orgForm.gst_number || orgForm.gst_number.length !== 15) {
+      toast({ title: "Invalid GST", description: "Please enter a valid 15-character GSTIN", variant: "destructive" });
+      return;
+    }
+    setIsFetchingGst(true);
+    try {
+      const details = await fetchGstDetails(orgForm.gst_number);
+      setOrgForm(prev => ({
+        ...prev,
+        name: details.legalName || details.tradeName || prev.name,
+        address: {
+          ...prev.address,
+          street: details.address || prev.address.street,
+          city: prev.address.city, // Keep city or derive if possible
+          state: details.state || prev.address.state,
+          zip: details.pincode || prev.address.zip,
+        }
+      }));
+      toast({ title: "GST Details Fetched", description: "Business details auto-filled successfully!" });
+    } catch (err: any) {
+      toast({ title: "GST Fetch Failed", description: err.message, variant: "destructive" });
+    } finally {
+      setIsFetchingGst(false);
     }
   };
 
@@ -251,7 +280,23 @@ export default function SettingsPage() {
                     <>
                       <div className="space-y-2">
                         <Label>Your GST Number</Label>
-                        <Input value={orgForm.gst_number} onChange={(e) => setOrgForm({ ...orgForm, gst_number: e.target.value })} placeholder="e.g. 22AAAAA0000A1Z5" />
+                        <div className="flex gap-2">
+                          <Input 
+                            value={orgForm.gst_number || ""} 
+                            onChange={(e) => setOrgForm({ ...orgForm, gst_number: e.target.value.toUpperCase() })} 
+                            placeholder="e.g. 22AAAAA0000A1Z5" 
+                            maxLength={15}
+                          />
+                          <Button 
+                            type="button" 
+                            variant="secondary" 
+                            onClick={handleFetchGst}
+                            disabled={isFetchingGst || (orgForm.gst_number || "").length !== 15}
+                          >
+                            {isFetchingGst ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Search className="h-4 w-4 mr-2" />}
+                            Fetch Details
+                          </Button>
+                        </div>
                       </div>
                       <div className="flex items-center justify-between">
                         <div>

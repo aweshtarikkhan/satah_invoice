@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
+import { Loader2, Search } from "lucide-react";
+import { fetchGstDetails } from "@/lib/gst-service";
 
 interface AddClientDialogProps {
   open: boolean;
@@ -25,6 +27,11 @@ export function AddClientDialog({ open, onOpenChange, onClientAdded }: AddClient
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [notes, setNotes] = useState("");
+  const [gstNumber, setGstNumber] = useState("");
+  const [billingAddress, setBillingAddress] = useState("");
+  const [billingState, setBillingState] = useState("");
+  const [billingZip, setBillingZip] = useState("");
+  const [isFetchingGst, setIsFetchingGst] = useState(false);
 
   const reset = () => {
     setDisplayName("");
@@ -32,6 +39,31 @@ export function AddClientDialog({ open, onOpenChange, onClientAdded }: AddClient
     setEmail("");
     setPhone("");
     setNotes("");
+    setGstNumber("");
+    setBillingAddress("");
+    setBillingState("");
+    setBillingZip("");
+  };
+
+  const handleFetchGst = async () => {
+    if (!gstNumber || gstNumber.length !== 15) {
+      toast({ title: "Invalid GST", description: "Please enter a valid 15-character GSTIN", variant: "destructive" });
+      return;
+    }
+    setIsFetchingGst(true);
+    try {
+      const details = await fetchGstDetails(gstNumber);
+      if (!companyName) setCompanyName(details.legalName || details.tradeName || "");
+      if (!displayName) setDisplayName(details.tradeName || details.legalName || "");
+      setBillingAddress(details.address || "");
+      setBillingState(details.state || "");
+      setBillingZip(details.pincode || "");
+      toast({ title: "GST Details Fetched", description: "Business details auto-filled successfully!" });
+    } catch (err: any) {
+      toast({ title: "GST Fetch Failed", description: err.message, variant: "destructive" });
+    } finally {
+      setIsFetchingGst(false);
+    }
   };
 
   const handleSave = async () => {
@@ -47,6 +79,10 @@ export function AddClientDialog({ open, onOpenChange, onClientAdded }: AddClient
       email: email.trim() || null,
       phone: phone.trim() || null,
       notes: notes.trim() || null,
+      gst_number: gstNumber.trim() || null,
+      billing_address: billingAddress.trim() || null,
+      billing_state: billingState.trim() || null,
+      billing_zip: billingZip.trim() || null,
     }).select("id, display_name").single();
 
     if (error) {
@@ -66,14 +102,36 @@ export function AddClientDialog({ open, onOpenChange, onClientAdded }: AddClient
         <DialogHeader>
           <DialogTitle>Add New Client</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-2">
+        <div className="space-y-4 py-2 max-h-[70vh] overflow-y-auto px-1">
           <div className="space-y-2">
-            <Label>Display Name *</Label>
-            <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Client name" autoFocus />
+            <Label>GST Number</Label>
+            <div className="flex gap-2">
+              <Input 
+                value={gstNumber} 
+                onChange={(e) => setGstNumber(e.target.value.toUpperCase())} 
+                placeholder="e.g. 22AAAAA0000A1Z5" 
+                maxLength={15}
+              />
+              <Button 
+                type="button" 
+                variant="secondary" 
+                onClick={handleFetchGst}
+                disabled={isFetchingGst || gstNumber.length !== 15}
+              >
+                {isFetchingGst ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Search className="h-4 w-4 mr-2" />}
+                Fetch Details
+              </Button>
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label>Company Name</Label>
-            <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Company" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Display Name *</Label>
+              <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Client name" autoFocus />
+            </div>
+            <div className="space-y-2">
+              <Label>Company Name</Label>
+              <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Company" />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
@@ -83,6 +141,20 @@ export function AddClientDialog({ open, onOpenChange, onClientAdded }: AddClient
             <div className="space-y-2">
               <Label>Phone</Label>
               <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone number" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Billing Address</Label>
+            <Textarea value={billingAddress} onChange={(e) => setBillingAddress(e.target.value)} rows={2} placeholder="Full address" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>State</Label>
+              <Input value={billingState} onChange={(e) => setBillingState(e.target.value)} placeholder="State" />
+            </div>
+            <div className="space-y-2">
+              <Label>Pincode / ZIP</Label>
+              <Input value={billingZip} onChange={(e) => setBillingZip(e.target.value)} placeholder="Pincode" />
             </div>
           </div>
           <div className="space-y-2">

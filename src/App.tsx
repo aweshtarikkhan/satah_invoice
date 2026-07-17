@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -6,78 +7,79 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, RequireAuth } from "@/lib/auth";
 import { AppLayout } from "@/components/layout/AppLayout";
 
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-import DashboardPage from "./pages/DashboardPage";
-import ClientsPage from "./pages/ClientsPage";
-import ClientDetailPage from "./pages/ClientDetailPage";
-import ItemsPage from "./pages/ItemsPage";
-import InventoryPage from "./pages/InventoryPage";
-import InvoicesPage from "./pages/InvoicesPage";
-import InvoiceBuilderPage from "./pages/InvoiceBuilderPage";
-import InvoiceDetailPage from "./pages/InvoiceDetailPage";
-import EstimatesPage from "./pages/EstimatesPage";
-import EstimateBuilderPage from "./pages/EstimateBuilderPage";
-import EstimateDetailPage from "./pages/EstimateDetailPage";
-import PaymentsPage from "./pages/PaymentsPage";
-import RecordPaymentPage from "./pages/RecordPaymentPage";
-import ReportsPage from "./pages/ReportsPage";
-import SettingsPage from "./pages/SettingsPage";
-import CreditNotesPage from "./pages/CreditNotesPage";
-import CreditNoteBuilderPage from "./pages/CreditNoteBuilderPage";
-import CreditNoteDetailPage from "./pages/CreditNoteDetailPage";
-import InvoiceTemplatePage from "./pages/InvoiceTemplatePage";
-import PortalPage from "./pages/PortalPage";
-import AuditLogsPage from "./pages/AuditLogsPage";
-import CustomFieldsPage from "./pages/CustomFieldsPage";
-import TemplateCustomizationPage from "./pages/TemplateCustomizationPage";
-import BusinessExpensesPage from "./pages/BusinessExpensesPage";
-import CustomerStatementPage from "./pages/CustomerStatementPage";
-import AgingDetailsPage from "./pages/AgingDetailsPage";
-import ProfitLossPage from "./pages/ProfitLossPage";
-import RecurringInvoicesPage from "./pages/RecurringInvoicesPage";
-import EmployeesPage from "./pages/EmployeesPage";
-import AttendancePage from "./pages/AttendancePage";
-import GstReturnsPage from "./pages/GstReturnsPage";
-import DemoAutoLoginPage from "./pages/DemoAutoLoginPage";
-import LandingPage from "./pages/LandingPage";
-import VendorsPage from "./pages/VendorsPage";
-import BillsPage from "./pages/BillsPage";
-import BillBuilderPage from "./pages/BillBuilderPage";
-import BillDetailPage from "./pages/BillDetailPage";
-import ChartOfAccountsPage from "./pages/ChartOfAccountsPage";
-import JournalEntriesPage from "./pages/JournalEntriesPage";
-import BranchesPage from "./pages/BranchesPage";
-import TdsPage from "./pages/TdsPage";
-import AccountingReportsPage from "./pages/AccountingReportsPage";
-import PurchaseOrdersPage from "./pages/PurchaseOrdersPage";
-import PurchaseOrderBuilderPage from "./pages/PurchaseOrderBuilderPage";
-import PurchaseOrderDetailPage from "./pages/PurchaseOrderDetailPage";
-import GrnsPage from "./pages/GrnsPage";
-import GrnBuilderPage from "./pages/GrnBuilderPage";
-import GrnDetailPage from "./pages/GrnDetailPage";
-import DeliveryChallansPage from "./pages/DeliveryChallansPage";
-import DeliveryChallanBuilderPage from "./pages/DeliveryChallanBuilderPage";
-import InventoryValuationPage from "./pages/InventoryValuationPage";
-import BankAccountsPage from "./pages/BankAccountsPage";
-import BankAccountDetailPage from "./pages/BankAccountDetailPage";
-import CashFlowPage from "./pages/CashFlowPage";
-import ShiftsPage from "./pages/ShiftsPage";
-import LeavesPage from "./pages/LeavesPage";
-import EmployeeDocumentsPage from "./pages/EmployeeDocumentsPage";
-import PayrollPage from "./pages/PayrollPage";
-import PayrollRunDetailPage from "./pages/PayrollRunDetailPage";
-import LeadsPage from "./pages/LeadsPage";
-import PipelinePage from "./pages/PipelinePage";
-import ActivitiesPage from "./pages/ActivitiesPage";
-import MarketingTemplatesPage from "./pages/MarketingTemplatesPage";
-import CampaignsPage from "./pages/CampaignsPage";
-import CampaignDetailPage from "./pages/CampaignDetailPage";
-import JourneysPage from "./pages/JourneysPage";
-import MessageLogsPage from "./pages/MessageLogsPage";
-import NotFound from "./pages/NotFound";
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const RegisterPage = lazy(() => import("./pages/RegisterPage"));
+const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+const DashboardPage = lazy(() => import("./pages/DashboardPage"));
+const ClientsPage = lazy(() => import("./pages/ClientsPage"));
+const ClientDetailPage = lazy(() => import("./pages/ClientDetailPage"));
+const ItemsPage = lazy(() => import("./pages/ItemsPage"));
+const InventoryPage = lazy(() => import("./pages/InventoryPage"));
+const InvoicesPage = lazy(() => import("./pages/InvoicesPage"));
+const InvoiceBuilderPage = lazy(() => import("./pages/InvoiceBuilderPage"));
+const InvoiceDetailPage = lazy(() => import("./pages/InvoiceDetailPage"));
+const EstimatesPage = lazy(() => import("./pages/EstimatesPage"));
+const EstimateBuilderPage = lazy(() => import("./pages/EstimateBuilderPage"));
+const EstimateDetailPage = lazy(() => import("./pages/EstimateDetailPage"));
+const PaymentsPage = lazy(() => import("./pages/PaymentsPage"));
+const RecordPaymentPage = lazy(() => import("./pages/RecordPaymentPage"));
+const ReportsPage = lazy(() => import("./pages/ReportsPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const CreditNotesPage = lazy(() => import("./pages/CreditNotesPage"));
+const CreditNoteBuilderPage = lazy(() => import("./pages/CreditNoteBuilderPage"));
+const CreditNoteDetailPage = lazy(() => import("./pages/CreditNoteDetailPage"));
+const InvoiceTemplatePage = lazy(() => import("./pages/InvoiceTemplatePage"));
+const PortalPage = lazy(() => import("./pages/PortalPage"));
+const AuditLogsPage = lazy(() => import("./pages/AuditLogsPage"));
+const CustomFieldsPage = lazy(() => import("./pages/CustomFieldsPage"));
+const TemplateCustomizationPage = lazy(() => import("./pages/TemplateCustomizationPage"));
+const BusinessExpensesPage = lazy(() => import("./pages/BusinessExpensesPage"));
+const CustomerStatementPage = lazy(() => import("./pages/CustomerStatementPage"));
+const AgingDetailsPage = lazy(() => import("./pages/AgingDetailsPage"));
+const ProfitLossPage = lazy(() => import("./pages/ProfitLossPage"));
+const RecurringInvoicesPage = lazy(() => import("./pages/RecurringInvoicesPage"));
+const EmployeesPage = lazy(() => import("./pages/EmployeesPage"));
+const AttendancePage = lazy(() => import("./pages/AttendancePage"));
+const GstReturnsPage = lazy(() => import("./pages/GstReturnsPage"));
+const DemoAutoLoginPage = lazy(() => import("./pages/DemoAutoLoginPage"));
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const VendorsPage = lazy(() => import("./pages/VendorsPage"));
+const BillsPage = lazy(() => import("./pages/BillsPage"));
+const BillBuilderPage = lazy(() => import("./pages/BillBuilderPage"));
+const BillDetailPage = lazy(() => import("./pages/BillDetailPage"));
+const ChartOfAccountsPage = lazy(() => import("./pages/ChartOfAccountsPage"));
+const JournalEntriesPage = lazy(() => import("./pages/JournalEntriesPage"));
+const BranchesPage = lazy(() => import("./pages/BranchesPage"));
+const TdsPage = lazy(() => import("./pages/TdsPage"));
+const AccountingReportsPage = lazy(() => import("./pages/AccountingReportsPage"));
+const PurchaseOrdersPage = lazy(() => import("./pages/PurchaseOrdersPage"));
+const PurchaseOrderBuilderPage = lazy(() => import("./pages/PurchaseOrderBuilderPage"));
+const PurchaseOrderDetailPage = lazy(() => import("./pages/PurchaseOrderDetailPage"));
+const GrnsPage = lazy(() => import("./pages/GrnsPage"));
+const GrnBuilderPage = lazy(() => import("./pages/GrnBuilderPage"));
+const GrnDetailPage = lazy(() => import("./pages/GrnDetailPage"));
+const DeliveryChallansPage = lazy(() => import("./pages/DeliveryChallansPage"));
+const DeliveryChallanBuilderPage = lazy(() => import("./pages/DeliveryChallanBuilderPage"));
+const InventoryValuationPage = lazy(() => import("./pages/InventoryValuationPage"));
+const BankAccountsPage = lazy(() => import("./pages/BankAccountsPage"));
+const BankAccountDetailPage = lazy(() => import("./pages/BankAccountDetailPage"));
+const CashFlowPage = lazy(() => import("./pages/CashFlowPage"));
+const ShiftsPage = lazy(() => import("./pages/ShiftsPage"));
+const LeavesPage = lazy(() => import("./pages/LeavesPage"));
+const EmployeeDocumentsPage = lazy(() => import("./pages/EmployeeDocumentsPage"));
+const PayrollPage = lazy(() => import("./pages/PayrollPage"));
+const PayrollRunDetailPage = lazy(() => import("./pages/PayrollRunDetailPage"));
+const LeadsPage = lazy(() => import("./pages/LeadsPage"));
+const PipelinePage = lazy(() => import("./pages/PipelinePage"));
+const ActivitiesPage = lazy(() => import("./pages/ActivitiesPage"));
+const MarketingTemplatesPage = lazy(() => import("./pages/MarketingTemplatesPage"));
+const CampaignsPage = lazy(() => import("./pages/CampaignsPage"));
+const CampaignDetailPage = lazy(() => import("./pages/CampaignDetailPage"));
+const JourneysPage = lazy(() => import("./pages/JourneysPage"));
+const MessageLogsPage = lazy(() => import("./pages/MessageLogsPage"));
+const AdminPanelPage = lazy(() => import("./pages/AdminPanelPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
@@ -88,6 +90,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <Suspense fallback={<div className="flex h-screen w-screen items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div></div>}>
           <Routes>
             {/* Public routes */}
             <Route path="/login" element={<LoginPage />} />
@@ -96,6 +99,7 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/demo" element={<DemoAutoLoginPage />} />
             <Route path="/try" element={<DemoAutoLoginPage />} />
+            <Route path="/admin" element={<AdminPanelPage />} />
 
             {/* Protected routes */}
             <Route
@@ -189,6 +193,7 @@ const App = () => (
             <Route path="/" element={<LandingPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

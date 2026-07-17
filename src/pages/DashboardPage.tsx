@@ -254,7 +254,7 @@ export default function DashboardPage() {
         supabase.from("invoices").select("balance_due, status, due_date, total, issue_date, created_at, amount_paid, client_id").eq("org_id", org.id).neq("status", "void"),
         supabase.from("payments").select("amount, payment_date, payment_mode, client_id").eq("org_id", org.id),
         supabase.from("invoices").select("*, clients(display_name)").eq("org_id", org.id).order("created_at", { ascending: false }).limit(10),
-        supabase.from("clients").select("id, display_name").eq("org_id", org.id),
+        supabase.from("clients").select("id, display_name, created_at").eq("org_id", org.id),
         supabase.from("invoice_lines").select("name, quantity, amount, invoice_id"),
         supabase.from("business_expenses").select("amount, expense_date, category").eq("org_id", org.id),
       ]);
@@ -289,9 +289,80 @@ export default function DashboardPage() {
   }, [org?.id, (org as any)?.inventory_enabled, (org as any)?.low_stock_threshold]);
 
   const fmt = (n: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: org?.currency_code || "USD" }).format(n);
+    new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
 
   const totalReceivable = useMemo(() => invoices.reduce((s, i) => s + Number(i.balance_due), 0), [invoices]);
+
+  const trends = useMemo(() => {
+    const today = new Date();
+    const startOfThisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const startOfLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+
+    const thisMonthInvoices = invoices.filter(i => {
+      const d = new Date(i.issue_date || i.created_at);
+      return d >= startOfThisMonth;
+    });
+    
+    const lastMonthInvoices = invoices.filter(i => {
+      const d = new Date(i.issue_date || i.created_at);
+      return d >= startOfLastMonth && d <= endOfLastMonth;
+    });
+
+    const calculatePct = (curr: number, prev: number) => {
+      if (prev === 0) return curr > 0 ? 100 : 0;
+      return ((curr - prev) / prev) * 100;
+    };
+
+    // 1. Revenue
+    const thisMonthRev = thisMonthInvoices.reduce((s, i) => s + Number(i.total), 0);
+    const lastMonthRev = lastMonthInvoices.reduce((s, i) => s + Number(i.total), 0);
+    const revPct = calculatePct(thisMonthRev, lastMonthRev);
+
+    // 2. Receivables
+    const thisMonthRec = thisMonthInvoices.reduce((s, i) => s + Number(i.balance_due), 0);
+    const lastMonthRec = lastMonthInvoices.reduce((s, i) => s + Number(i.balance_due), 0);
+    const recPct = calculatePct(thisMonthRec, lastMonthRec);
+
+    // 3. Invoices count
+    const invPct = calculatePct(thisMonthInvoices.length, lastMonthInvoices.length);
+
+    // 4. Clients
+    const thisMonthClients = clients.filter(c => {
+      const d = new Date(c.created_at);
+      return d >= startOfThisMonth;
+    }).length;
+    const lastMonthClients = clients.filter(c => {
+      const d = new Date(c.created_at);
+      return d >= startOfLastMonth && d <= endOfLastMonth;
+    }).length;
+    const clientPct = calculatePct(thisMonthClients, lastMonthClients);
+
+    // 5. Overdue
+    const thisMonthOverdue = thisMonthInvoices.filter(i => i.status === 'overdue').reduce((s, i) => s + Number(i.balance_due), 0);
+    const lastMonthOverdue = lastMonthInvoices.filter(i => i.status === 'overdue').reduce((s, i) => s + Number(i.balance_due), 0);
+    const overduePctChange = calculatePct(thisMonthOverdue, lastMonthOverdue);
+
+    const fmtTrend = (pct: number) => {
+      if (pct === 0) return "0.0%";
+      const sign = pct > 0 ? "↑" : "↓";
+      return `${sign} ${Math.abs(pct).toFixed(1)}%`;
+    };
+
+    return {
+      revenue: fmtTrend(revPct),
+      revenueColor: revPct >= 0 ? "text-emerald-600" : "text-rose-600",
+      receivables: fmtTrend(recPct),
+      receivablesColor: recPct <= 0 ? "text-emerald-600" : "text-rose-600",
+      invoices: fmtTrend(invPct),
+      invoicesColor: invPct >= 0 ? "text-emerald-600" : "text-rose-600",
+      clients: fmtTrend(clientPct),
+      clientsColor: clientPct >= 0 ? "text-emerald-600" : "text-rose-600",
+      overdue: fmtTrend(overduePctChange),
+      overdueColor: overduePctChange <= 0 ? "text-emerald-600" : "text-rose-600",
+    };
+  }, [invoices, clients]);
+
 
   const agingData = useMemo(() => {
     const today = new Date();
@@ -937,11 +1008,11 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
         {[
-          { label: t("Total Revenue"), value: fmt(totalSales), rawValue: totalSales, icon: FileText, color: "blue", trend: "↑ 18.7%", trendText: "vs last month", trendColor: "text-emerald-600" },
-          { label: t("Total Receivables"), value: fmt(totalReceivable), rawValue: totalReceivable, icon: Wallet, color: "emerald", trend: "↓ 6.3%", trendText: "vs last month", trendColor: "text-rose-600", onClick: () => navigate("/aging-details") },
-          { label: t("Total Invoices"), value: invoices.length.toString(), rawValue: invoices.length, icon: FileMinus2, color: "purple", trend: "↑ 12.5%", trendText: "vs last month", trendColor: "text-emerald-600" },
-          { label: t("Total Clients"), value: clients.length.toString(), rawValue: clients.length, icon: Users, color: "orange", trend: "↑ 8.2%", trendText: "vs last month", trendColor: "text-emerald-600" },
-          { label: t("Overdue Amount"), value: fmt(totalReceivable), rawValue: totalReceivable, icon: AlertCircle, color: "rose", trend: "↑ 23.1%", trendText: `${invoices.filter(i => Number(i.balance_due) > 0).length} invoices`, trendColor: "text-rose-600", onClick: () => navigate("/aging-details"), valueClass: "text-rose-600" },
+          { label: t("Total Revenue"), value: fmt(totalSales), rawValue: totalSales, icon: FileText, color: "blue", trend: trends.revenue, trendText: "vs last month", trendColor: trends.revenueColor },
+          { label: t("Total Receivables"), value: fmt(totalReceivable), rawValue: totalReceivable, icon: Wallet, color: "emerald", trend: trends.receivables, trendText: "vs last month", trendColor: trends.receivablesColor, onClick: () => navigate("/aging-details") },
+          { label: t("Total Invoices"), value: invoices.length.toString(), rawValue: invoices.length, icon: FileMinus2, color: "purple", trend: trends.invoices, trendText: "vs last month", trendColor: trends.invoicesColor },
+          { label: t("Total Clients"), value: clients.length.toString(), rawValue: clients.length, icon: Users, color: "orange", trend: trends.clients, trendText: "vs last month", trendColor: trends.clientsColor },
+          { label: t("Overdue Amount"), value: fmt(totalReceivable), rawValue: totalReceivable, icon: AlertCircle, color: "rose", trend: trends.overdue, trendText: `${invoices.filter(i => Number(i.balance_due) > 0).length} invoices`, trendColor: trends.overdueColor, onClick: () => navigate("/aging-details"), valueClass: "text-rose-600" },
         ].map((kpi) => {
           const Icon = kpi.icon;
           const bgColors = {

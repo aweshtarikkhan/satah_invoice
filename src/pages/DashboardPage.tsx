@@ -288,8 +288,10 @@ export default function DashboardPage() {
     fetchData();
   }, [org?.id, (org as any)?.inventory_enabled, (org as any)?.low_stock_threshold]);
 
-  const fmt = (n: number) =>
-    new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+  const fmt = (n: number) => {
+    const formatted = new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+    return `₹${formatted}`;
+  };
 
   const totalReceivable = useMemo(() => invoices.reduce((s, i) => s + Number(i.balance_due), 0), [invoices]);
 

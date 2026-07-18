@@ -27,11 +27,11 @@ export function AddItemDialog({ open, onOpenChange, onItemAdded, taxRates = [], 
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     name: "", description: "", sku: "", type: defaultType as "service" | "product",
-    unit_price: 0, unit: "", tax_id: null as string | null, hsn_code: "",
+    unit_price: 0, unit: "", tax_id: null as string | null, hsn_code: "", stock_quantity: 0,
   });
 
   const reset = () => {
-    setForm({ name: "", description: "", sku: "", type: defaultType, unit_price: 0, unit: "", tax_id: null, hsn_code: "" });
+    setForm({ name: "", description: "", sku: "", type: defaultType, unit_price: 0, unit: "", tax_id: null, hsn_code: "", stock_quantity: 0 });
   };
 
   const handleSave = async () => {
@@ -45,6 +45,8 @@ export function AddItemDialog({ open, onOpenChange, onItemAdded, taxRates = [], 
       sku: form.sku || null, type: form.type, unit_price: form.unit_price,
       unit: form.unit || null, tax_id: form.tax_id,
       hsn_code: form.hsn_code.trim() || null,
+      stock_quantity: form.type === "product" ? form.stock_quantity : 0,
+      is_active: true,
     } as any).select().single();
 
     setSaving(false);
@@ -115,6 +117,12 @@ export function AddItemDialog({ open, onOpenChange, onItemAdded, taxRates = [], 
               inputMode="numeric"
             />
           </div>
+          {form.type === "product" && (
+            <div className="space-y-1">
+              <Label>Opening Stock</Label>
+              <Input type="number" value={form.stock_quantity} onChange={(e) => setForm({ ...form, stock_quantity: parseFloat(e.target.value) || 0 })} />
+            </div>
+          )}
           {taxRates.length > 0 && (
             <div className="space-y-1">
               <Label>Tax Rate</Label>

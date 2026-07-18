@@ -504,7 +504,6 @@ export default function InvoiceBuilderPage() {
       org_id: org!.id,
       client_id: clientId,
       invoice_number: invoiceNumber,
-      status,
       issue_date: issueDate,
       due_date: dueDate,
       currency_code: org!.currency_code,
@@ -841,15 +840,6 @@ export default function InvoiceBuilderPage() {
                   <Label>Due Date</Label>
                   <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Currency</Label>
-                <Select value={org?.currency_code || "INR"} disabled>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {CURRENCIES.map((c) => <SelectItem key={c.code} value={c.code}>{c.code}</SelectItem>)}
-                  </SelectContent>
-                </Select>
               </div>
             </div>
           </div>

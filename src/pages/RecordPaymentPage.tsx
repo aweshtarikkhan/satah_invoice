@@ -19,7 +19,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { logAudit } from "@/lib/audit";
-import { ArrowLeft, CreditCard, DollarSign, AlertCircle, CheckCircle2, Plus } from "lucide-react";
+import { ArrowLeft, CreditCard, IndianRupee, AlertCircle, CheckCircle2, Plus } from "lucide-react";
 import { AddClientDialog } from "@/components/shared/AddClientDialog";
 
 const PAYMENT_MODES = [
@@ -298,7 +298,7 @@ export default function RecordPaymentPage() {
           <div className="space-y-2">
             <Label>Amount Received *</Label>
             <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="number"
                 step="0.01"

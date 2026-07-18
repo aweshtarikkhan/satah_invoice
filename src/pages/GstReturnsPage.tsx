@@ -37,6 +37,7 @@ export default function GstReturnsPage() {
   const [month, setMonth] = useState<number>(lastMonth.getMonth() + 1);
 
   const [invoices, setInvoices] = useState<any[]>([]);
+  const [bills, setBills] = useState<any[]>([]);
   const [lines, setLines] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
   const [taxRates, setTaxRates] = useState<any[]>([]);
@@ -46,13 +47,15 @@ export default function GstReturnsPage() {
     if (!org?.id) return;
     const load = async () => {
       setLoading(true);
-      const [inv, cl, tr] = await Promise.all([
-        supabase.from("invoices").select("*").eq("org_id", org.id),
+      const [inv, cl, tr, bData] = await Promise.all([
+        supabase.from("invoices").select("*").eq("org_id", org.id).neq("status", "void").neq("status", "draft"),
         supabase.from("clients").select("id, display_name, tax_number, billing_address").eq("org_id", org.id),
         supabase.from("tax_rates").select("*").eq("org_id", org.id),
+        (supabase as any).from("bills").select("*, vendors(name, gstin, billing_address)").eq("org_id", org.id).neq("status", "void").neq("status", "draft"),
       ]);
       const invs = inv.data || [];
       setInvoices(invs);
+      setBills(bData.data || []);
       setClients(cl.data || []);
       setTaxRates(tr.data || []);
       if (invs.length) {
@@ -80,6 +83,24 @@ export default function GstReturnsPage() {
       taxRates: taxRates as TaxRateForGst[],
     };
   }, [invoices, lines, clients, taxRates, year, month, orgGstin]);
+
+  const { filteredBills, itcSummary } = useMemo(() => {
+    const start = new Date(year, month - 1, 1);
+    const end = new Date(year, month, 0, 23, 59, 59);
+    
+    const fBills = bills.filter((b) => {
+      if (!b.bill_date) return false;
+      const d = new Date(b.bill_date);
+      return d >= start && d <= end;
+    });
+
+    let totalPurchases = 0, totalPurchaseTax = 0;
+    fBills.forEach(b => {
+      totalPurchases += Number(b.subtotal || 0);
+      totalPurchaseTax += Number(b.tax_total || 0);
+    });
+    return { filteredBills: fBills, itcSummary: { totalPurchases, totalPurchaseTax } };
+  }, [bills, year, month]);
 
   const gstr1 = useMemo(() => buildGstr1Json(gstInput), [gstInput]);
   const gstr3b = useMemo(() => buildGstr3bSummary(gstInput), [gstInput]);
@@ -148,6 +169,7 @@ export default function GstReturnsPage() {
       <Tabs defaultValue="gstr1">
         <TabsList>
           <TabsTrigger value="gstr1">GSTR-1</TabsTrigger>
+          <TabsTrigger value="gstr2b">Purchase Register (ITC)</TabsTrigger>
           <TabsTrigger value="gstr3b">GSTR-3B</TabsTrigger>
           <TabsTrigger value="hsn">HSN Summary</TabsTrigger>
           <TabsTrigger value="tally">Tally Export</TabsTrigger>
@@ -158,13 +180,22 @@ export default function GstReturnsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2"><FileJson className="h-5 w-5" /> GSTR-1 JSON</span>
-                <Button
-                  onClick={() => downloadJson(`GSTR1_${gstrPeriod(year, month)}.json`, gstr1)}
-                  disabled={loading || gstInput.invoices.length === 0}
-                >
-                  <Download className="mr-1.5 h-4 w-4" /> Download JSON
-                </Button>
+                <span className="flex items-center gap-2"><FileJson className="h-5 w-5" /> Sales Register (GSTR-1)</span>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => downloadJson(`GST_Govt_GSTR1_${gstrPeriod(year, month)}.json`, gstr1)}
+                    disabled={loading || gstInput.invoices.length === 0}
+                  >
+                    <Download className="mr-1.5 h-4 w-4" /> Download GST Govt Output (JSON)
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => downloadCsv(`Tally_Output_Sales_${gstrPeriod(year, month)}.csv`, tallyRows)}
+                    disabled={loading || tallyRows.length === 0}
+                  >
+                    <Download className="mr-1.5 h-4 w-4" /> Download Tally Output (CSV)
+                  </Button>
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
@@ -176,6 +207,68 @@ export default function GstReturnsPage() {
               </div>
               <div className="text-xs text-muted-foreground border-t pt-3">
                 Upload this file in the GST portal's Returns Offline Tool to file GSTR-1 for {periodLabel}. Includes B2B (with buyer GSTIN), B2CS (aggregated by state and rate), and HSN summary sections.
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* GSTR-2B / Purchase Register */}
+        <TabsContent value="gstr2b" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2"><FileSpreadsheet className="h-5 w-5" /> Purchase Register (ITC)</span>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => {
+                      const data = filteredBills.map(b => ({
+                        "GSTIN of Supplier": b.vendors?.gstin || "",
+                        "Trade/Legal Name": b.vendors?.name || "Unknown",
+                        "Invoice Number": b.vendor_bill_number || b.bill_number,
+                        "Invoice Date": b.bill_date || "",
+                        "Invoice Value": Number(b.total || 0).toFixed(2),
+                        "Taxable Value": Number(b.subtotal || 0).toFixed(2),
+                        "Integrated Tax (₹)": Number(b.tax_total || 0).toFixed(2),
+                        "Central Tax (₹)": "0.00",
+                        "State/UT Tax (₹)": "0.00",
+                        "Cess (₹)": "0.00"
+                      }));
+                      downloadCsv(`GST_Govt_Purchase_Register_${periodLabel.replace(" ", "_")}.csv`, data);
+                    }}
+                    disabled={filteredBills.length === 0}
+                  >
+                    <Download className="mr-1.5 h-4 w-4" /> Download GST Govt Output
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const data = filteredBills.map(b => ({
+                        "Voucher Date": b.bill_date || "",
+                        "Voucher Number": b.vendor_bill_number || b.bill_number,
+                        "Party Name": b.vendors?.name || "Unknown",
+                        "Party GSTIN": b.vendors?.gstin || "",
+                        "Purchase Ledger": "Purchase Accounts",
+                        "Taxable Amount": Number(b.subtotal || 0).toFixed(2),
+                        "Tax Amount": Number(b.tax_total || 0).toFixed(2),
+                        "Total Amount": Number(b.total || 0).toFixed(2),
+                      }));
+                      downloadCsv(`Tally_Output_Purchases_${periodLabel.replace(" ", "_")}.csv`, data);
+                    }}
+                    disabled={filteredBills.length === 0}
+                  >
+                    <Download className="mr-1.5 h-4 w-4" /> Download Tally Output
+                  </Button>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Stat label="Total Bills" value={filteredBills.length} />
+                <Stat label="Taxable Value" value={fmt(itcSummary.totalPurchases)} />
+                <Stat label="ITC Available" value={fmt(itcSummary.totalPurchaseTax)} />
+              </div>
+              <div className="text-xs text-muted-foreground border-t pt-3">
+                Download this report to match against GSTR-2B from the GST portal to claim Input Tax Credit (ITC). Includes all bills dated in this period.
               </div>
             </CardContent>
           </Card>
@@ -202,11 +295,13 @@ export default function GstReturnsPage() {
                   <Row label="Integrated Tax (IGST)" value={fmt(gstr3b.integrated_tax_igst)} />
                   <Row label="Central Tax (CGST)" value={fmt(gstr3b.central_tax_cgst)} />
                   <Row label="State Tax (SGST)" value={fmt(gstr3b.state_tax_sgst)} />
-                  <Row label="Total tax payable" value={fmt(gstr3b.total_tax_payable)} bold />
+                  <Row label="Total tax payable (Output)" value={fmt(gstr3b.total_tax_payable)} bold />
+                  <Row label="4(A) ITC Available (All other ITC)" value={fmt(itcSummary.totalPurchaseTax)} bold />
+                  <Row label="Net Tax Payable" value={fmt(Math.max(0, gstr3b.total_tax_payable - itcSummary.totalPurchaseTax))} bold />
                 </TableBody>
               </Table>
-              <div className="mt-4 flex justify-end">
-                <Button variant="outline" onClick={() => downloadCsv(`GSTR3B_${gstrPeriod(year, month)}.csv`, [
+              <div className="mt-4 flex justify-end gap-2">
+                <Button variant="outline" onClick={() => downloadCsv(`Tally_Output_GSTR3B_${gstrPeriod(year, month)}.csv`, [
                   { particulars: "3.1(a) Outward taxable", amount: gstr3b["3.1(a)_outward_taxable"] },
                   { particulars: "3.1(c) Nil/Exempt", amount: gstr3b["3.1(c)_nil_exempt"] },
                   { particulars: "Total taxable value", amount: gstr3b.total_taxable_value },
@@ -214,8 +309,23 @@ export default function GstReturnsPage() {
                   { particulars: "CGST", amount: gstr3b.central_tax_cgst },
                   { particulars: "SGST", amount: gstr3b.state_tax_sgst },
                   { particulars: "Total tax payable", amount: gstr3b.total_tax_payable },
+                  { particulars: "ITC Available", amount: itcSummary.totalPurchaseTax },
+                  { particulars: "Net Tax Payable", amount: Math.max(0, gstr3b.total_tax_payable - itcSummary.totalPurchaseTax) },
                 ])}>
-                  <Download className="mr-1.5 h-4 w-4" /> Export CSV
+                  <Download className="mr-1.5 h-4 w-4" /> Download Tally Output
+                </Button>
+                <Button onClick={() => downloadCsv(`GST_Govt_GSTR3B_${gstrPeriod(year, month)}.csv`, [
+                  { particulars: "3.1(a) Outward taxable", amount: gstr3b["3.1(a)_outward_taxable"] },
+                  { particulars: "3.1(c) Nil/Exempt", amount: gstr3b["3.1(c)_nil_exempt"] },
+                  { particulars: "Total taxable value", amount: gstr3b.total_taxable_value },
+                  { particulars: "IGST", amount: gstr3b.integrated_tax_igst },
+                  { particulars: "CGST", amount: gstr3b.central_tax_cgst },
+                  { particulars: "SGST", amount: gstr3b.state_tax_sgst },
+                  { particulars: "Total tax payable", amount: gstr3b.total_tax_payable },
+                  { particulars: "ITC Available", amount: itcSummary.totalPurchaseTax },
+                  { particulars: "Net Tax Payable", amount: Math.max(0, gstr3b.total_tax_payable - itcSummary.totalPurchaseTax) },
+                ])}>
+                  <Download className="mr-1.5 h-4 w-4" /> Download GST Govt Output
                 </Button>
               </div>
             </CardContent>

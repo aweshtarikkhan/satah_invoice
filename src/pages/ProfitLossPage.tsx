@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from "recharts";
-import { Download, TrendingUp, TrendingDown, DollarSign, Minus } from "lucide-react";
+import { Download, TrendingUp, TrendingDown, IndianRupee, Minus } from "lucide-react";
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { downloadCSV } from "@/lib/export-csv";
 
@@ -138,7 +138,7 @@ export default function ProfitLossPage() {
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${totals.profit >= 0 ? "bg-success/10" : "bg-destructive/10"}`}>
-                <DollarSign className={`h-5 w-5 ${totals.profit >= 0 ? "text-success" : "text-destructive"}`} />
+                <IndianRupee className={`h-5 w-5 ${totals.profit >= 0 ? "text-success" : "text-destructive"}`} />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Net Profit</p>

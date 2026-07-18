@@ -11,7 +11,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
-import { Download, TrendingUp, Clock, DollarSign, FileText } from "lucide-react";
+import { Download, TrendingUp, Clock, IndianRupee, FileText } from "lucide-react";
 import { format, subMonths, startOfMonth, endOfMonth, isWithinInterval, differenceInDays } from "date-fns";
 
 const COLORS = ["hsl(var(--primary))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))", "#94a3b8"];
@@ -147,7 +147,7 @@ export default function ReportsPage() {
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <DollarSign className="h-5 w-5 text-primary" />
+                <IndianRupee className="h-5 w-5 text-primary" />
               </div>
               <div><p className="text-sm text-muted-foreground">Total Revenue</p><p className="text-xl font-bold">{fmt(taxSummary.totalRevenue)}</p></div>
             </div>

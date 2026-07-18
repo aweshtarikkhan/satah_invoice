@@ -45,6 +45,7 @@ export default function BillBuilderPage() {
   const [tdsId, setTdsId] = useState<string>("none");
   const [notes, setNotes] = useState("");
   const [lines, setLines] = useState<Line[]>([emptyLine()]);
+  const [amountPaid, setAmountPaid] = useState(0);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -84,6 +85,7 @@ export default function BillBuilderPage() {
       setDueDate(bill.due_date || "");
       setTdsId(bill.tds_section_id || "none");
       setNotes(bill.notes || "");
+      setAmountPaid(Number(bill.amount_paid || 0));
     }
     if (blines) setLines(blines.map((l: any) => ({
       id: l.id, description: l.description, hsn: l.hsn || "",
@@ -117,8 +119,8 @@ export default function BillBuilderPage() {
         bill_date: billDate, due_date: dueDate || null,
         subtotal: totals.sub, tax_total: totals.tax,
         tds_section_id: tdsId === "none" ? null : tdsId, tds_amount: totals.tdsAmt,
-        total: totals.total, balance_due: totals.total, amount_paid: 0,
-        status: "received", notes: notes || null,
+        total: totals.total, balance_due: totals.total - amountPaid, amount_paid: amountPaid,
+        status: (totals.total - amountPaid) <= 0 && amountPaid > 0 ? "paid" : (amountPaid > 0 ? "partial" : "received"), notes: notes || null,
       };
       let billId = id;
       if (id) {

@@ -245,6 +245,7 @@ export default function InvoiceBuilderPage() {
   const [lines, setLines] = useState<LineItem[]>([createEmptyLine()]);
   const [deductStock, setDeductStock] = useState(false);
   const [prevDeductStock, setPrevDeductStock] = useState(false);
+  const [amountPaid, setAmountPaid] = useState(0);
   // Phase 5 — opt-in compliance
   const [generateIrn, setGenerateIrn] = useState(false);
   const [irn, setIrn] = useState("");
@@ -334,6 +335,7 @@ export default function InvoiceBuilderPage() {
       setAdjustmentName(inv.adjustment_name || "Adjustment");
       setDeductStock(!!(inv as any).deduct_stock);
       setPrevDeductStock(!!(inv as any).deduct_stock);
+      setAmountPaid(Number(inv.amount_paid || 0));
       // Phase 5 compliance load
       const _irn = (inv as any).irn || "";
       const _eway = (inv as any).eway_bill_no || "";
@@ -525,7 +527,8 @@ export default function InvoiceBuilderPage() {
       total_tax: totalTax,
       total_discount: totalDiscount,
       total,
-      balance_due: total,
+      balance_due: total - amountPaid,
+      status: (total - amountPaid) <= 0 && amountPaid > 0 ? "paid" : (amountPaid > 0 ? "partial" : status),
       notes,
       terms_conditions: terms,
       ...(status === "sent" ? { sent_at: new Date().toISOString() } : {}),

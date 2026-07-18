@@ -169,7 +169,7 @@ export default function GstReturnsPage() {
       <Tabs defaultValue="gstr1">
         <TabsList>
           <TabsTrigger value="gstr1">GSTR-1</TabsTrigger>
-          <TabsTrigger value="gstr2b">Purchase Register (ITC)</TabsTrigger>
+          <TabsTrigger value="gstr2b">GSTR-2 (Purchase Register)</TabsTrigger>
           <TabsTrigger value="gstr3b">GSTR-3B</TabsTrigger>
           <TabsTrigger value="hsn">HSN Summary</TabsTrigger>
           <TabsTrigger value="tally">Tally Export</TabsTrigger>
@@ -212,12 +212,12 @@ export default function GstReturnsPage() {
           </Card>
         </TabsContent>
 
-        {/* GSTR-2B / Purchase Register */}
+        {/* GSTR-2 / Purchase Register */}
         <TabsContent value="gstr2b" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2"><FileSpreadsheet className="h-5 w-5" /> Purchase Register (ITC)</span>
+                <span className="flex items-center gap-2"><FileSpreadsheet className="h-5 w-5" /> GSTR-2 (Purchase Register)</span>
                 <div className="flex gap-2">
                   <Button
                     onClick={() => {

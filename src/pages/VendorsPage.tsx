@@ -8,9 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Download } from "lucide-react";
 import { formatCurrency } from "@/lib/currency";
 import { useNavigate } from "react-router-dom";
+import { ImportDialog, ImportField } from "@/components/shared/ImportDialog";
 
 interface Vendor {
   id: string;
@@ -25,6 +26,15 @@ interface Vendor {
   balance_due: number;
   is_active: boolean;
 }
+
+const vendorImportFields: ImportField[] = [
+  { key: "name", label: "Vendor Name", required: true },
+  { key: "gstin", label: "GSTIN" },
+  { key: "email", label: "Email" },
+  { key: "phone", label: "Phone" },
+  { key: "address", label: "Address" },
+  { key: "opening_balance", label: "Opening Balance" },
+];
 
 const empty = {
   name: "", display_name: "", email: "", phone: "", gstin: "", pan: "",
@@ -41,6 +51,7 @@ export default function VendorsPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(empty);
   const [q, setQ] = useState("");
+  const [importOpen, setImportOpen] = useState(false);
 
   const load = async () => {
     if (!org?.id) return;
@@ -100,10 +111,13 @@ export default function VendorsPage() {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="p-6 space-y-4">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">Vendors</h1>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setImportOpen(true)}>
+            <Download className="mr-2 h-4 w-4" /> Import
+          </Button>
           <Button variant="outline" onClick={() => navigate("/bills/new")}>New Bill</Button>
           <Button onClick={() => { setEditId(null); setForm(empty); setOpen(true); }}>
             <Plus className="h-4 w-4 mr-1" /> Add Vendor
@@ -176,6 +190,30 @@ export default function VendorsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        entityName="Vendors"
+        fields={vendorImportFields}
+        onImport={async (rows) => {
+          let s = 0, e = 0;
+          for (const row of rows) {
+            const { error } = await supabase.from("vendors").insert({
+              org_id: org?.id,
+              name: row.name,
+              gstin: row.gstin || null,
+              email: row.email || null,
+              phone: row.phone || null,
+              address: row.address || null,
+              opening_balance: Number(row.opening_balance) || 0
+            });
+            if (error) e++; else s++;
+          }
+          load();
+          return { success: s, errors: e };
+        }}
+      />
     </div>
   );
 }

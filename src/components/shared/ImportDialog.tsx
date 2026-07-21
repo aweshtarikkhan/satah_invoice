@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Upload, FileSpreadsheet, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Upload, FileSpreadsheet, AlertCircle, CheckCircle2, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Papa from "papaparse";
 import ExcelJS from "exceljs";
@@ -165,6 +165,21 @@ export function ImportDialog({ open, onOpenChange, fields, entityName, onImport 
     setImporting(false);
   };
 
+  const downloadSample = () => {
+    const csvHeader = fields.map(f => f.label).join(",");
+    const csvRow = fields.map(f => `Sample ${f.label}`).join(",");
+    const csvContent = `${csvHeader}\n${csvRow}`;
+    
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `${entityName.toLowerCase().replace(/\s+/g, "_")}_sample.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
@@ -176,22 +191,29 @@ export function ImportDialog({ open, onOpenChange, fields, entityName, onImport 
         </DialogHeader>
 
         {step === "upload" && (
-          <div
-            className="border-2 border-dashed rounded-lg p-12 text-center cursor-pointer hover:border-primary/50 transition-colors"
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={handleDrop}
-            onClick={() => fileRef.current?.click()}
-          >
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".csv,.tsv,.json,.xlsx,.xls"
-              className="hidden"
-              onChange={(e) => e.target.files?.[0] && parseFile(e.target.files[0])}
-            />
-            <Upload className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
-            <p className="font-medium">Drop your file here or click to browse</p>
-            <p className="text-sm text-muted-foreground mt-1">Supports CSV, Excel (.xlsx), and JSON</p>
+          <div>
+            <div
+              className="border-2 border-dashed rounded-lg p-12 text-center cursor-pointer hover:border-primary/50 transition-colors"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={handleDrop}
+              onClick={() => fileRef.current?.click()}
+            >
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".csv,.tsv,.json,.xlsx,.xls"
+                className="hidden"
+                onChange={(e) => e.target.files?.[0] && parseFile(e.target.files[0])}
+              />
+              <Upload className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
+              <p className="font-medium">Drop your file here or click to browse</p>
+              <p className="text-sm text-muted-foreground mt-1">Supports CSV, Excel (.xlsx), and JSON</p>
+            </div>
+            <div className="mt-4 flex justify-center">
+              <Button variant="outline" size="sm" onClick={downloadSample}>
+                <Download className="mr-2 h-4 w-4" /> Download Sample CSV
+              </Button>
+            </div>
           </div>
         )}
 

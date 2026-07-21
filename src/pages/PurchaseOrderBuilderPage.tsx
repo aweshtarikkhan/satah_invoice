@@ -7,10 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, ListPlus } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { formatCurrency } from "@/lib/currency";
 
@@ -46,13 +48,58 @@ export default function PurchaseOrderBuilderPage() {
   const [terms, setTerms] = useState("");
   const [lines, setLines] = useState<Line[]>([emptyLine()]);
   const [saving, setSaving] = useState(false);
+  const [createItemOpen, setCreateItemOpen] = useState(false);
+  const [newItemName, setNewItemName] = useState("");
+  const [newItemPurchasePrice, setNewItemPurchasePrice] = useState("");
+  const [newItemUnit, setNewItemUnit] = useState("pcs");
+  const [newItemTargetLine, setNewItemTargetLine] = useState<number | null>(null);
+  const [creatingItem, setCreatingItem] = useState(false);
+  const [bulkAddOpen, setBulkAddOpen] = useState(false);
+  const [bulkSelected, setBulkSelected] = useState<Set<string>>(new Set());
+
+  const handleCreateItem = async () => {
+    if (!newItemName.trim() || !org?.id) return;
+    setCreatingItem(true);
+    try {
+      const { data, error } = await (supabase as any).from("items").insert({
+        org_id: org.id,
+        name: newItemName,
+        unit_price: Number(newItemPurchasePrice) || 0,
+        unit: newItemUnit,
+        type: "product",
+      }).select().single();
+
+      if (error) throw error;
+
+      setItems(prev => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)));
+
+      if (newItemTargetLine !== null) {
+        const x = [...lines];
+        x[newItemTargetLine].item_id = data.id;
+        x[newItemTargetLine].description = data.name;
+        x[newItemTargetLine].rate = String(data.unit_price || 0);
+        x[newItemTargetLine].unit = data.unit || "";
+        setLines(x);
+      }
+      setCreateItemOpen(false);
+      setNewItemName("");
+      setNewItemPurchasePrice("");
+      setNewItemUnit("pcs");
+      setNewItemTargetLine(null);
+      toast({ title: "Item created" });
+    } catch (e: any) {
+      toast({ title: "Failed to create item", description: e.message, variant: "destructive" });
+    } finally {
+      setCreatingItem(false);
+    }
+  };
 
   useEffect(() => {
     if (!org?.id) return;
     (async () => {
       const [v, it, br, wh, o] = await Promise.all([
         (supabase as any).from("vendors").select("id,name").eq("org_id", org.id).eq("is_active", true).order("name"),
-        (supabase as any).from("items").select("id,name,hsn,unit,purchase_price,tax_rate").eq("org_id", org.id).order("name"),
+        (supabase as any).from("items").select("id,name,hsn,unit,unit_price,tax_rate").eq("org_id", org.id).order("name"),
         (supabase as any).from("branches").select("id,name,is_default").eq("org_id", org.id).eq("is_active", true),
         (supabase as any).from("warehouses").select("id,name").eq("org_id", org.id),
         (supabase as any).from("organizations").select("po_next_number,po_prefix").eq("id", org.id).maybeSingle(),
@@ -111,7 +158,7 @@ export default function PurchaseOrderBuilderPage() {
       x[idx].description = it.name;
       x[idx].hsn = it.hsn || "";
       x[idx].unit = it.unit || "";
-      x[idx].rate = String(it.purchase_price || 0);
+      x[idx].rate = String(it.unit_price || 0);
       x[idx].tax_rate = String(it.tax_rate || 0);
     }
     setLines(x);
@@ -209,29 +256,54 @@ export default function PurchaseOrderBuilderPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-base">Line Items</CardTitle>
-          <Button size="sm" variant="outline" onClick={() => setLines([...lines, emptyLine()])}><Plus className="h-4 w-4 mr-1" /> Add Line</Button>
+          <div>
+            <Button size="sm" variant="outline" className="mr-2" onClick={() => setBulkAddOpen(true)}><ListPlus className="h-4 w-4 mr-1" /> Bulk Add</Button>
+            <Button size="sm" variant="outline" onClick={() => setLines([...lines, emptyLine()])}><Plus className="h-4 w-4 mr-1" /> Add Line</Button>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader><TableRow>
-              <TableHead className="w-48">Item</TableHead><TableHead>Description</TableHead>
-              <TableHead className="w-20">HSN</TableHead><TableHead className="w-16">Qty</TableHead>
-              <TableHead className="w-20">Unit</TableHead><TableHead className="w-24">Rate</TableHead>
-              <TableHead className="w-20">Tax%</TableHead><TableHead className="text-right">Amount</TableHead><TableHead></TableHead>
+              <TableHead className="w-[280px]">Item & Description</TableHead>
+              <TableHead className="w-32">HSN</TableHead><TableHead className="w-24">Qty</TableHead>
+              <TableHead className="w-32">Unit</TableHead>
+              <TableHead className="w-32">Rate</TableHead>
+              <TableHead className="w-24">Tax%</TableHead><TableHead className="text-right">Amount</TableHead><TableHead></TableHead>
             </TableRow></TableHeader>
             <TableBody>
               {lines.map((l, i) => (
                 <TableRow key={i}>
                   <TableCell>
-                    <Select value={l.item_id} onValueChange={(v) => pickItem(i, v)}>
-                      <SelectTrigger className="h-9"><SelectValue placeholder="Item" /></SelectTrigger>
-                      <SelectContent>{items.map(it => <SelectItem key={it.id} value={it.id}>{it.name}</SelectItem>)}</SelectContent>
-                    </Select>
+                    <div className="flex flex-col gap-1.5">
+                      <Select value={l.item_id} onValueChange={(v) => {
+                        if (v === "new") {
+                          setNewItemTargetLine(i);
+                          setCreateItemOpen(true);
+                        } else {
+                          pickItem(i, v);
+                        }
+                      }}>
+                        <SelectTrigger className="h-9"><SelectValue placeholder="Item" /></SelectTrigger>
+                        <SelectContent>
+                          {items.map(it => <SelectItem key={it.id} value={it.id}>{it.name}</SelectItem>)}
+                          <SelectItem value="new" className="text-primary font-medium cursor-pointer">+ Create New Item</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Input value={l.description} onChange={e => { const x = [...lines]; x[i].description = e.target.value; setLines(x); }} className="h-7 text-xs px-2" placeholder="Description..." />
+                    </div>
                   </TableCell>
-                  <TableCell><Input value={l.description} onChange={e => { const x = [...lines]; x[i].description = e.target.value; setLines(x); }} /></TableCell>
                   <TableCell><Input value={l.hsn} onChange={e => { const x = [...lines]; x[i].hsn = e.target.value; setLines(x); }} /></TableCell>
                   <TableCell><Input type="number" value={l.quantity} onChange={e => { const x = [...lines]; x[i].quantity = e.target.value; setLines(x); }} /></TableCell>
-                  <TableCell><Input value={l.unit} onChange={e => { const x = [...lines]; x[i].unit = e.target.value; setLines(x); }} /></TableCell>
+                  <TableCell>
+                    <Select value={l.unit} onValueChange={v => { const x = [...lines]; x[i].unit = v; setLines(x); }}>
+                      <SelectTrigger className="h-9"><SelectValue placeholder="Unit" /></SelectTrigger>
+                      <SelectContent>
+                        {["pcs", "kg", "g", "ltr", "ml", "m", "cm", "ft", "inch", "box", "nos", "hrs", "days", "pair", "set", "sqft", "sqm", "ton", "dozen", "bundle", "roll", "bag", "carton"].map(u => (
+                          <SelectItem key={u} value={u}>{u}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
                   <TableCell><Input type="number" value={l.rate} onChange={e => { const x = [...lines]; x[i].rate = e.target.value; setLines(x); }} /></TableCell>
                   <TableCell><Input type="number" value={l.tax_rate} onChange={e => { const x = [...lines]; x[i].tax_rate = e.target.value; setLines(x); }} /></TableCell>
                   <TableCell className="text-right">{formatCurrency((Number(l.quantity) || 0) * (Number(l.rate) || 0), (org as any)?.currency || "INR")}</TableCell>
@@ -255,6 +327,106 @@ export default function PurchaseOrderBuilderPage() {
           <div><Label>Terms</Label><Textarea value={terms} onChange={e => setTerms(e.target.value)} rows={2} /></div>
         </CardContent>
       </Card>
+
+      <Dialog open={createItemOpen} onOpenChange={setCreateItemOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Item</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label>Item Name *</Label>
+              <Input value={newItemName} onChange={e => setNewItemName(e.target.value)} placeholder="E.g., Keyboard" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Purchase Price</Label>
+                <Input type="number" value={newItemPurchasePrice} onChange={e => setNewItemPurchasePrice(e.target.value)} placeholder="0.00" />
+              </div>
+              <div className="space-y-2">
+                <Label>Unit</Label>
+                <Select value={newItemUnit} onValueChange={setNewItemUnit}>
+                  <SelectTrigger><SelectValue placeholder="Unit" /></SelectTrigger>
+                  <SelectContent>
+                    {["pcs", "kg", "g", "ltr", "ml", "m", "cm", "ft", "inch", "box", "nos", "hrs", "days", "pair", "set", "sqft", "sqm", "ton", "dozen", "bundle", "roll", "bag", "carton"].map(u => (
+                      <SelectItem key={u} value={u}>{u}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateItemOpen(false)}>Cancel</Button>
+            <Button onClick={handleCreateItem} disabled={creatingItem || !newItemName.trim()}>
+              {creatingItem ? "Creating..." : "Create Item"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Add Items Dialog */}
+      <Dialog open={bulkAddOpen} onOpenChange={setBulkAddOpen}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Bulk Add Items</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-1">
+            {items.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">No items in catalog. Add items first.</p>
+            ) : (
+              <>
+                <div className="flex items-center gap-2 pb-2 border-b">
+                  <Checkbox
+                    checked={bulkSelected.size === items.length}
+                    onCheckedChange={(checked) => {
+                      if (checked) setBulkSelected(new Set(items.map((i: any) => i.id)));
+                      else setBulkSelected(new Set());
+                    }}
+                  />
+                  <span className="text-sm font-medium">Select All ({items.length} items)</span>
+                </div>
+                {items.map((item: any) => (
+                  <div key={item.id} className="flex items-center gap-2 py-1.5 px-1 rounded hover:bg-accent/50">
+                    <Checkbox
+                      checked={bulkSelected.has(item.id)}
+                      onCheckedChange={(checked) => {
+                        const next = new Set(bulkSelected);
+                        if (checked) next.add(item.id); else next.delete(item.id);
+                        setBulkSelected(next);
+                      }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-medium">{item.name}</span>
+                      {item.description && <span className="text-xs text-muted-foreground ml-2">{item.description}</span>}
+                    </div>
+                    <span className="text-xs text-muted-foreground">{item.unit || "pcs"}</span>
+                    <span className="text-sm font-medium">{formatCurrency(Number(item.unit_price), (org as any)?.currency || "INR")}</span>
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkAddOpen(false)}>Cancel</Button>
+            <Button
+              disabled={bulkSelected.size === 0}
+              onClick={() => {
+                const toAdd = Array.from(bulkSelected).map(id => items.find(i => i.id === id)).filter(Boolean);
+                const newLines = toAdd.map(it => ({
+                  item_id: it.id, description: it.name, hsn: it.hsn || "",
+                  quantity: "1", unit: it.unit || "", rate: String(it.unit_price || 0), tax_rate: String(it.tax_rate || 0)
+                }));
+                setLines(lines.length === 1 && !lines[0].item_id && !lines[0].description ? newLines : [...lines, ...newLines]);
+                setBulkAddOpen(false);
+                setBulkSelected(new Set());
+              }}
+            >
+              Add {bulkSelected.size} Items
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

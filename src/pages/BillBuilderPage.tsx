@@ -210,8 +210,8 @@ export default function BillBuilderPage() {
           <Table>
             <TableHeader><TableRow>
               <TableHead>Description</TableHead><TableHead>Expense Account</TableHead>
-              <TableHead>HSN</TableHead><TableHead className="w-20">Qty</TableHead>
-              <TableHead className="w-28">Rate</TableHead><TableHead className="w-20">Tax %</TableHead>
+              <TableHead className="w-32">HSN</TableHead><TableHead className="w-24">Qty</TableHead>
+              <TableHead className="w-32">Rate</TableHead><TableHead className="w-24">Tax %</TableHead>
               <TableHead className="text-right">Amount</TableHead><TableHead></TableHead>
             </TableRow></TableHeader>
             <TableBody>

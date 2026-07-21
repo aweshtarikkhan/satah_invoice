@@ -5,11 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Eye, Trash2 } from "lucide-react";
+import { Plus, Eye, Trash2, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatCurrency } from "@/lib/currency";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { ImportDialog, ImportField } from "@/components/shared/ImportDialog";
+
+const poImportFields: ImportField[] = [
+  { key: "po_number", label: "PO Number", required: true },
+  { key: "vendor_name", label: "Vendor Name", required: true },
+  { key: "po_date", label: "PO Date" },
+  { key: "total", label: "Total Amount" },
+  { key: "status", label: "Status" },
+];
 
 export default function PurchaseOrdersPage() {
   const org = useAppStore((s) => s.organization);
@@ -17,6 +26,7 @@ export default function PurchaseOrdersPage() {
   const { toast } = useToast();
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [importOpen, setImportOpen] = useState(false);
 
   const load = async () => {
     if (!org?.id) return;
@@ -49,10 +59,15 @@ export default function PurchaseOrdersPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Purchase Orders</h1>
-        <Button onClick={() => navigate("/purchase-orders/new")}><Plus className="h-4 w-4 mr-1" /> New PO</Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setImportOpen(true)}>
+            <Download className="mr-2 h-4 w-4" /> Import
+          </Button>
+          <Button onClick={() => navigate("/purchase-orders/new")}><Plus className="h-4 w-4 mr-1" /> New PO</Button>
+        </div>
       </div>
       <Card>
         <CardHeader><CardTitle className="text-base">All Purchase Orders</CardTitle></CardHeader>
@@ -85,6 +100,28 @@ export default function PurchaseOrdersPage() {
           )}
         </CardContent>
       </Card>
+
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        entityName="Purchase Orders"
+        fields={poImportFields}
+        onImport={async (rows) => {
+          let s = 0, e = 0;
+          for (const row of rows) {
+            const { error } = await supabase.from("purchase_orders").insert({
+              org_id: org?.id,
+              po_number: row.po_number,
+              total: Number(row.total) || 0,
+              status: row.status || "draft",
+              po_date: row.po_date || new Date().toISOString()
+            });
+            if (error) e++; else s++;
+          }
+          load();
+          return { success: s, errors: e };
+        }}
+      />
     </div>
   );
 }

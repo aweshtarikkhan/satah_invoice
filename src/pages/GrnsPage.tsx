@@ -39,7 +39,7 @@ export default function GrnsPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Goods Receipt Notes</h1>
         <Button onClick={() => navigate("/grns/new")}><Plus className="h-4 w-4 mr-1" /> New GRN</Button>

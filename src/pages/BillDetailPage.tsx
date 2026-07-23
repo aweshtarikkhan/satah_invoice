@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAppStore } from "@/store/app-store";
@@ -15,7 +15,12 @@ import { formatCurrency } from "@/lib/currency";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { postBillPaymentJournal } from "@/lib/accounting";
-
+import { CompactBillTemplate } from "@/components/invoice/CompactBillTemplate";
+import { PosBillTemplate } from "@/components/invoice/PosBillTemplate";
+import { StyledInvoiceTemplate } from "@/components/invoice/StyledInvoiceTemplate";
+import { A6Template } from "@/components/invoice/A6Templates";
+import { calculateTaxBreakdown, stateCodeFromGstin } from "@/lib/gst";
+import { getDocumentPreviewClass } from "@/lib/document-templates";
 export default function BillDetailPage() {
   const org = useAppStore((s) => s.organization);
   const { id } = useParams();
@@ -65,12 +70,74 @@ export default function BillDetailPage() {
     setPayOpen(false); setPayRef(""); load();
   };
 
-  if (!bill) return <div className="p-6">Loading…</div>;
-
   const statusColor: Record<string, string> = {
     draft: "bg-muted", received: "bg-blue-100 text-blue-700",
     partial: "bg-amber-100 text-amber-700", paid: "bg-emerald-100 text-emerald-700",
   };
+  const invoiceRef = useRef<HTMLDivElement>(null);
+
+  const mappedBillForTemplate = useMemo(() => {
+    if (!bill || !vendor) return null;
+    return {
+      ...bill,
+      invoice_number: bill.vendor_bill_number || bill.bill_number,
+      issue_date: bill.bill_date,
+      total_tax: bill.tax_total || 0,
+      total_discount: bill.discount_total || 0,
+      adjustment: 0,
+      shipping_charge: 0,
+      clients: {
+        display_name: vendor.name,
+        tax_number: vendor.gstin,
+        billing_address: vendor.billing_address,
+        email: vendor.email,
+        phone: vendor.phone
+      }
+    };
+  }, [bill, vendor]);
+
+  const taxBreakdown = useMemo(() => {
+    if (!bill || !org || !lines.length) return [];
+    const orgState = org.gst_number ? stateCodeFromGstin(org.gst_number) : null;
+    let clientState = null;
+    if (vendor?.gstin) clientState = stateCodeFromGstin(vendor.gstin);
+    
+    const isInterstate = Boolean(orgState && clientState && orgState !== clientState);
+    
+    const enhancedLines = (lines || []).map(l => {
+      const q = Number(l.quantity) || 0;
+      const r = Number(l.rate) || 0;
+      const tr = Number(l.tax_rate) || 0;
+      const tax_amount = l.tax_amount || (q * r * (tr / 100));
+      return { ...l, tax_amount, tax_rate: tr };
+    });
+    
+    let breakdown = calculateTaxBreakdown(enhancedLines, [], isInterstate);
+    
+    // Fallback if breakdown is empty but total tax > 0
+    if (breakdown.length === 0 && bill.tax_total > 0) {
+      const totalTax = Number(bill.tax_total || 0);
+      const subtotal = Number(bill.subtotal || 0);
+      const assumedRate = subtotal > 0 ? Math.round((totalTax / subtotal) * 100) : 0;
+      
+      if (isInterstate) {
+        breakdown = [{ id: `IGST_${assumedRate}`, name: assumedRate > 0 ? `IGST @ ${assumedRate}%` : 'IGST', rate: assumedRate, amount: totalTax }];
+      } else {
+        const halfRate = assumedRate / 2;
+        breakdown = [
+          { id: `CGST_${halfRate}`, name: halfRate > 0 ? `CGST @ ${halfRate}%` : 'CGST', rate: halfRate, amount: totalTax / 2 },
+          { id: `SGST_${halfRate}`, name: halfRate > 0 ? `SGST @ ${halfRate}%` : 'SGST', rate: halfRate, amount: totalTax / 2 }
+        ];
+      }
+    }
+    
+    return breakdown;
+  }, [bill, lines, org, vendor]);
+
+  const fmt = (n: number) =>
+    new Intl.NumberFormat("en-IN", { style: "currency", currency: (org as any)?.currency || "INR" }).format(n);
+
+  if (!bill) return <div className="p-6">Loading...</div>;
 
   return (
     <div className="space-y-4 max-w-5xl mx-auto">
@@ -82,42 +149,34 @@ export default function BillDetailPage() {
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle>Bill {bill.bill_number}</CardTitle>
-              <div className="text-sm text-muted-foreground mt-1">{vendor?.name} • {format(new Date(bill.bill_date), "dd MMM yyyy")}</div>
+      <div className="flex items-center gap-4">
+        <Badge className={statusColor[bill.status]}>{bill.status}</Badge>
+        <span className="text-sm text-muted-foreground">
+          {vendor?.name} • Bill Date {format(new Date(bill.bill_date), "dd MMM yyyy")}
+        </span>
+      </div>
+
+      <div ref={invoiceRef}>
+        {mappedBillForTemplate && (
+          org?.template_style === "compact" ? (
+            <div className={getDocumentPreviewClass("compact", org?.template_paper_size)}>
+              <CompactBillTemplate org={org} invoice={mappedBillForTemplate} lines={lines} fmt={fmt} type="bill" taxBreakdown={taxBreakdown} />
             </div>
-            <Badge className={statusColor[bill.status]}>{bill.status}</Badge>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader><TableRow><TableHead>Description</TableHead><TableHead>HSN</TableHead><TableHead>Qty</TableHead><TableHead>Rate</TableHead><TableHead>Tax %</TableHead><TableHead className="text-right">Amount</TableHead></TableRow></TableHeader>
-            <TableBody>
-              {lines.map(l => (
-                <TableRow key={l.id}>
-                  <TableCell>{l.description}</TableCell>
-                  <TableCell>{l.hsn || "—"}</TableCell>
-                  <TableCell>{l.quantity}</TableCell>
-                  <TableCell>{formatCurrency(Number(l.rate), (org as any)?.currency || "INR")}</TableCell>
-                  <TableCell>{l.tax_rate}%</TableCell>
-                  <TableCell className="text-right">{formatCurrency(Number(l.amount), (org as any)?.currency || "INR")}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <div className="mt-4 ml-auto w-72 space-y-1 text-sm">
-            <div className="flex justify-between"><span>Subtotal</span><span>{formatCurrency(Number(bill.subtotal), (org as any)?.currency || "INR")}</span></div>
-            <div className="flex justify-between"><span>Tax</span><span>{formatCurrency(Number(bill.tax_total), (org as any)?.currency || "INR")}</span></div>
-            {Number(bill.tds_amount) > 0 && <div className="flex justify-between text-amber-600"><span>TDS</span><span>− {formatCurrency(Number(bill.tds_amount), (org as any)?.currency || "INR")}</span></div>}
-            <div className="flex justify-between font-semibold border-t pt-2"><span>Total</span><span>{formatCurrency(Number(bill.total), (org as any)?.currency || "INR")}</span></div>
-            <div className="flex justify-between text-emerald-600"><span>Paid</span><span>{formatCurrency(Number(bill.amount_paid), (org as any)?.currency || "INR")}</span></div>
-            <div className="flex justify-between font-medium text-base"><span>Balance Due</span><span>{formatCurrency(Number(bill.balance_due), (org as any)?.currency || "INR")}</span></div>
-          </div>
-        </CardContent>
-      </Card>
+          ) : org?.template_style === "pos" ? (
+            <div className={getDocumentPreviewClass("pos", org?.template_paper_size || "pos80")}>
+              <PosBillTemplate org={org} invoice={mappedBillForTemplate} lines={lines} fmt={fmt} type="bill" taxBreakdown={taxBreakdown} />
+            </div>
+          ) : ["alpha_blue", "monochrome", "amanda_cream", "redblue_modern"].includes(org?.template_style) ? (
+            <div className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
+              <A6Template org={org} invoice={mappedBillForTemplate} lines={lines} fmt={fmt} type="bill" variant={org.template_style as any} taxBreakdown={taxBreakdown} />
+            </div>
+          ) : (
+            <div className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
+              <StyledInvoiceTemplate org={org} invoice={mappedBillForTemplate} lines={lines} fmt={fmt} type="bill" taxBreakdown={taxBreakdown} />
+            </div>
+          )
+        )}
+      </div>
 
       {payments.length > 0 && (
         <Card>

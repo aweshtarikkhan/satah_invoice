@@ -15,6 +15,7 @@ import { getDocumentPreviewClass, getPaperSizeLabel, getPrintPageCSS } from "@/l
 import { CompactBillTemplate } from "@/components/invoice/CompactBillTemplate";
 import { StyledInvoiceTemplate } from "@/components/invoice/StyledInvoiceTemplate";
 import { A6Template } from "@/components/invoice/A6Templates";
+import { calculateTaxBreakdown, stateCodeFromGstin } from "@/lib/gst";
 
 const statusVariants: Record<string, "default" | "info" | "success" | "warning" | "danger" | "muted"> = {
   draft: "muted", sent: "info", viewed: "default", accepted: "success",
@@ -29,6 +30,7 @@ export default function EstimateDetailPage() {
   const [estimate, setEstimate] = useState<any>(null);
   const [lines, setLines] = useState<any[]>([]);
   const [client, setClient] = useState<any>(null);
+  const [taxRates, setTaxRates] = useState<any[]>([]);
 
   const fetchData = async () => {
     if (!id) return;
@@ -41,9 +43,27 @@ export default function EstimateDetailPage() {
     ]);
     setLines(lineData || []);
     setClient(cl);
+    
+    if (org?.id) {
+      const { data: taxData } = await supabase.from("tax_rates").select("*").eq("org_id", org.id);
+      setTaxRates(taxData || []);
+    }
   };
 
-  useEffect(() => { fetchData(); }, [id]);
+  useEffect(() => { fetchData(); }, [id, org?.id]);
+
+  const taxBreakdown = React.useMemo(() => {
+    if (!estimate || !org || !lines.length) return [];
+    const orgState = org.gst_number ? stateCodeFromGstin(org.gst_number)
+      : (org.address && typeof org.address === 'object' ? (org.address as any).state : null);
+    let clientState = null;
+    if (client?.tax_number) clientState = stateCodeFromGstin(client.tax_number);
+    else if (client?.billing_address && typeof client.billing_address === 'object') {
+      clientState = (client.billing_address as any).state;
+    }
+    const isInterstate = Boolean(orgState && clientState && orgState !== clientState);
+    return calculateTaxBreakdown(lines, taxRates, isInterstate);
+  }, [estimate, lines, org, taxRates, client]);
 
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(n);
@@ -161,15 +181,15 @@ export default function EstimateDetailPage() {
 
       {org?.template_style === "compact" ? (
         <div className={getDocumentPreviewClass("compact", org?.template_paper_size)}>
-          <CompactBillTemplate org={org} invoice={estimate} lines={lines} fmt={fmt} type="estimate" />
+          <CompactBillTemplate org={org} invoice={estimate} lines={lines} fmt={fmt} type="estimate" taxBreakdown={taxBreakdown} />
         </div>
       ) : ["alpha_blue", "monochrome", "amanda_cream", "redblue_modern"].includes(org?.template_style) ? (
         <div className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
-          <A6Template org={org} invoice={estimate} lines={lines} fmt={fmt} type="estimate" variant={org.template_style as any} />
+          <A6Template org={org} invoice={estimate} lines={lines} fmt={fmt} type="estimate" variant={org.template_style as any} taxBreakdown={taxBreakdown} />
         </div>
       ) : org?.template_style && org.template_style !== "pos" ? (
         <div className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
-          <StyledInvoiceTemplate org={org} invoice={estimate} lines={lines} fmt={fmt} type="estimate" />
+          <StyledInvoiceTemplate org={org} invoice={estimate} lines={lines} fmt={fmt} type="estimate" taxBreakdown={taxBreakdown} />
         </div>
       ) : (
       <Card className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>

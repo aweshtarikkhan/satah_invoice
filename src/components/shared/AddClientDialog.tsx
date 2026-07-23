@@ -9,6 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { Loader2, Search } from "lucide-react";
 import { fetchGstDetails } from "@/lib/gst-service";
 
@@ -153,8 +156,23 @@ export function AddClientDialog({ open, onOpenChange, onClientAdded }: AddClient
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label>State</Label>
-              <Input value={billingState} onChange={(e) => setBillingState(e.target.value)} placeholder="State" />
+              <Label>State (GST Code)</Label>
+              <Select value={billingState} onValueChange={setBillingState}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select State" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="27">27 - Maharashtra</SelectItem>
+                  <SelectItem value="07">07 - Delhi</SelectItem>
+                  <SelectItem value="09">09 - Uttar Pradesh</SelectItem>
+                  <SelectItem value="24">24 - Gujarat</SelectItem>
+                  <SelectItem value="29">29 - Karnataka</SelectItem>
+                  <SelectItem value="33">33 - Tamil Nadu</SelectItem>
+                  <SelectItem value="19">19 - West Bengal</SelectItem>
+                  <SelectItem value="08">08 - Rajasthan</SelectItem>
+                  <SelectItem value="00">00 - Other / Unregistered</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label>Pincode / ZIP</Label>

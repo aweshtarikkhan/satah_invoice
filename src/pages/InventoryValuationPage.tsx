@@ -5,7 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { SEO } from "@/components/shared/SEO";
 import { formatCurrency } from "@/lib/currency";
+import { Boxes, Layers, Hash, PackageSearch, TrendingUp, TrendingDown, BarChart3 } from "lucide-react";
 
 interface MovementRow {
   item_id: string;
@@ -121,108 +124,333 @@ export default function InventoryValuationPage() {
 
   const totalWA = weightedAvg.reduce((s, r) => s + r.value, 0);
   const totalFIFO = fifo.reduce((s, r) => s + r.value, 0);
+  const totalStock = weightedAvg.reduce((s, r) => s + r.qty, 0);
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">Inventory Valuation</h1>
+    <div className="p-6 space-y-6 max-w-6xl mx-auto">
+      <SEO title="Inventory Valuation" description="View stock valuation reports using Weighted Average and FIFO methods." path="/inventory-valuation" />
+      <PageHeader
+        title="Inventory Valuation"
+        description="Analyze stock value using different costing methods"
+      />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">Total Items</div><div className="text-2xl font-semibold">{items.length}</div></CardContent></Card>
-        <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">Weighted Avg Value</div><div className="text-2xl font-semibold">{formatCurrency(totalWA, cur)}</div></CardContent></Card>
-        <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">FIFO Value</div><div className="text-2xl font-semibold">{formatCurrency(totalFIFO, cur)}</div></CardContent></Card>
-        <Card><CardContent className="pt-4"><div className="text-xs text-muted-foreground">Batches Tracked</div><div className="text-2xl font-semibold">{batchSummary.length}</div></CardContent></Card>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="border-l-4 border-l-blue-500">
+          <CardContent className="pt-5 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-500/10">
+                <Boxes className="h-5 w-5 text-blue-500" />
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground font-medium">Total Items</div>
+                <div className="text-2xl font-bold">{items.length}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-emerald-500">
+          <CardContent className="pt-5 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-emerald-500/10">
+                <TrendingUp className="h-5 w-5 text-emerald-500" />
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground font-medium">Weighted Avg Value</div>
+                <div className="text-xl font-bold">{formatCurrency(totalWA, cur)}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-violet-500">
+          <CardContent className="pt-5 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-violet-500/10">
+                <BarChart3 className="h-5 w-5 text-violet-500" />
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground font-medium">FIFO Value</div>
+                <div className="text-xl font-bold">{formatCurrency(totalFIFO, cur)}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-amber-500">
+          <CardContent className="pt-5 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-amber-500/10">
+                <PackageSearch className="h-5 w-5 text-amber-500" />
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground font-medium">Total Stock Qty</div>
+                <div className="text-2xl font-bold">{totalStock}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      <Tabs defaultValue="wa">
-        <TabsList>
-          <TabsTrigger value="wa">Weighted Avg</TabsTrigger>
-          <TabsTrigger value="fifo">FIFO</TabsTrigger>
-          <TabsTrigger value="batch">Batches</TabsTrigger>
-          <TabsTrigger value="serial">Serials</TabsTrigger>
+      {/* Tabs */}
+      <Tabs defaultValue="wa" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-4 max-w-lg">
+          <TabsTrigger value="wa" className="gap-1.5">
+            <TrendingUp className="h-3.5 w-3.5" /> Weighted Avg
+          </TabsTrigger>
+          <TabsTrigger value="fifo" className="gap-1.5">
+            <Layers className="h-3.5 w-3.5" /> FIFO
+          </TabsTrigger>
+          <TabsTrigger value="batch" className="gap-1.5">
+            <Boxes className="h-3.5 w-3.5" /> Batches
+          </TabsTrigger>
+          <TabsTrigger value="serial" className="gap-1.5">
+            <Hash className="h-3.5 w-3.5" /> Serials
+          </TabsTrigger>
         </TabsList>
 
+        {/* Weighted Average Tab */}
         <TabsContent value="wa">
-          <Card><CardHeader><CardTitle className="text-base">Weighted Average Valuation</CardTitle></CardHeader>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-emerald-500" />
+                Weighted Average Valuation
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Stock valued using the weighted average cost of all purchases
+              </p>
+            </CardHeader>
             <CardContent>
-              {loading ? <div className="py-8 text-center text-muted-foreground">Loading…</div> : (
-                <Table>
-                  <TableHeader><TableRow><TableHead>Item</TableHead><TableHead className="text-right">Stock Qty</TableHead><TableHead className="text-right">Avg Cost</TableHead><TableHead className="text-right">Total Value</TableHead></TableRow></TableHeader>
-                  <TableBody>
-                    {weightedAvg.map(r => (
-                      <TableRow key={r.id}>
-                        <TableCell>{r.name}</TableCell>
-                        <TableCell className="text-right">{r.qty}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(r.avg, cur)}</TableCell>
-                        <TableCell className="text-right font-medium">{formatCurrency(r.value, cur)}</TableCell>
+              {loading ? (
+                <div className="py-12 text-center text-muted-foreground">Loading…</div>
+              ) : weightedAvg.length === 0 ? (
+                <div className="py-12 text-center text-muted-foreground">
+                  <PackageSearch className="h-10 w-10 mx-auto mb-3 opacity-40" />
+                  <p>No product items found</p>
+                  <p className="text-xs mt-1">Add items with type "Product" to see valuation data</p>
+                </div>
+              ) : (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead>Item Name</TableHead>
+                        <TableHead className="text-right">Stock Qty</TableHead>
+                        <TableHead className="text-right">Avg Cost / Unit</TableHead>
+                        <TableHead className="text-right">Total Value</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {weightedAvg.map(r => (
+                        <TableRow key={r.id}>
+                          <TableCell className="font-medium">{r.name}</TableCell>
+                          <TableCell className="text-right">
+                            <Badge variant={r.qty > 0 ? "default" : "secondary"} className="font-mono">
+                              {r.qty}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right text-muted-foreground">{formatCurrency(r.avg, cur)}</TableCell>
+                          <TableCell className="text-right font-semibold">{formatCurrency(r.value, cur)}</TableCell>
+                        </TableRow>
+                      ))}
+                      {/* Footer Total */}
+                      <TableRow className="bg-muted/30 font-bold border-t-2">
+                        <TableCell>Total</TableCell>
+                        <TableCell className="text-right">{totalStock}</TableCell>
+                        <TableCell className="text-right"></TableCell>
+                        <TableCell className="text-right text-primary">{formatCurrency(totalWA, cur)}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* FIFO Tab */}
         <TabsContent value="fifo">
-          <Card><CardHeader><CardTitle className="text-base">FIFO Valuation (per layer)</CardTitle></CardHeader>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Layers className="h-4 w-4 text-violet-500" />
+                FIFO Valuation (per layer)
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                First-In-First-Out costing with remaining inventory layers
+              </p>
+            </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader><TableRow><TableHead>Item</TableHead><TableHead>Layers (qty @ cost)</TableHead><TableHead className="text-right">Total Qty</TableHead><TableHead className="text-right">Total Value</TableHead></TableRow></TableHeader>
-                <TableBody>
-                  {fifo.map(r => (
-                    <TableRow key={r.id}>
-                      <TableCell>{r.name}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{r.layers.length ? r.layers.map(l => `${l.qty}@${l.cost}`).join(", ") : "—"}</TableCell>
-                      <TableCell className="text-right">{r.qty}</TableCell>
-                      <TableCell className="text-right font-medium">{formatCurrency(r.value, cur)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="batch">
-          <Card><CardHeader><CardTitle className="text-base">Batch Stock</CardTitle></CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader><TableRow><TableHead>Item</TableHead><TableHead>Batch #</TableHead><TableHead className="text-right">Qty</TableHead><TableHead>Expiry</TableHead></TableRow></TableHeader>
-                <TableBody>
-                  {batchSummary.map((b, i) => {
-                    const expired = b.expiry && new Date(b.expiry) < new Date();
-                    return (
-                      <TableRow key={i}>
-                        <TableCell>{b.item}</TableCell>
-                        <TableCell className="font-mono">{b.batch}</TableCell>
-                        <TableCell className="text-right">{b.qty}</TableCell>
-                        <TableCell>{b.expiry ? (<span className={expired ? "text-destructive" : ""}>{b.expiry}{expired && " (expired)"}</span>) : "—"}</TableCell>
+              {fifo.length === 0 ? (
+                <div className="py-12 text-center text-muted-foreground">
+                  <Layers className="h-10 w-10 mx-auto mb-3 opacity-40" />
+                  <p>No FIFO data available</p>
+                </div>
+              ) : (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead>Item Name</TableHead>
+                        <TableHead>Layers (qty @ cost)</TableHead>
+                        <TableHead className="text-right">Total Qty</TableHead>
+                        <TableHead className="text-right">Total Value</TableHead>
                       </TableRow>
-                    );
-                  })}
-                  {!batchSummary.length && <TableRow><TableCell colSpan={4} className="text-center py-6 text-muted-foreground">No batch-tracked stock</TableCell></TableRow>}
-                </TableBody>
-              </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {fifo.map(r => (
+                        <TableRow key={r.id}>
+                          <TableCell className="font-medium">{r.name}</TableCell>
+                          <TableCell>
+                            {r.layers.length ? (
+                              <div className="flex flex-wrap gap-1">
+                                {r.layers.map((l, i) => (
+                                  <Badge key={i} variant="outline" className="text-xs font-mono">
+                                    {l.qty} @ {formatCurrency(l.cost, cur)}
+                                    {l.batch ? ` (${l.batch})` : ""}
+                                  </Badge>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Badge variant={r.qty > 0 ? "default" : "secondary"} className="font-mono">
+                              {r.qty}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">{formatCurrency(r.value, cur)}</TableCell>
+                        </TableRow>
+                      ))}
+                      <TableRow className="bg-muted/30 font-bold border-t-2">
+                        <TableCell>Total</TableCell>
+                        <TableCell></TableCell>
+                        <TableCell className="text-right">{fifo.reduce((s, r) => s + r.qty, 0)}</TableCell>
+                        <TableCell className="text-right text-primary">{formatCurrency(totalFIFO, cur)}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="serial">
-          <Card><CardHeader><CardTitle className="text-base">Serial Numbers</CardTitle></CardHeader>
+        {/* Batches Tab */}
+        <TabsContent value="batch">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Boxes className="h-4 w-4 text-blue-500" />
+                Batch Stock
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Track stock across batches with expiry monitoring
+              </p>
+            </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader><TableRow><TableHead>Item</TableHead><TableHead>Serial #</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
-                <TableBody>
-                  {serialSummary.map((s, i) => (
-                    <TableRow key={i}>
-                      <TableCell>{s.item}</TableCell>
-                      <TableCell className="font-mono">{s.serial}</TableCell>
-                      <TableCell><Badge variant={s.status === "in" ? "default" : "secondary"}>{s.status === "in" ? "In Stock" : "Issued"}</Badge></TableCell>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead>Item Name</TableHead>
+                      <TableHead>Batch #</TableHead>
+                      <TableHead className="text-right">Qty in Stock</TableHead>
+                      <TableHead>Expiry Date</TableHead>
                     </TableRow>
-                  ))}
-                  {!serialSummary.length && <TableRow><TableCell colSpan={3} className="text-center py-6 text-muted-foreground">No serial-tracked stock</TableCell></TableRow>}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {batchSummary.map((b, i) => {
+                      const expired = b.expiry && new Date(b.expiry) < new Date();
+                      const nearExpiry = b.expiry && !expired && new Date(b.expiry) < new Date(Date.now() + 30 * 86400000);
+                      return (
+                        <TableRow key={i}>
+                          <TableCell className="font-medium">{b.item}</TableCell>
+                          <TableCell><code className="px-1.5 py-0.5 rounded bg-muted text-xs">{b.batch}</code></TableCell>
+                          <TableCell className="text-right">
+                            <Badge variant="default" className="font-mono">{b.qty}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            {b.expiry ? (
+                              <Badge variant={expired ? "destructive" : nearExpiry ? "secondary" : "outline"}>
+                                {b.expiry}{expired ? " — Expired" : nearExpiry ? " — Expiring soon" : ""}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {!batchSummary.length && (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-12 text-muted-foreground">
+                          <Boxes className="h-10 w-10 mx-auto mb-3 opacity-40" />
+                          <p>No batch-tracked stock</p>
+                          <p className="text-xs mt-1">Enable batch tracking on items to see data here</p>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Serials Tab */}
+        <TabsContent value="serial">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Hash className="h-4 w-4 text-orange-500" />
+                Serial Numbers
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Track individual serial numbers and their current status
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead>Item Name</TableHead>
+                      <TableHead>Serial #</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {serialSummary.map((s, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="font-medium">{s.item}</TableCell>
+                        <TableCell><code className="px-1.5 py-0.5 rounded bg-muted text-xs">{s.serial}</code></TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={s.status === "in" ? "default" : "secondary"}
+                            className={s.status === "in" ? "bg-emerald-500/10 text-emerald-600 border-emerald-200" : ""}
+                          >
+                            {s.status === "in" ? (
+                              <><TrendingUp className="h-3 w-3 mr-1" /> In Stock</>
+                            ) : (
+                              <><TrendingDown className="h-3 w-3 mr-1" /> Issued</>
+                            )}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {!serialSummary.length && (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center py-12 text-muted-foreground">
+                          <Hash className="h-10 w-10 mx-auto mb-3 opacity-40" />
+                          <p>No serial-tracked stock</p>
+                          <p className="text-xs mt-1">Enable serial tracking on items to see data here</p>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

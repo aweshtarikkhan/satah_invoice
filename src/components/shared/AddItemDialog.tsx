@@ -117,12 +117,7 @@ export function AddItemDialog({ open, onOpenChange, onItemAdded, taxRates = [], 
               inputMode="numeric"
             />
           </div>
-          {form.type === "product" && (
-            <div className="space-y-1">
-              <Label>Opening Stock</Label>
-              <Input type="number" value={form.stock_quantity} onChange={(e) => setForm({ ...form, stock_quantity: parseFloat(e.target.value) || 0 })} />
-            </div>
-          )}
+
           {taxRates.length > 0 && (
             <div className="space-y-1">
               <Label>Tax Rate</Label>
@@ -130,8 +125,10 @@ export function AddItemDialog({ open, onOpenChange, onItemAdded, taxRates = [], 
                 <SelectTrigger><SelectValue placeholder="No tax" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">No tax</SelectItem>
-                  {taxRates.map((t: any) => (
-                    <SelectItem key={t.id} value={t.id}>{t.name} ({t.rate}%)</SelectItem>
+                  {taxRates
+                    .filter((t: any) => !t.name.toUpperCase().includes("CGST") && !t.name.toUpperCase().includes("SGST"))
+                    .map((t: any) => (
+                    <SelectItem key={t.id} value={t.id}>{t.name.replace(/IGST/i, "GST")} ({t.rate}%)</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

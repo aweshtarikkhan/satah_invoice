@@ -346,7 +346,7 @@ export default function CreditNoteBuilderPage() {
                       </SelectContent>
                     </Select>
                   </TableCell>
-                  <TableCell className="text-right text-sm font-medium">{fmt(line.amount)}</TableCell>
+                  <TableCell className="text-right text-sm font-medium">{fmt(line.amount - (line.tax_amount || 0))}</TableCell>
                   <TableCell>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setLines((p) => p.filter((_, i) => i !== idx))} disabled={lines.length <= 1}>
                       <Trash2 className="h-3 w-3 text-destructive" />

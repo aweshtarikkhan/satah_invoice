@@ -5,7 +5,8 @@ interface PosBillTemplateProps {
   invoice: any;
   lines: any[];
   fmt: (n: number) => string;
-  type?: "invoice" | "estimate";
+  type?: "invoice" | "estimate" | "bill" | "po";
+  taxBreakdown?: { name: string; amount: number }[];
 }
 
 /**
@@ -13,13 +14,11 @@ interface PosBillTemplateProps {
  * Designed for 80mm (≈ 302px) roll paper. Uses monospace, dashed dividers,
  * compact rows and tiny fonts — exactly what cash register printers expect.
  */
-export function PosBillTemplate({ org, invoice, lines, fmt, type = "invoice" }: PosBillTemplateProps) {
+export function PosBillTemplate({ org, invoice, lines, fmt, type = "invoice", taxBreakdown }: PosBillTemplateProps) {
   const clientName = (invoice.clients as any)?.display_name || "";
-  const number = type === "estimate" ? invoice.estimate_number : invoice.invoice_number;
+  const number = type === "estimate" ? invoice.estimate_number : (type === "po" ? invoice.po_number : invoice.invoice_number);
   const balanceDue = type === "estimate" ? Number(invoice.total) : Number(invoice.balance_due ?? invoice.total);
-  const currencySymbol = (invoice.currency_code || org?.currency_code) === "INR"
-    ? "₹"
-    : fmt(0).replace(/[\d.,\s]/g, "").trim() || "₹";
+  const currencySymbol = org?.currency_code === "INR" ? "₹" : fmt(0).replace(/[\d.,]/g, "").trim() || "₹";
 
   const addressLines: string[] = [];
   if (org?.address) {
@@ -59,15 +58,15 @@ export function PosBillTemplate({ org, invoice, lines, fmt, type = "invoice" }: 
         )}
       </div>
 
-      <div style={{ textAlign: "center", fontWeight: 700, fontSize: 13, margin: "4px 0" }}>
-        {type === "estimate" ? "ESTIMATE" : "TAX INVOICE"}
+      <div style={{ textAlign: "center", fontWeight: 700, fontSize: 13, margin: "4px 0", textTransform: "uppercase" }}>
+        {type === "estimate" ? "Estimate" : (type === "po" ? "Purchase Order" : (type === "bill" ? "Bill" : "Tax Invoice"))}
       </div>
       <div style={{ textAlign: "center", letterSpacing: -1 }}>{dashed}</div>
 
       {/* Meta */}
       <div style={{ fontSize: 11, margin: "4px 0" }}>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <span>{type === "estimate" ? "Est#" : "Bill#"}: <b>{number}</b></span>
+          <span>{type === "estimate" ? "Est#" : type === "po" ? "PO#" : "Bill#"}: <b>{number}</b></span>
           <span>{invoice.issue_date}</span>
         </div>
         <div>Customer: <b>{clientName}</b></div>
@@ -115,9 +114,13 @@ export function PosBillTemplate({ org, invoice, lines, fmt, type = "invoice" }: 
         {Number(invoice.total_discount) > 0 && (
           <Row label="Discount" value={`-${money(Number(invoice.total_discount))}`} />
         )}
-        {Number(invoice.total_tax) > 0 && (
+        {taxBreakdown && taxBreakdown.length > 0 ? (
+          taxBreakdown.map((t, idx) => (
+            <Row key={idx} label={t.name} value={money(t.amount)} />
+          ))
+        ) : Number(invoice.total_tax) > 0 ? (
           <Row label="Tax" value={money(Number(invoice.total_tax))} />
-        )}
+        ) : null}
         {Number(invoice.shipping_charge) > 0 && (
           <Row label="Shipping" value={money(Number(invoice.shipping_charge))} />
         )}

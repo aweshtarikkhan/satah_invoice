@@ -7,6 +7,7 @@ interface Props {
   fmt: (n: number) => string;
   type?: "invoice" | "estimate";
   variant: "alpha_blue" | "monochrome" | "amanda_cream" | "redblue_modern";
+  taxBreakdown?: { name: string; amount: number }[];
 }
 
 function getAddressLines(org: any): string[] {
@@ -33,7 +34,7 @@ function splitDate(d?: string) {
   };
 }
 
-export function A6Template({ org, invoice, lines, fmt, type = "invoice", variant }: Props) {
+export function A6Template({ org, invoice, lines, fmt, type = "invoice", variant, taxBreakdown }: Props) {
   const accent = (org?.template_accent_color as string) || (variant === "redblue_modern" ? "#1e3a8a" : "#2563eb");
   const number = type === "estimate" ? invoice.estimate_number : invoice.invoice_number;
   const balanceDue = type === "estimate" ? Number(invoice.total) : Number(invoice.balance_due ?? invoice.total);
@@ -168,7 +169,11 @@ export function A6Template({ org, invoice, lines, fmt, type = "invoice", variant
           </div>
           <div className="space-y-1">
             <div className="flex justify-between"><span>Sub Total</span><span>{fmt(Number(invoice.subtotal ?? invoice.total))}</span></div>
-            {Number(invoice.total_tax) > 0 && <div className="flex justify-between"><span>Tax</span><span>{fmt(Number(invoice.total_tax))}</span></div>}
+            {taxBreakdown && taxBreakdown.length > 0 ? (
+              taxBreakdown.map((t, idx) => <div key={idx} className="flex justify-between"><span>{t.name}</span><span>{fmt(t.amount)}</span></div>)
+            ) : Number(invoice.total_tax) > 0 ? (
+              <div className="flex justify-between"><span>Tax</span><span>{fmt(Number(invoice.total_tax))}</span></div>
+            ) : null}
             {Number(invoice.shipping_charge) > 0 && <div className="flex justify-between"><span>Shipping</span><span>{fmt(Number(invoice.shipping_charge))}</span></div>}
             <div className="flex justify-between border-t-2 border-black pt-1 font-bold"><span>Total Due</span><span>{fmt(balanceDue)}</span></div>
           </div>
@@ -232,7 +237,11 @@ export function A6Template({ org, invoice, lines, fmt, type = "invoice", variant
           <div className="font-bold">E&amp;OE</div>
           <div className="space-y-0.5 min-w-[140px]">
             <div className="flex justify-between border-b border-black/40 pb-0.5"><span className="font-bold">SUB TOTAL</span><span>{fmt(Number(invoice.subtotal ?? invoice.total))}</span></div>
-            <div className="flex justify-between border-b border-black/40 pb-0.5"><span className="font-bold">TAXES</span><span>{fmt(Number(invoice.total_tax || 0))}</span></div>
+            {taxBreakdown && taxBreakdown.length > 0 ? (
+              taxBreakdown.map((t, idx) => <div key={idx} className="flex justify-between border-b border-black/40 pb-0.5"><span className="font-bold">{t.name}</span><span>{fmt(t.amount)}</span></div>)
+            ) : (
+              <div className="flex justify-between border-b border-black/40 pb-0.5"><span className="font-bold">TAXES</span><span>{fmt(Number(invoice.total_tax || 0))}</span></div>
+            )}
             <div className="flex justify-between font-extrabold"><span>TOTAL</span><span>{fmt(Number(invoice.total))}</span></div>
           </div>
         </div>
@@ -315,7 +324,11 @@ export function A6Template({ org, invoice, lines, fmt, type = "invoice", variant
           </div>
           <div className="text-[10px] min-w-[140px] space-y-0.5">
             <div className="flex justify-between"><span className="font-bold">Sub Total:</span><span>{fmt(Number(invoice.subtotal ?? invoice.total))}</span></div>
-            {Number(invoice.total_tax) > 0 && <div className="flex justify-between"><span className="font-bold">Tax:</span><span>{fmt(Number(invoice.total_tax))}</span></div>}
+            {taxBreakdown && taxBreakdown.length > 0 ? (
+              taxBreakdown.map((t, idx) => <div key={idx} className="flex justify-between"><span className="font-bold">{t.name}:</span><span>{fmt(t.amount)}</span></div>)
+            ) : Number(invoice.total_tax) > 0 ? (
+              <div className="flex justify-between"><span className="font-bold">Tax:</span><span>{fmt(Number(invoice.total_tax))}</span></div>
+            ) : null}
             <div className="flex justify-between mt-1 px-2 py-1 text-white font-extrabold" style={{ background: navy }}>
               <span>Total</span><span>{fmt(Number(invoice.total))}</span>
             </div>

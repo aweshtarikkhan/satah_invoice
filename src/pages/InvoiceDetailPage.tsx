@@ -31,6 +31,7 @@ import { CompactBillTemplate } from "@/components/invoice/CompactBillTemplate";
 import { PosBillTemplate } from "@/components/invoice/PosBillTemplate";
 import { StyledInvoiceTemplate } from "@/components/invoice/StyledInvoiceTemplate";
 import { A6Template } from "@/components/invoice/A6Templates";
+import { calculateTaxBreakdown, stateCodeFromGstin } from "@/lib/gst";
 
 export default function InvoiceDetailPage() {
   const { id } = useParams();
@@ -42,6 +43,7 @@ export default function InvoiceDetailPage() {
   const [invoice, setInvoice] = useState<any>(null);
   const [lines, setLines] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
+  const [taxRates, setTaxRates] = useState<any[]>([]);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [paymentForm, setPaymentForm] = useState({
     amount: 0, payment_mode: "bank_transfer", reference_number: "", notes: "", payment_date: new Date().toISOString().split("T")[0],
@@ -72,9 +74,28 @@ export default function InvoiceDetailPage() {
       .eq("invoice_id", id)
       .order("payment_date", { ascending: false });
     setPayments(payData || []);
+
+    if (org?.id) {
+      const { data: taxData } = await supabase.from("tax_rates").select("*").eq("org_id", org.id);
+      setTaxRates(taxData || []);
+    }
   };
 
-  useEffect(() => { fetchInvoice(); }, [id]);
+  useEffect(() => { fetchInvoice(); }, [id, org?.id]);
+
+  const taxBreakdown = useMemo(() => {
+    if (!invoice || !org || !lines.length) return [];
+    // Use GST number first (2-digit state code), then fallback to address state name
+    const orgState = org.gst_number ? stateCodeFromGstin(org.gst_number)
+      : (org.address && typeof org.address === 'object' ? (org.address as any).state : null);
+    let clientState = null;
+    if (invoice.clients?.tax_number) clientState = stateCodeFromGstin(invoice.clients.tax_number);
+    else if (invoice.clients?.billing_address && typeof invoice.clients.billing_address === 'object') {
+      clientState = (invoice.clients.billing_address as any).state;
+    }
+    const isInterstate = Boolean(orgState && clientState && orgState !== clientState);
+    return calculateTaxBreakdown(lines, taxRates, isInterstate);
+  }, [invoice, lines, org, taxRates]);
 
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(n);
@@ -370,23 +391,23 @@ export default function InvoiceDetailPage() {
 
       {/* Invoice Preview */}
       <div ref={invoiceRef}>
-      {org?.template_style === "compact" ? (
-        <div className={getDocumentPreviewClass("compact", org?.template_paper_size)}>
-          <CompactBillTemplate org={org} invoice={invoice} lines={lines} fmt={fmt} type="invoice" />
-        </div>
-      ) : org?.template_style === "pos" ? (
-        <div className={getDocumentPreviewClass("pos", org?.template_paper_size || "pos80")}>
-          <PosBillTemplate org={org} invoice={invoice} lines={lines} fmt={fmt} type="invoice" />
-        </div>
-      ) : ["alpha_blue", "monochrome", "amanda_cream", "redblue_modern"].includes(org?.template_style) ? (
-        <div className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
-          <A6Template org={org} invoice={invoice} lines={lines} fmt={fmt} type="invoice" variant={org.template_style as any} />
-        </div>
-      ) : (
-      <div className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
-        <StyledInvoiceTemplate org={org} invoice={invoice} lines={lines} fmt={fmt} type="invoice" />
-      </div>
-      )}
+        {org?.template_style === "compact" ? (
+          <div className={getDocumentPreviewClass("compact", org?.template_paper_size)}>
+            <CompactBillTemplate org={org} invoice={invoice} lines={lines} fmt={fmt} type="invoice" taxBreakdown={taxBreakdown} />
+          </div>
+        ) : org?.template_style === "pos" ? (
+          <div className={getDocumentPreviewClass("pos", org?.template_paper_size || "pos80")}>
+            <PosBillTemplate org={org} invoice={invoice} lines={lines} fmt={fmt} type="invoice" taxBreakdown={taxBreakdown} />
+          </div>
+        ) : ["alpha_blue", "monochrome", "amanda_cream", "redblue_modern"].includes(org?.template_style) ? (
+          <div className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
+            <A6Template org={org} invoice={invoice} lines={lines} fmt={fmt} type="invoice" variant={org.template_style as any} taxBreakdown={taxBreakdown} />
+          </div>
+        ) : (
+          <div className={getDocumentPreviewClass(org?.template_style, org?.template_paper_size)}>
+            <StyledInvoiceTemplate org={org} invoice={invoice} lines={lines} fmt={fmt} type="invoice" taxBreakdown={taxBreakdown} />
+          </div>
+        )}
       </div>
 
       {/* Payments */}

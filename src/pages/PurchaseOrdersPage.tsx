@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Eye, Trash2, Download } from "lucide-react";
+import { Plus, Eye, Trash2, Download, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatCurrency } from "@/lib/currency";
 import { format } from "date-fns";
@@ -49,6 +49,87 @@ export default function PurchaseOrdersPage() {
     else load();
   };
 
+  const convertToBill = async (e: React.MouseEvent, poId: string) => {
+    e.stopPropagation();
+    if (!confirm("Convert this PO into a Bill?")) return;
+    setLoading(true);
+    try {
+      const { data: po } = await (supabase as any).from("purchase_orders").select("*").eq("id", poId).single();
+      
+      const { data: existingBill } = await (supabase as any)
+        .from("bills")
+        .select("id")
+        .eq("vendor_bill_number", po.po_number)
+        .eq("vendor_id", po.vendor_id)
+        .maybeSingle();
+
+      if (existingBill) {
+        if (!confirm("This Purchase Order has already been converted to a Bill. Are you sure you want to convert it again?")) {
+          setLoading(false);
+          return;
+        }
+      }
+
+      const { data: poLines } = await (supabase as any).from("purchase_order_lines").select("*").eq("po_id", poId);
+      
+      const { data: o } = await (supabase as any).from("organizations").select("next_bill_number, bill_prefix").eq("id", org?.id).single();
+      const nextNum = o?.next_bill_number || 1;
+      const prefix = o?.bill_prefix || "BILL-";
+      const billNumber = `${prefix}${String(nextNum).padStart(4, "0")}`;
+
+      const billPayload = {
+        org_id: org?.id,
+        vendor_id: po.vendor_id,
+        branch_id: po.branch_id || null,
+        bill_number: billNumber,
+        vendor_bill_number: po.po_number,
+        bill_date: format(new Date(), "yyyy-MM-dd"),
+        subtotal: po.subtotal || 0,
+        tax_total: po.tax_amount || 0,
+        total: po.total || 0,
+        balance_due: po.total || 0,
+        status: "received",
+        notes: `Converted from PO: ${po.po_number}`
+      };
+      
+      const { data: newBill, error: billErr } = await (supabase as any).from("bills").insert(billPayload).select().single();
+      if (billErr) throw billErr;
+
+      await (supabase as any).from("organizations").update({ next_bill_number: nextNum + 1 }).eq("id", org?.id);
+
+      if (poLines && poLines.length > 0) {
+        const linePayloads = poLines.map((l: any) => {
+          const q = Number(l.quantity) || 0;
+          const r = Number(l.rate) || 0;
+          const tr = Number(l.tax_rate) || 0;
+          const taxAmt = q * r * (tr / 100);
+          return {
+            org_id: org?.id,
+            bill_id: newBill.id,
+            description: l.description,
+            hsn: l.hsn,
+            quantity: l.quantity,
+            rate: l.rate,
+            tax_rate: l.tax_rate,
+            tax_amount: taxAmt,
+            amount: l.amount,
+            sort_order: l.sort_order,
+            item_id: l.item_id || null,
+          };
+        });
+        await (supabase as any).from("bill_lines").insert(linePayloads);
+      }
+
+      await (supabase as any).from("purchase_orders").update({ status: "received" }).eq("id", poId);
+
+      toast({ title: "Converted to Bill", description: `Successfully created ${billNumber}. The PO has been marked as received.` });
+      load();
+    } catch (err: any) {
+      toast({ title: "Conversion failed", description: err.message, variant: "destructive" });
+      setLoading(false);
+    }
+  };
+
   const statusColor: Record<string, string> = {
     draft: "bg-muted text-muted-foreground",
     sent: "bg-blue-100 text-blue-700",
@@ -89,8 +170,9 @@ export default function PurchaseOrdersPage() {
                     <TableCell><Badge className={statusColor[r.status] || ""}>{r.status}</Badge></TableCell>
                     <TableCell className="text-right">{formatCurrency(Number(r.total), (org as any)?.currency || "INR")}</TableCell>
                     <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                      <Button size="icon" variant="ghost" onClick={() => navigate(`/purchase-orders/${r.id}`)}><Eye className="h-4 w-4" /></Button>
-                      <Button size="icon" variant="ghost" onClick={() => remove(r.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      <Button size="icon" variant="ghost" title="Convert to Bill" onClick={(e) => convertToBill(e, r.id)}><FileText className="h-4 w-4 text-emerald-600" /></Button>
+                      <Button size="icon" variant="ghost" title="View" onClick={() => navigate(`/purchase-orders/${r.id}`)}><Eye className="h-4 w-4" /></Button>
+                      <Button size="icon" variant="ghost" title="Delete" onClick={() => remove(r.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -5,8 +5,16 @@ interface StyledInvoiceTemplateProps {
   invoice: any;
   lines: any[];
   fmt: (n: number) => string;
-  type?: "invoice" | "estimate";
+  type?: "invoice" | "estimate" | "bill" | "po";
+  taxBreakdown?: { name: string; amount: number }[];
 }
+
+const getTitleText = (type: string, variant: string) => {
+  if (type === "estimate") return variant === "minimal" || variant === "magnam" ? "Estimate" : "ESTIMATE";
+  if (type === "po") return variant === "minimal" || variant === "magnam" ? "Purchase Order" : "PURCHASE ORDER";
+  if (type === "bill") return variant === "minimal" || variant === "magnam" ? "Bill" : "BILL";
+  return variant === "minimal" || variant === "magnam" ? "Invoice" : "TAX INVOICE";
+};
 
 /**
  * Generic invoice renderer that adapts its visual style based on
@@ -16,7 +24,7 @@ interface StyledInvoiceTemplateProps {
  * Supported styles: classic, modern, minimal, professional, asperiores,
  * magnam, quisquam, nobis. (compact + pos have their own dedicated files.)
  */
-export function StyledInvoiceTemplate({ org, invoice, lines, fmt, type = "invoice" }: StyledInvoiceTemplateProps) {
+export function StyledInvoiceTemplate({ org, invoice, lines, fmt, type = "invoice", taxBreakdown }: StyledInvoiceTemplateProps) {
   const style = (org?.template_style as string) || "classic";
   const accent = (org?.template_accent_color as string) || "#2563eb";
   const font = (org?.template_font as string) || "Inter, system-ui, sans-serif";
@@ -54,7 +62,7 @@ export function StyledInvoiceTemplate({ org, invoice, lines, fmt, type = "invoic
       title: { color: accent, fontWeight: 800, fontSize: 22, letterSpacing: 1 },
       sectionTitle: { color: accent, fontWeight: 700, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 },
       tableHeader: { background: `${accent}10`, color: accent, fontWeight: 700 },
-      titleText: type === "estimate" ? "ESTIMATE" : "TAX INVOICE",
+      titleText: getTitleText(type, "classic"),
       align: "right",
     },
     modern: {
@@ -63,7 +71,7 @@ export function StyledInvoiceTemplate({ org, invoice, lines, fmt, type = "invoic
       sectionTitle: { color: accent, fontWeight: 700, fontSize: 12, textTransform: "uppercase" },
       tableHeader: { background: `${accent}15`, color: accent, fontWeight: 700, borderRadius: 8 },
       accentBar: { background: accent, height: 4, borderRadius: 4, marginTop: 12 },
-      titleText: type === "estimate" ? "ESTIMATE" : "INVOICE",
+      titleText: getTitleText(type, "modern"),
       align: "right",
     },
     minimal: {
@@ -71,7 +79,7 @@ export function StyledInvoiceTemplate({ org, invoice, lines, fmt, type = "invoic
       title: { color: "#111", fontWeight: 300, fontSize: 28, letterSpacing: 4 },
       sectionTitle: { color: "#666", fontWeight: 500, fontSize: 11, textTransform: "uppercase", letterSpacing: 2 },
       tableHeader: { borderBottom: "1px solid #e5e7eb", color: "#111", fontWeight: 600 },
-      titleText: type === "estimate" ? "Estimate" : "Invoice",
+      titleText: getTitleText(type, "minimal"),
       align: "right",
     },
     professional: {
@@ -79,7 +87,7 @@ export function StyledInvoiceTemplate({ org, invoice, lines, fmt, type = "invoic
       title: { color: accent, fontWeight: 700, fontSize: 20 },
       sectionTitle: { color: accent, fontWeight: 700, fontSize: 12, textTransform: "uppercase", letterSpacing: 1 },
       tableHeader: { background: `${accent}10`, color: accent, fontWeight: 700, borderTop: `2px solid ${accent}` },
-      titleText: type === "estimate" ? "ESTIMATE" : "TAX INVOICE",
+      titleText: getTitleText(type, "professional"),
       align: "right",
     },
     asperiores: {
@@ -87,7 +95,7 @@ export function StyledInvoiceTemplate({ org, invoice, lines, fmt, type = "invoic
       title: { color: accent, fontWeight: 900, fontSize: 28, letterSpacing: 1 },
       sectionTitle: { color: "#111", fontWeight: 800, fontSize: 12, textTransform: "uppercase", letterSpacing: 2 },
       tableHeader: { background: "#111", color: "#fff", fontWeight: 700 },
-      titleText: type === "estimate" ? "ESTIMATE" : "INVOICE",
+      titleText: getTitleText(type, "asperiores"),
       align: "right",
     },
     magnam: {
@@ -95,24 +103,24 @@ export function StyledInvoiceTemplate({ org, invoice, lines, fmt, type = "invoic
       title: { color: accent, fontWeight: 600, fontSize: 26, fontFamily: "Georgia, 'Times New Roman', serif", letterSpacing: 2 },
       sectionTitle: { color: accent, fontWeight: 600, fontSize: 12, fontFamily: "Georgia, serif", letterSpacing: 1 },
       tableHeader: { borderBottom: `1px solid ${accent}50`, color: accent, fontWeight: 600, fontFamily: "Georgia, serif" },
-      titleText: type === "estimate" ? "Estimate" : "Invoice",
+      titleText: getTitleText(type, "magnam"),
       align: "center",
     },
     quisquam: {
-      header: { borderBottom: `1px dashed ${accent}`, paddingBottom: 10, marginBottom: 12 },
-      title: { color: accent, fontWeight: 700, fontSize: 18 },
-      sectionTitle: { color: accent, fontWeight: 700, fontSize: 11, textTransform: "uppercase" },
-      tableHeader: { background: `${accent}08`, color: accent, fontWeight: 700, fontSize: 11 },
-      titleText: type === "estimate" ? "ESTIMATE" : "TAX INVOICE",
-      align: "right",
+      header: { borderLeft: `6px solid ${accent}`, paddingLeft: 20, marginBottom: 24, background: "#f8f9fa", padding: 20 },
+      title: { color: "#222", fontWeight: 800, fontSize: 24, textTransform: "uppercase" },
+      sectionTitle: { color: accent, fontWeight: 700, fontSize: 11, textTransform: "uppercase", letterSpacing: 1 },
+      tableHeader: { background: "#e5e7eb", color: "#333", fontWeight: 700 },
+      titleText: getTitleText(type, "quisquam"),
+      align: "left",
     },
     nobis: {
-      header: { borderLeft: `6px solid ${accent}`, paddingLeft: 16, marginBottom: 20 },
-      title: { color: accent, fontWeight: 800, fontSize: 24 },
-      sectionTitle: { color: accent, fontWeight: 700, fontSize: 12, textTransform: "uppercase" },
-      tableHeader: { background: `${accent}12`, color: accent, fontWeight: 700, borderLeft: `3px solid ${accent}` },
-      titleText: type === "estimate" ? "ESTIMATE" : "INVOICE",
-      align: "right",
+      header: { border: `2px solid ${accent}`, padding: 24, borderRadius: 16, marginBottom: 24 },
+      title: { color: accent, fontWeight: 900, fontSize: 26, letterSpacing: -0.5 },
+      sectionTitle: { color: "#333", fontWeight: 700, fontSize: 12, textTransform: "uppercase" },
+      tableHeader: { background: accent, color: "#fff", fontWeight: 700, borderRadius: 6 },
+      titleText: getTitleText(type, "nobis"),
+      align: "center",
     },
   };
 
@@ -166,6 +174,9 @@ export function StyledInvoiceTemplate({ org, invoice, lines, fmt, type = "invoic
             )}
             {type === "estimate" && invoice.expiry_date && (
               <div style={{ fontSize: 12, opacity: 0.8 }}>Valid till: {invoice.expiry_date}</div>
+            )}
+            {type === "po" && invoice.expected_date && (
+              <div style={{ fontSize: 12, opacity: 0.8 }}>Expected By: {invoice.expected_date}</div>
             )}
           </div>
         </div>
@@ -230,9 +241,13 @@ export function StyledInvoiceTemplate({ org, invoice, lines, fmt, type = "invoic
           {Number(invoice.total_discount) > 0 && (
             <Row label="Discount" value={`-${fmt(Number(invoice.total_discount))}`} />
           )}
-          {Number(invoice.total_tax) > 0 && (
+          {taxBreakdown && taxBreakdown.length > 0 ? (
+            taxBreakdown.map((t, idx) => (
+              <Row key={idx} label={t.name} value={fmt(t.amount)} />
+            ))
+          ) : Number(invoice.total_tax) > 0 ? (
             <Row label="Tax" value={fmt(Number(invoice.total_tax))} />
-          )}
+          ) : null}
           {Number(invoice.shipping_charge) > 0 && (
             <Row label="Shipping" value={fmt(Number(invoice.shipping_charge))} />
           )}

@@ -108,7 +108,7 @@ function SortableLine({ line, index, taxRates, items, onChange, onRemove, onAddI
           <span className="text-[10px] text-muted-foreground">Tax</span>
         </div>
         <div className="col-span-2 text-right">
-          <div className="h-9 flex items-center justify-end text-sm font-medium">{fmt(line.amount)}</div>
+          <div className="h-9 flex items-center justify-end text-sm font-medium">{fmt(line.amount - (line.tax_amount || 0))}</div>
           {line.tax_amount > 0 && <span className="text-[10px] text-muted-foreground">+{fmt(line.tax_amount)} tax</span>}
         </div>
       </div>

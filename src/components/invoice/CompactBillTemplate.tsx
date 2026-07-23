@@ -5,12 +5,13 @@ interface CompactBillTemplateProps {
   invoice: any;
   lines: any[];
   fmt: (n: number) => string;
-  type?: "invoice" | "estimate";
+  type?: "invoice" | "estimate" | "bill" | "po";
+  taxBreakdown?: { name: string; amount: number }[];
 }
 
-export function CompactBillTemplate({ org, invoice, lines, fmt, type = "invoice" }: CompactBillTemplateProps) {
+export function CompactBillTemplate({ org, invoice, lines, fmt, type = "invoice", taxBreakdown }: CompactBillTemplateProps) {
   const clientName = (invoice.clients as any)?.display_name || "";
-  const invoiceNumber = type === "estimate" ? invoice.estimate_number : invoice.invoice_number;
+  const invoiceNumber = type === "estimate" ? invoice.estimate_number : (type === "po" ? invoice.po_number : invoice.invoice_number);
   const balanceDue = type === "estimate" ? Number(invoice.total) : Number(invoice.balance_due ?? invoice.total);
   const currencySymbol = org?.currency_code === "INR" ? "₹" : fmt(0).replace(/[\d.,]/g, "").trim();
 
@@ -38,7 +39,7 @@ export function CompactBillTemplate({ org, invoice, lines, fmt, type = "invoice"
       {/* Title */}
       <div className="text-center mb-6">
         <h2 className="text-xl italic text-muted-foreground">
-          {type === "estimate" ? "Estimated Bill" : "Tax Invoice"}
+          {type === "estimate" ? "Estimated Bill" : (type === "po" ? "Purchase Order" : (type === "bill" ? "Bill" : "Tax Invoice"))}
         </h2>
       </div>
 
@@ -52,18 +53,25 @@ export function CompactBillTemplate({ org, invoice, lines, fmt, type = "invoice"
           )}
         </div>
         <div className="text-right">
-          <span className="font-semibold text-primary">{type === "estimate" ? "Estimate#" : "Invoice#"}:</span>{" "}
+          <span className="font-semibold text-primary">{type === "estimate" ? "Estimate#" : (type === "po" ? "PO#" : (type === "bill" ? "Bill#" : "Invoice#"))}:</span>{" "}
           <span>{invoiceNumber}</span>
         </div>
         <div>
           <span className="font-semibold text-primary">Date:</span>{" "}
-          <span>{invoice.issue_date}</span>
+          <span>{invoice.issue_date ? format(new Date(invoice.issue_date), "dd/MM/yyyy") : "—"}</span>
         </div>
-        <div className="text-right">
-          <span className="font-semibold text-primary">Due Date:</span>{" "}
-          <span>{type === "estimate" ? invoice.expiry_date : invoice.due_date}</span>
-        </div>
-      </div>
+        {invoice.due_date && type !== "po" && (
+          <div className="text-right">
+            <span className="font-semibold text-primary">Due:</span>{" "}
+            <span>{format(new Date(invoice.due_date), "dd/MM/yyyy")}</span>
+          </div>
+        )}
+        {invoice.expected_date && type === "po" && (
+          <div className="text-right">
+            <span className="font-semibold text-primary">Expected By:</span>{" "}
+            <span>{format(new Date(invoice.expected_date), "dd/MM/yyyy")}</span>
+          </div>
+        )}</div>
 
       {/* Items Table */}
       <table className="w-full text-sm mb-4">
@@ -107,12 +115,19 @@ export function CompactBillTemplate({ org, invoice, lines, fmt, type = "invoice"
             <span>-{fmt(Number(invoice.total_discount))}</span>
           </div>
         )}
-        {Number(invoice.total_tax) > 0 && (
+        {taxBreakdown && taxBreakdown.length > 0 ? (
+          taxBreakdown.map((t, idx) => (
+            <div key={idx} className="flex justify-between">
+              <span className="text-primary font-semibold">{t.name}</span>
+              <span>{fmt(t.amount)}</span>
+            </div>
+          ))
+        ) : Number(invoice.total_tax) > 0 ? (
           <div className="flex justify-between">
             <span className="text-primary font-semibold">Tax</span>
             <span>{fmt(Number(invoice.total_tax))}</span>
           </div>
-        )}
+        ) : null}
         {Number(invoice.shipping_charge) > 0 && (
           <div className="flex justify-between">
             <span className="text-primary font-semibold">Shipping</span>

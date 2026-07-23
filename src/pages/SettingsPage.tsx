@@ -20,7 +20,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Loader2, Search } from "lucide-react";
+import { Plus, Trash2, Loader2, Search, Shield, Settings2, Receipt, Building2, Package } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { fetchGstDetails } from "@/lib/gst-service";
@@ -180,8 +180,23 @@ export default function SettingsPage() {
                   <Input value={orgForm.address.city} onChange={(e) => setOrgForm({ ...orgForm, address: { ...orgForm.address, city: e.target.value } })} />
                 </div>
                 <div className="space-y-2">
-                  <Label>State</Label>
-                  <Input value={orgForm.address.state} onChange={(e) => setOrgForm({ ...orgForm, address: { ...orgForm.address, state: e.target.value } })} />
+                  <Label>State (GST Code)</Label>
+                  <Select value={orgForm.address.state} onValueChange={(val) => setOrgForm({ ...orgForm, address: { ...orgForm.address, state: val } })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select State" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="27">27 - Maharashtra</SelectItem>
+                      <SelectItem value="07">07 - Delhi</SelectItem>
+                      <SelectItem value="09">09 - Uttar Pradesh</SelectItem>
+                      <SelectItem value="24">24 - Gujarat</SelectItem>
+                      <SelectItem value="29">29 - Karnataka</SelectItem>
+                      <SelectItem value="33">33 - Tamil Nadu</SelectItem>
+                      <SelectItem value="19">19 - West Bengal</SelectItem>
+                      <SelectItem value="08">08 - Rajasthan</SelectItem>
+                      <SelectItem value="00">00 - Other / Unregistered</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>Country</Label>

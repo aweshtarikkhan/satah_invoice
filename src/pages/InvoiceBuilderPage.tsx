@@ -7,6 +7,8 @@ import { logAudit } from "@/lib/audit";
 import { logStockMovements, detectNegativeStock } from "@/lib/stock";
 import { CustomFieldsForm, saveCustomFieldValues } from "@/components/shared/CustomFieldsForm";
 import { CURRENCIES, formatCurrency } from "@/lib/currency";
+import { stateCodeFromGstin } from "@/lib/gst";
+import { COMMON_UNITS, INDIAN_STATES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -62,7 +64,7 @@ interface LineItem {
   hsn_code: string;
 }
 
-const UNITS = ["pcs", "kg", "g", "ltr", "ml", "m", "cm", "ft", "inch", "box", "nos", "hrs", "days", "pair", "set", "sqft", "sqm", "ton", "dozen", "bundle", "roll", "bag", "carton"];
+const UNITS = COMMON_UNITS;
 
 function createEmptyLine(): LineItem {
   return {
@@ -85,6 +87,7 @@ function createEmptyLine(): LineItem {
 function SortableLineItem({
   line,
   index,
+  taxRates,
   items,
   onChange,
   onRemove,
@@ -93,6 +96,7 @@ function SortableLineItem({
 }: {
   line: LineItem;
   index: number;
+  taxRates: any[];
   items: any[];
   onChange: (index: number, field: string, value: any) => void;
   onRemove: (index: number) => void;
@@ -114,6 +118,7 @@ function SortableLineItem({
     onChange(index, "rate", Number(item.unit_price));
     onChange(index, "unit", item.unit || "pcs");
     onChange(index, "hsn_code", item.hsn_code || "");
+    onChange(index, "tax_id", item.tax_id || null);
     setItemDropdownOpen(false);
   };
 
@@ -132,7 +137,7 @@ function SortableLineItem({
       </button>
       <div className="grid flex-1 grid-cols-12 gap-2 items-start">
         {/* Item Details - Name + Description */}
-        <div className="col-span-5 space-y-1">
+        <div className="col-span-4 space-y-1">
           <div className="flex gap-0.5">
             <div className="relative flex-1">
               <Input
@@ -201,9 +206,27 @@ function SortableLineItem({
         <div className="col-span-2">
           <Input type="number" className="h-8 text-xs text-right" value={line.rate} onChange={(e) => onChange(index, "rate", parseFloat(e.target.value) || 0)} min={0} step="0.01" />
         </div>
+        {/* Tax */}
+        <div className="col-span-2">
+          <Select value={line.tax_id || "none"} onValueChange={(val) => onChange(index, "tax_id", val === "none" ? null : val)}>
+            <SelectTrigger className="h-8 text-[11px] px-2 bg-transparent border-dashed">
+              <SelectValue placeholder="Tax" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">No Tax</SelectItem>
+              {taxRates
+              .filter((t) => !t.name.toUpperCase().includes("CGST") && !t.name.toUpperCase().includes("SGST"))
+              .map((t) => (
+              <SelectItem key={t.id} value={t.id}>
+                {t.name.replace(/IGST/i, "GST")} ({t.rate}%)
+              </SelectItem>
+            ))}
+            </SelectContent>
+          </Select>
+        </div>
         {/* Amount */}
-        <div className="col-span-3 text-right pt-1">
-          <span className="text-sm font-bold">{fmt(line.amount)}</span>
+        <div className="col-span-2 text-right pt-1">
+          <span className="text-sm font-bold">{fmt(line.amount - (line.tax_amount || 0))}</span>
         </div>
       </div>
       <button onClick={() => onRemove(index)} className="text-muted-foreground hover:text-destructive shrink-0 mt-2 ml-1">
@@ -230,6 +253,7 @@ export default function InvoiceBuilderPage() {
   const [clientDropdownOpen, setClientDropdownOpen] = useState(false);
   const [addClientOpen, setAddClientOpen] = useState(false);
   const [addItemOpen, setAddItemOpen] = useState(false);
+  const [clientStateOverride, setClientStateOverride] = useState<string>("");
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [issueDate, setIssueDate] = useState(new Date().toISOString().split("T")[0]);
   const [dueDate, setDueDate] = useState("");
@@ -261,10 +285,6 @@ export default function InvoiceBuilderPage() {
   const [clientInvoices, setClientInvoices] = useState<any[]>([]);
   const [bulkAddOpen, setBulkAddOpen] = useState(false);
   const [bulkSelected, setBulkSelected] = useState<Set<string>>(new Set());
-  const [invoiceTaxIds, setInvoiceTaxIds] = useState<string[]>([]);
-  const [addTaxOpen, setAddTaxOpen] = useState(false);
-  const [newTaxName, setNewTaxName] = useState("");
-  const [newTaxRate, setNewTaxRate] = useState("");
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -416,20 +436,34 @@ export default function InvoiceBuilderPage() {
   }, [clientInvoices]);
 
 
-  const calculateLine = useCallback((line: LineItem): LineItem => {
+  const calculateLine = useCallback((line: LineItem, globalDiscountTotal: number, totalSubtotalWithoutDiscount: number): LineItem => {
     const lineSubtotal = line.quantity * line.rate;
-    const lineDiscount = line.discount_type === "percentage"
+    // Calculate global discount ratio
+    const ratio = totalSubtotalWithoutDiscount > 0 ? lineSubtotal / totalSubtotalWithoutDiscount : 0;
+    const globalDiscountAllocated = globalDiscountTotal * ratio;
+    
+    // Add item specific discount if applicable
+    const itemDiscount = line.discount_type === "percentage"
       ? lineSubtotal * (line.discount / 100)
       : line.discount;
-    const afterDiscount = lineSubtotal - lineDiscount;
-    return { ...line, tax_amount: 0, amount: afterDiscount };
-  }, []);
+      
+    const afterDiscount = Math.max(0, lineSubtotal - itemDiscount - globalDiscountAllocated);
+    
+    let tax_amount = 0;
+    if (line.tax_id) {
+      const tax = taxRates.find((t: any) => t.id === line.tax_id);
+      if (tax) {
+        tax_amount = afterDiscount * (Number(tax.rate) / 100);
+      }
+    }
+    
+    return { ...line, tax_amount, amount: afterDiscount + tax_amount };
+  }, [taxRates]);
 
   const handleLineChange = (index: number, field: string, value: any) => {
     setLines((prev) => {
       const updated = [...prev];
       updated[index] = { ...updated[index], [field]: value };
-      updated[index] = calculateLine(updated[index]);
       return updated;
     });
   };
@@ -448,15 +482,58 @@ export default function InvoiceBuilderPage() {
     }
   };
 
+  // State Detection
+  const orgState = useMemo(() => {
+    if (org?.gst_number) return stateCodeFromGstin(org.gst_number);
+    if (org?.address && typeof org.address === 'object' && (org.address as any).state) return String((org.address as any).state);
+    return null;
+  }, [org]);
+
+  const baseClientState = useMemo(() => {
+    const client = clients.find(c => c.id === clientId);
+    if (client?.tax_number) return stateCodeFromGstin(client.tax_number);
+    if (client?.billing_address && typeof client.billing_address === 'object' && (client.billing_address as any).state) return String((client.billing_address as any).state);
+    return null;
+  }, [clientId, clients]);
+
+  const clientState = clientStateOverride || baseClientState;
+
+  const isInterstate = Boolean(orgState && clientState && orgState !== clientState);
+
   // Totals
-  const subtotal = lines.reduce((s, l) => s + l.amount, 0);
-  const totalDiscount = discountType === "percentage" ? subtotal * (discount / 100) : discount;
-  const discountedSubtotal = subtotal - totalDiscount;
-  const selectedTaxes = taxRates.filter((t: any) => invoiceTaxIds.includes(t.id));
-  const taxBreakdown = selectedTaxes.map((t: any) => ({
-    id: t.id, name: t.name, rate: Number(t.rate),
-    amount: discountedSubtotal * (Number(t.rate) / 100),
-  }));
+  const rawSubtotal = lines.reduce((s, l) => s + (l.quantity * l.rate), 0);
+  const totalDiscount = discountType === "percentage" ? rawSubtotal * (discount / 100) : discount;
+  
+  // Calculate item-wise totals
+  const calculatedLines = lines.map(line => calculateLine(line, totalDiscount, rawSubtotal));
+  const subtotal = calculatedLines.reduce((s, l) => s + (l.quantity * l.rate), 0);
+  const discountedSubtotal = calculatedLines.reduce((s, l) => s + (l.amount - l.tax_amount), 0);
+  
+  // Aggregate Taxes
+  const taxBreakdownMap: Record<string, { id: string, name: string, rate: number, amount: number }> = {};
+  
+  calculatedLines.forEach(line => {
+    if (line.tax_id && line.tax_amount > 0) {
+      const tax = taxRates.find((t: any) => t.id === line.tax_id);
+      if (tax) {
+        const rate = Number(tax.rate);
+        if (isInterstate) {
+          const key = `IGST_${rate}`;
+          if (!taxBreakdownMap[key]) taxBreakdownMap[key] = { id: key, name: `IGST @ ${rate}%`, rate, amount: 0 };
+          taxBreakdownMap[key].amount += line.tax_amount;
+        } else {
+          const cgstKey = `CGST_${rate/2}`;
+          const sgstKey = `SGST_${rate/2}`;
+          if (!taxBreakdownMap[cgstKey]) taxBreakdownMap[cgstKey] = { id: cgstKey, name: `CGST @ ${rate/2}%`, rate: rate/2, amount: 0 };
+          if (!taxBreakdownMap[sgstKey]) taxBreakdownMap[sgstKey] = { id: sgstKey, name: `SGST @ ${rate/2}%`, rate: rate/2, amount: 0 };
+          taxBreakdownMap[cgstKey].amount += line.tax_amount / 2;
+          taxBreakdownMap[sgstKey].amount += line.tax_amount / 2;
+        }
+      }
+    }
+  });
+
+  const taxBreakdown = Object.values(taxBreakdownMap);
   const totalTax = taxBreakdown.reduce((s, t) => s + t.amount, 0);
   const total = discountedSubtotal + totalTax + shippingCharge + adjustment - expenses;
 
@@ -557,7 +634,7 @@ export default function InvoiceBuilderPage() {
       }
 
       // Insert lines
-      const linePayloads = validLines
+      const linePayloads = calculatedLines
         .filter((l) => l.name.trim() || l.rate > 0)
         .map((l, i) => ({
           invoice_id: invoiceId!,
@@ -570,7 +647,7 @@ export default function InvoiceBuilderPage() {
           discount: l.discount,
           discount_type: l.discount_type,
           tax_id: l.tax_id,
-          tax_amount: l.tax_amount,
+          tax_amount: l.tax_amount || 0,
           amount: l.amount,
           sort_order: i,
           hsn_code: l.hsn_code?.trim() || null,
@@ -809,6 +886,29 @@ export default function InvoiceBuilderPage() {
                     </div>
                   </div>
                 )}
+                
+                {/* State Override if Client State is missing */}
+                {clientId && !baseClientState && (
+                  <div className="mt-3 rounded-lg border border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950/30 p-3 space-y-2">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-yellow-700 dark:text-yellow-400">
+                      <AlertTriangle className="h-4 w-4" />
+                      Client state missing
+                    </div>
+                    <p className="text-xs text-yellow-600 dark:text-yellow-500">
+                      Select the client's state to correctly calculate CGST/SGST vs IGST.
+                    </p>
+                    <Select value={clientStateOverride} onValueChange={setClientStateOverride}>
+                      <SelectTrigger className="h-8 text-xs bg-white dark:bg-background">
+                        <SelectValue placeholder="Select State Code" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {INDIAN_STATES.map((state) => (
+                          <SelectItem key={state.code} value={state.code}>{state.code} - {state.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
             </div>
             <div className="space-y-4">
@@ -863,18 +963,20 @@ export default function InvoiceBuilderPage() {
         </CardHeader>
         <CardContent>
           <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider grid grid-cols-12 gap-2 px-6 pb-2 border-b">
-            <div className="col-span-5">Item Details</div>
+            <div className="col-span-4">Item Details</div>
             <div className="col-span-2 text-center">Quantity</div>
             <div className="col-span-2 text-right">Rate</div>
-            <div className="col-span-3 text-right">Amount</div>
+            <div className="col-span-2 text-left pl-2">Tax</div>
+            <div className="col-span-2 text-right">Amount</div>
           </div>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={lines.map((l) => l.id)} strategy={verticalListSortingStrategy}>
               {lines.map((line, index) => (
                 <SortableLineItem
                   key={line.id}
-                  line={line}
+                  line={calculatedLines[index] || line}
                   index={index}
+                  taxRates={taxRates}
                   items={catalogItems}
                   onChange={handleLineChange}
                   onRemove={removeLine}
@@ -961,6 +1063,7 @@ export default function InvoiceBuilderPage() {
                     line.unit = item.unit || "pcs";
                     line.quantity = 1;
                     line.hsn_code = item.hsn_code || "";
+                    line.tax_id = item.tax_id || null;
                     // Calculate amount
                     line.amount = line.quantity * line.rate;
                     newLines.push(line);
@@ -1100,54 +1203,8 @@ export default function InvoiceBuilderPage() {
             <div className="space-y-1">
               <div className="flex items-center justify-between text-sm gap-2">
                 <span className="text-muted-foreground">Tax</span>
-                <div className="flex items-center gap-1">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-7 text-xs min-w-[120px] justify-between">
-                        {invoiceTaxIds.length === 0 ? "Select taxes" : `${invoiceTaxIds.length} tax${invoiceTaxIds.length > 1 ? "es" : ""} selected`}
-                        <ChevronDown className="h-3 w-3 ml-1 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-56 p-2" align="end">
-                      <div className="space-y-1 max-h-48 overflow-y-auto">
-                        {taxRates.length === 0 && (
-                          <p className="text-xs text-muted-foreground py-2 text-center">No taxes added yet</p>
-                        )}
-                        {taxRates.map((t: any) => {
-                          const isSelected = invoiceTaxIds.includes(t.id);
-                          return (
-                            <div
-                              key={t.id}
-                              className="flex items-center gap-2 py-1.5 px-2 rounded cursor-pointer hover:bg-accent/50"
-                              onClick={() => {
-                                setInvoiceTaxIds((prev) =>
-                                  isSelected ? prev.filter((id) => id !== t.id) : [...prev, t.id]
-                                );
-                              }}
-                            >
-                              <div className={`h-4 w-4 rounded border flex items-center justify-center ${isSelected ? "bg-primary border-primary" : "border-input"}`}>
-                                {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
-                              </div>
-                              <span className="text-sm flex-1">{t.name}</span>
-                              <span className="text-xs text-muted-foreground">{t.rate}%</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div className="border-t mt-2 pt-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="w-full text-xs text-primary"
-                          onClick={() => setAddTaxOpen(true)}
-                        >
-                          <Plus className="h-3 w-3 mr-1" /> Add New Tax
-                        </Button>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
               </div>
+              {taxBreakdown.length === 0 && <span className="text-xs text-muted-foreground">No taxes applied</span>}
               {taxBreakdown.map((tb) => (
                 <div key={tb.id} className="flex items-center justify-between text-xs pl-4 text-muted-foreground">
                   <span>{tb.name} ({tb.rate}%)</span>
@@ -1197,39 +1254,7 @@ export default function InvoiceBuilderPage() {
         </Card>
       </div>
 
-      {/* Add Tax Dialog */}
-      <Dialog open={addTaxOpen} onOpenChange={setAddTaxOpen}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Add New Tax Rate</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="space-y-1">
-              <Label className="text-xs">Tax Name</Label>
-              <Input value={newTaxName} onChange={(e) => setNewTaxName(e.target.value)} placeholder="e.g. GST 18%" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Rate (%)</Label>
-              <Input type="number" value={newTaxRate} onChange={(e) => setNewTaxRate(e.target.value)} placeholder="18" min={0} step="0.01" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setAddTaxOpen(false)}>Cancel</Button>
-            <Button onClick={async () => {
-              if (!newTaxName.trim() || !newTaxRate) { toast({ title: "Fill all fields", variant: "destructive" }); return; }
-              const { data, error } = await supabase.from("tax_rates").insert({
-                org_id: org!.id, name: newTaxName.trim(), rate: parseFloat(newTaxRate), type: "simple",
-              }).select().single();
-              if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
-              setTaxRates((prev) => [...prev, data]);
-              setInvoiceTaxIds((prev) => [...prev, data.id]);
-              setNewTaxName(""); setNewTaxRate("");
-              setAddTaxOpen(false);
-              toast({ title: `Tax "${data.name}" added` });
-            }}>Add Tax</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
     </div>
   );
 }
